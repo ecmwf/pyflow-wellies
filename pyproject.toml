@@ -40,6 +40,15 @@ dependencies = [
     test = [
         "pytest",
     ]
+    docs = [
+        "mkdocs",
+        "mkdocs-material",
+        "mkdocstrings-python",
+        "mkdocs-autorefs",
+        "mkdocs-gen-files",
+        "pymdown-extensions",
+        "markdown-exec[ansi]",
+    ]
 
 [project.scripts]
     wellies-quickstart = "wellies.quickstart:main"

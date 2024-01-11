@@ -68,12 +68,12 @@ def deploy_package_script(
 
     Parameters
     ----------
-        package: str
-            name of the package
-        options: dict
-            dictionary of options for the package
-        lib_dir: str
-            directory where to install the package  (default: $LIB_DIR)
+    package: str
+        name of the package
+    options: dict
+        dictionary of options for the package
+    lib_dir: str
+        directory where to install the package  (default: $LIB_DIR)
     """
     data_installer = data.parse_static_data_item(
         os.path.join(lib_dir, "build", "${ENV_NAME:-" "}"), package, options
@@ -107,18 +107,18 @@ class Tool:
 
         Parameters
         ----------
-            name: str
-                name of the tool
-            depends: list of str
-                list of tools that must be loaded before this tool
-            load: str or list of str
-                bash script to load the tool
-            unload: str or list of str
-                bash script to unload the tool
-            setup: str or list of str
-                bash script to setup the tool
-            options: dict
-                dictionary of options for the tool
+        name: str
+            name of the tool
+        depends: list of str
+            list of tools that must be loaded before this tool
+        load: str or list of str
+            bash script to load the tool
+        unload: str or list of str
+            bash script to unload the tool
+        setup: str or list of str
+            bash script to setup the tool
+        options: dict
+            dictionary of options for the tool
         """
         self.name = name
         self.options = options
@@ -144,16 +144,16 @@ class ModuleTool(Tool):
 
         Parameters
         ----------
-            name: str
-                name of the tool
-            module_name: str
-                name of the module
-            version: str
-                version of the module
-            depends: list of str
-                list of tools that must be loaded before this tool
-            options: dict
-                dictionary of options for the tool
+        name: str
+            name of the tool
+        module_name: str
+            name of the module
+        version: str
+            version of the module
+        depends: list of str
+            list of tools that must be loaded before this tool
+        options: dict
+            dictionary of options for the tool
         """
         load = pf.TemplateScript(
             module_load, NAME=module_name, VERSION=version
@@ -178,18 +178,18 @@ class PrivateModuleTool(Tool):
 
         Parameters
         ----------
-            name: str
-                name of the tool
-            module_name: str
-                name of the module
-            version: str
-                version of the module
-            modulefiles: str
-                path to the custom modulefile
-            depends: list of str
-                list of tools that must be loaded before this tool
-            options: dict
-                dictionary of options for the tool
+        name: str
+            name of the tool
+        module_name: str
+            name of the module
+        version: str
+            version of the module
+        modulefiles: str
+            path to the custom modulefile
+        depends: list of str
+            list of tools that must be loaded before this tool
+        options: dict
+            dictionary of options for the tool
         """
         load = pf.TemplateScript(
             module_use + module_load,
@@ -221,18 +221,18 @@ class EnvVarTool(Tool):
 
         Parameters
         ----------
-            name: str
-                name of the tool
-            var: str
-                name of the envirpnment variable
-            value: str
-                path to set to the environment variable
-            setup: str or list of str
-                setup script used to deploy the tool
-            depends: list of str
-                list of tools that must be loaded before this tool
-            options: dict
-                dictionary of options for the tool
+        name: str
+            name of the tool
+        var: str
+            name of the envirpnment variable
+        value: str
+            path to set to the environment variable
+        setup: str or list of str
+            setup script used to deploy the tool
+        depends: list of str
+            list of tools that must be loaded before this tool
+        options: dict
+            dictionary of options for the tool
         """
         load_tplt = env_var_load
         unload_tplt = env_var_unload
@@ -262,14 +262,14 @@ class FolderTool(EnvVarTool):
 
         Parameters
         ----------
-            name: str
-                name of the tool.
-            lib_dir: str
-                path to the lib directory of the suite.
-            depends: list of str
-                list of tools that must be loaded before this tool.
-            options: dict
-                dictionary of options for the tool.
+        name: str
+            name of the tool.
+        lib_dir: str
+            path to the lib directory of the suite.
+        depends: list of str
+            list of tools that must be loaded before this tool.
+        options: dict
+            dictionary of options for the tool.
         """
         folder_path = path.join(lib_dir, name)
         setup = [
@@ -290,12 +290,12 @@ class PackageTool(Tool):
 
         Parameters
         ----------
-            name: str
-                name of the tool.
-            lib_dir: str
-                path to the lib directory.
-            options: dict
-                dictionary of options for the tool.
+        name: str
+            name of the tool.
+        lib_dir: str
+            path to the lib directory.
+        options: dict
+            dictionary of options for the tool.
         """
         depends = options.get("depends", [])
         setup = deploy_package_script(name, options, lib_dir)
@@ -443,6 +443,7 @@ class FileCondaEnvTool(CondaEnvTool):
         The conda environment is created from a conda environment file.
         The path to the environment file is specified as a dictionary following
         the StaticData options format, for instance:
+        ```yaml
         my_env:
             env_file:
                 type: copy
@@ -453,6 +454,7 @@ class FileCondaEnvTool(CondaEnvTool):
                 source: git@github.com:myrepo.git
                 branch: master
                 files: myenvironment.yml
+        ```
 
         Parameters
         ----------
@@ -537,22 +539,22 @@ def parse_environment(
 
     Parameters
     ----------
-        lib_dir : str
-            The lib directory of the suite where the tools are installed.
-        name : str
-            The name of the environment.
-        options : dict
-            A dictionary containing the environment options.
+    lib_dir : str
+        The lib directory of the suite where the tools are installed.
+    name : str
+        The name of the environment.
+    options : dict
+        A dictionary containing the environment options.
 
     Returns
     -------
-        Tool: A Tool object representing the environment.
+    Tool: A Tool object representing the environment.
 
     Raises
     -------
-        Exception: If the environment type is not supported or if certain
-            options are used together.
-        NotImplementedError: If the environment type is not implemented.
+    Exception: If the environment type is not supported or if certain
+        options are used together.
+    NotImplementedError: If the environment type is not implemented.
     """
     type = options["type"]
     depends = options.get("depends", [])
@@ -614,16 +616,16 @@ def parse_package(
 
     Parameters
     ----------
-        lib_dir : str
-            The lib directory of the suite where the tools are installed.
-        name : str
-            The name of the package.
-        options : dict
-            A dictionary containing the package options.
+    lib_dir : str
+        The lib directory of the suite where the tools are installed.
+    name : str
+        The name of the package.
+    options : dict
+        A dictionary containing the package options.
 
     Returns
     -------
-        PackageTool: A Tool object representing the package.
+    PackageTool: A Tool object representing the package.
     """
     package = PackageTool(name, lib_dir, options)
     return package
@@ -635,14 +637,14 @@ def parse_module(name: str, options: Dict[str, any]) -> Tool:
 
     Parameters
     ----------
-        name : str
-            The name of the module.
-        options : dict
-            A dictionary containing the module options.
+    name : str
+        The name of the module.
+    options : dict
+        A dictionary containing the module options.
 
     Returns
     -------
-        Tool: Either a ModuleTool or a PrivateModuleTool object.
+    Tool: Either a ModuleTool or a PrivateModuleTool object.
     """
     module_name = options.get("name", name)
     version = options.get("version", "default")
@@ -663,14 +665,14 @@ def parse_env_var(name: str, options: Dict[str, any]) -> EnvVarTool:
 
     Parameters
     ----------
-        name : str
-            The name of the environment.
-        options : dict
-            A dictionary containing the environment options.
+    name : str
+        The name of the environment.
+    options : dict
+        A dictionary containing the environment options.
 
     Returns
     -------
-        Tool: A Tool object representing the environment variable tool.
+    Tool: A Tool object representing the environment variable tool.
     """
     variable = options.get("variable", name)
     value = options.get("value", "")
@@ -748,7 +750,7 @@ class ToolStore:
 
         Returns
         -------
-            dict: a dictionary of tools -> scripts
+        dict: a dictionary of tools -> scripts
         """
         tool = self.tools[toolname]
         script = {}
@@ -769,7 +771,7 @@ class ToolStore:
 
         Returns
         -------
-            list : a list of scripts to load the tools
+        list : a list of scripts to load the tools
         """
         if not isinstance(tools, list):
             tools = [tools]
@@ -791,7 +793,7 @@ class ToolStore:
 
         Returns
         -------
-            list : a list of scripts to unload the tools
+        list : a list of scripts to unload the tools
         """
         if not isinstance(tools, list):
             tools = [tools]
@@ -817,7 +819,7 @@ class ToolStore:
 
         Returns
         -------
-            list : a list of scripts to setup the tool
+        list : a list of scripts to setup the tool
         """
         script = {}
         script["head"] = "# load tools and activate environment"
@@ -838,7 +840,7 @@ class ToolStore:
 
         Returns
         -------
-            list : the list of dependcies of the tool
+        list : the list of dependcies of the tool
         """
         tool = self.tools[toolname]
         depends = []

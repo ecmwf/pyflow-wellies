@@ -2,11 +2,23 @@ import os
 
 import pyflow as pf
 
-from wellies import mars, parse_yaml_files, scripts
+from wellies import mars, scripts, parse_yaml_files
 
 
 class DeployDataFamily(pf.AnchorFamily):
     def __init__(self, data_store, exec_context={}, **kwargs):
+        """Defines "static_data" family contaning all tasks needed to deploy 
+        all types of datasets defined on a [data.StaticDataStore].
+
+        Parameters
+        ----------
+        data_store : data.StaticDataStore
+            A static data store object, usually created from a dictionary-like 
+            definition.
+        exec_context : dict, optional
+            An execution context mapping to configure each task submit arguments,
+            by default {}
+        """
         super().__init__(name="deploy_data", **kwargs)
 
         with self:
@@ -233,11 +245,11 @@ class StaticDataStore:
 
         Parameters
         ----------
-            data_dir (str):
-                The directory where the data is stored on the running host.
-            static_data_dict (dict):
-                A dictionary containing the names of the static data items as
-                keys and their deployment options as values.
+        data_dir (str):
+            The directory where the data is stored on the running host.
+        static_data_dict (dict):
+            A dictionary containing the names of the static data items as
+            keys and their deployment options as values.
         """
         self.static_data = {}
         for name, options in static_data_dict.items():
@@ -246,6 +258,10 @@ class StaticDataStore:
 
     def __getitem__(self, item):
         return self.static_data[item]
+
+    def __repr__(self) -> str:
+        items = str({name: it.options for name, it in self.items()})
+        return f"StaticDataStore: {items}"
 
     def items(self):
         return self.static_data.items()

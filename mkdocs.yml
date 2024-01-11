@@ -1,0 +1,118 @@
+site_name: Wellies documentation
+repo_url: https://github.com/ecmwf/pyflow-wellies
+
+nav:
+  - Getting started:
+    - General: index.md
+  - Reference:
+    - Suite configuration:
+      - General options: configurations.md
+      - Tools:
+        - Tool types: config/tools_config.md
+        - Deployment (Tool Store): config/deploy_tools.md
+      - Execution contexts: config/exec_config.md
+      - Static data: 
+        - Data types: config/data_config.md
+        - Deployment: config/deploy_data.md
+  - Tutorials:
+    - Building a new suite: quickstart_guide.md
+  #- How to guides:
+  - API:
+    - Suite building:
+      - get_parser: api/config/get_parser.md
+      - parse_yaml_files: api/config/parser_yaml.md
+      - parse_environment: api/config/parse_env.md
+      - parse_execution_contexts: api/config/parser_exec_contexts.md
+      - deploy_suite: api/deployment.md
+      - get_host: api/get_host.md
+    - Data Store:
+      - StaticData: api/data/static_data.md
+      - RsyncData: api/data/rsync_data.md
+      - CopyData: api/data/copy_data.md
+      - GitData: api/data/git_data.md
+      - ECFSData: api/data/ecfs_data.md
+      - LinkData: api/data/link_data.md
+      - MarsData: api/data/mars_data.md
+      - CustomData: api/data/custom_data.md
+      - StaticDataStore: api/data/static_data_store.md
+    - Tools Store:
+      - Tool: api/tools/tool.md
+      - ModuleTool: api/tools/module_tool.md
+      - PrivateModuleTool: api/tools/private_module.md
+      - EnvVarTool: api/tools/env_var.md
+      - FolderTool: api/tools/folder.md
+      - PackageTool: api/tools/package.md
+      - VirtualEnvTool: api/tools/python_venv.md
+      - SystemEnvTool: api/tools/system_venv.md
+      - CondaEnvTool: api/tools/conda_env.md
+      - FileCondaEnvTool: api/tools/file_conda_env.md
+      - SimpleCondaEnvTool: api/tools/conda_pkg.md
+      - ToolStore: api/tools/tool_store.md
+    - Node helpers:
+      - OnceAMonthFamily: api/nodes/once_month.md
+      - EcfResourcesTask: api/nodes/autovariables_task.md
+      - DeployToolsFamily: api/nodes/deploy_tools.md
+      - DeployPackagesFamily: api/nodes/deploy_pkg.md
+      - DeployDataFamily: api/nodes/deploy_data_family.md
+    - Scripting:
+      - Mars:
+        - Request: api/mars/request.md
+
+exclude_docs: |
+  _*.md
+
+plugins:
+  - search
+  - autorefs
+  - markdown-exec
+  # - gen-files:
+  #     scripts:
+  #       - docs/scripts/gen-ref-pages.py
+  - mkdocstrings:
+        default_handler: python
+        enable_inventory: true
+        handlers:
+          python:
+            import:
+              - url: https://pyflow-workflow-generator.readthedocs.io/en/latest/objects.inv
+            options:
+              show_source: false
+              docstring_style: numpy
+              heading_level: 3
+              show_root_heading: true
+              show_category_heading: true
+              merge_init_into_class: true
+              show_docstrings_attributes: true
+              line_length: 79
+              signature_crossrefs: true
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - python
+    - bash
+    - shell
+  include_homepage_in_sidebar: true
+  prev_next_buttons_location: bottom
+  navigation_depth: 3
+  collapse_navigation: true
+  titles_only: false
+  sticky_navigation: true
+  locale: en
+  logo: img/logo_tiny.ico
+
+markdown_extensions:
+  - toc:
+      permalink: "#"
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+  # - pymdownx.tabbed:
+  #     alternate_style: true
+  - pymdownx.superfences
+  - pymdownx.saneheaders
+  - pymdownx.details
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.tab

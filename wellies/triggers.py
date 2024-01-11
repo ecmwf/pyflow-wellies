@@ -11,7 +11,7 @@ class OnceAMonthFamily(pf.Family):
     A family whose tasks are only run once a month while
     another/superior YMD is daily.
 
-    Arguments:
+    Parameters
     ----------
     name : str
         Family name.
