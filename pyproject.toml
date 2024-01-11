@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=65", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wellies"
+requires-python = ">=3.8"
+authors = [
+    {name = "Corentin Carton de Wiart", email = "corentin.carton@ecmwf.int"},
+]
+description = "Collection of pyflow tools for ecflow suites"
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License", 
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Scientific/Engineering",
+]
+readme = "README.md"
+dynamic = ["version"]
+
+dependencies = [
+    "jinja2",
+    "pyyaml",
+    "pyflow-workflow-generator @ git+https://github.com/ecmwf/pyflow.git",
+    "tracksuite @ git+https://github.com/ecmwf/tracksuite.git",
+]
+
+[project.urls]
+    repository = "https://git.ecmwf.int/projects/ECFLOW/repos/wellies"
+    # documentation
+    # homepage
+    # changelog
+
+[project.optional-dependencies]
+    test = [
+        "pytest",
+    ]
+
+[project.scripts]
+    wellies-quickstart = "wellies.quickstart:main"
+
+[tool.black] 
+line-length = 79
+
+[tool.pytest]
+addopts = "--pdbcls=IPython.terminal.debugger:Pdb"
+testpaths = [
+    "tests",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests"]
+
+[tool.setuptools_scm]
+write_to = "wellies/_version.py"
+write_to_template = '''
+# Do not change! Do not track in version control!
+__version__ = "{version}"
+'''
+parentdir_prefix_version='wellies-'  # get version from GitHub-like tarballs
+fallback_version='0.7'
+
