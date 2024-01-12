@@ -4,10 +4,15 @@
 
 A set of tools to build consistent pyflow suites.
 
-## Installation
+## Installation from source
+
+First, build a conda environment with dependencies
+
+    conda env create -f ./environment.yml -n wellies-env
 
 Install Wellies in your environment:
 
+    conda activate wellies-env
     pip install .
 
 ## Create empty suite
