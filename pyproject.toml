@@ -3,38 +3,42 @@ requires = ["setuptools>=65", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wellies"
+name = "pyflow-wellies"
 requires-python = ">=3.8"
 authors = [
     {name = "Corentin Carton de Wiart", email = "corentin.carton@ecmwf.int"},
 ]
+maintainers = [
+    {name = "Juan Pereira Colonese", email = "juan.colonese@ecmwf.int"},
+]
 description = "Collection of pyflow tools for ecflow suites"
 license = {file = "LICENSE"}
 classifiers = [
-    "Development Status :: Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License", 
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Code Generators",
 ]
-readme = "README.md"
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 
 dependencies = [
     "jinja2",
     "pyyaml",
-    "pyflow-workflow-generator @ git+https://github.com/ecmwf/pyflow.git",
-    "tracksuite @ git+https://github.com/ecmwf/tracksuite.git",
+    "pyflow-workflow-generator",
+    #tracksuite,  # not in PyPi yet
 ]
 
 [project.urls]
-    repository = "https://git.ecmwf.int/projects/ECFLOW/repos/wellies"
-    # documentation
-    # homepage
-    # changelog
+    repository = "https://github.com/ecmwf/pyflow-wellies"
+    documentation = "https://pyflow-wellies.readthedocs.io"
+    issues = "https://github.com/ecmwf/pyflow-wellies/issues"
 
 [project.optional-dependencies]
     test = [
@@ -53,17 +57,23 @@ dependencies = [
 [project.scripts]
     wellies-quickstart = "wellies.quickstart:main"
 
+# Code inspection
 [tool.black] 
 line-length = 79
 
+# Testing
 [tool.pytest]
 addopts = "--pdbcls=IPython.terminal.debugger:Pdb"
 testpaths = [
     "tests",
 ]
 
+# Packaging/setuptools options
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -75,6 +85,6 @@ write_to_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"
 '''
-parentdir_prefix_version='wellies-'  # get version from GitHub-like tarballs
+parentdir_prefix_version='pyflow-wellies-'  # get version from GitHub-like tarballs
 fallback_version='0.7'
 
