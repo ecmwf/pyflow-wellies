@@ -83,8 +83,8 @@ and after loading it on a running ecflow server it will give the suite
 This will provide a starting base for your suite. From there you can modify the 
 project towards your own workflow.
 
-The **How-to guides** section contains further examples on suite 
+The [Tutorials](quickstart_guide.md) section contains further examples on suite 
 development from this base structure.
 
 For details about how wellies can help configuring your suites, please check one 
-of the **Tutorials**.
+of the [Suite Configuration](configurations.md) section.
