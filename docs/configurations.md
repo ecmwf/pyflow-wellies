@@ -70,6 +70,7 @@ from wellies.config import get_user_globals
 current_user=getpass.getuser()
 varnames=get_user_globals()
 varnames={ k: v.replace(current_user, 'username') for k,v in varnames.items()}
+varnames["PWD"]="/current/working/directory"
 pretty='\n'.join([f"{k}: '{v}'" for k,v in varnames.items()])
 print(f"```\n{pretty}\n```")
 ```
