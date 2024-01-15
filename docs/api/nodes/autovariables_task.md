@@ -1,1 +1,0 @@
-::: wellies.tasks.EcfResourcesTask
