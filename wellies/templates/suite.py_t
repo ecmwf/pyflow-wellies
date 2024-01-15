@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import os
 
-from suite.nodes import MainSuite
-
 import wellies as wl
+from suite.nodes import MainSuite
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 

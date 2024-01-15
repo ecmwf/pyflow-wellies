@@ -1,8 +1,7 @@
 import os
 
 import pyflow as pf
-
-from wellies import mars, scripts, parse_yaml_files
+from wellies import mars, parse_yaml_files, scripts
 
 
 class DeployDataFamily(pf.AnchorFamily):

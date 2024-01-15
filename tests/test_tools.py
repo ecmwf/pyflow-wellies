@@ -3,9 +3,9 @@ import os
 from functools import partial
 from textwrap import dedent
 
-import pyflow as pf
 import pytest
 
+import pyflow as pf
 import wellies as wl
 from wellies import tools
 
