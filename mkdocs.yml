@@ -13,6 +13,7 @@ nav:
     - Static Data Deployment: config/deploy_data.md
   - Tutorials:
     - Building a new suite: quickstart_guide.md
+    - Git-Tracked deployment: tracksuite_guide.md
   #- How to guides:
   - API:
     - Suite Building: api/config.md
