@@ -64,10 +64,10 @@ As a shortcut, access to some common system-wide variables is made available on
 wellies and can be used anywhere in any configuration file.
 
 ```python exec="true" id="get-uservars"
-import os,sys
+import os, sys, getpass
 sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.config import get_user_globals
-current_user=os.environ['USER']
+current_user=getpass.getuser()
 varnames=get_user_globals()
 varnames={ k: v.replace(current_user, 'username') for k,v in varnames.items()}
 pretty='\n'.join([f"{k}: '{v}'" for k,v in varnames.items()])

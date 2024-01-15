@@ -30,7 +30,7 @@ static_data:
         post_script: "echo 'Copy Done'"
 ```
 
-```python exec="true"
+```python exec="true" session="deploy_data"
 content='''
 static_data:
     mars_data:
@@ -52,9 +52,9 @@ static_data:
         files: [dem.grib, landcover.grib]
         post_script: "echo 'Copy Done'"
 '''
-import os
-tmpdir=os.environ['TMPDIR']
-with open(f"{tmpdir}/data.yaml", 'w') as fdata:
+import os, tempfile
+tmpdirname = tempfile.mkdtemp()
+with open(f"{tmpdirname}/data.yaml", 'w') as fdata:
   fdata.write(content)
 ```
 
@@ -62,8 +62,9 @@ Then, the code to go from the configuration file to the [wellies.StaticDataStore
 including all the retrieval scripts, will look like:
 
 ```python exec="true" source="above" result="python" session="deploy_data"
+import os; curdir=os.getcwd(); os.chdir(tmpdirname)  # markdown-exec: hide
+
 from wellies import parse_yaml_files, StaticDataStore
-import os; curdir=os.getcwd(); os.chdir(os.environ['TMPDIR'])  # markdown-exec: hide
 options = parse_yaml_files(["data.yaml"])
 os.chdir(curdir)  # markdown-exec: hide
 sdata_store = StaticDataStore("$DATA_DIR", options["static_data"])

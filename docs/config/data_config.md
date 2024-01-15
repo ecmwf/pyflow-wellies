@@ -101,18 +101,21 @@ static_data:
 wellies data script snippet
 
 ```python exec="true" id="rsync_files"
-import os,sys
+import os, sys, tempfile
 sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.data import RsyncData
 extra_content = ["echo 'running after every other command'", "echo 'bye  bye'"]
-tmpdir=os.environ["TMPDIR"]
-with open(f"{tmpdir}/install.sh", "w") as ftmp:
-    for line in extra_content:
-        ftmp.write(line + "\n")
+with tempfile.TemporaryDirectory() as tmpdirname:
+    with open(f"{tmpdirname}/install.sh", "w") as ftmp:
+        for line in extra_content:
+            ftmp.write(line + "\n")
 
-ldata = RsyncData("$DATA_DIR", "copy_data", {"source": "/path/to/dir", "files": ["dis.nc", "scov.nc"], "rsync_options": "-avz", "post_script": "$TMPDIR/install.sh"})
-script='\n'.join(ldata.script.generate_stub())
-print(f"```shell\n{script}\n```" )
+    ldata = RsyncData(
+        "$DATA_DIR", 
+        "copy_data", 
+        {"source": "/path/to/dir", "files": ["dis.nc", "scov.nc"], "rsync_options": "-avz", "post_script": f"{tmpdirname}/install.sh"})
+    script='\n'.join(ldata.script.generate_stub())
+    print(f"```shell\n{script}\n```" )
 ```
 
 ### Git data
@@ -121,11 +124,11 @@ Configuration entry and assuming `DATA_DIR` is a well defined suite variable.
 
 ```yaml title="data.yaml"
 static_data:
-    git_data:
-        type: git
-        source: "git.example.com/repo.git"
-        branch: main
-        pre_script: "git config --global user.name 'John Doe'"
+  git_data:
+    type: git
+    source: "git.example.com/repo.git"
+    branch: main
+    pre_script: "git config --global user.name 'John Doe'"
 ```
 
 wellies data script snippet
@@ -242,16 +245,20 @@ static_data:
 wellies data script snippet
 
 ```python exec="true" id="custom_data"
-import os,sys
+import os,sys, tempfile
 sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.data import CustomData
 extra_content = ["echo 'running data_retrieve.sh script contents'", "echo 'end of script'"]
-tmpdir=os.environ["TMPDIR"]
-with open(f"{tmpdir}/retrieve_data.sh", "w") as ftmp:
-    for line in extra_content:
-        ftmp.write(line + "\n")
+with tempfile.TemporaryDirectory() as tmpdirname:
+    with open(f"{tmpdirname}/retrieve_data.sh", "w") as ftmp:
+        for line in extra_content:
+            ftmp.write(line + "\n")
 
-ldata = CustomData("$DATA_DIR", "custom_data", {"pre_script": f"{tmpdir}/retrieve_data.sh", "post_script": ["cd $DATA_DIR/custom_data", "tar -xvf *.tar", "cd -"]})
-script='\n'.join(ldata.script.generate_stub())
+    ldata = CustomData(
+        "$DATA_DIR",
+        "custom_data",
+        {"pre_script": f"{tmpdirname}/retrieve_data.sh", "post_script": ["cd $DATA_DIR/custom_data", "tar -xvf *.tar", "cd -"]}
+    )
+    script='\n'.join(ldata.script.generate_stub())
 print(f"```shell\n{script}\n```" )
 ```

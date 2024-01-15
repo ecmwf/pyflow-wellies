@@ -49,7 +49,7 @@ tools:
       packages: ["scripts"]
 ```
 
-```python exec="true"
+```python exec="true" session="deploy_tools"
 content='''
 tools:
   modules:
@@ -85,18 +85,19 @@ tools:
       depends: ["toolbox", "PYTHONPATH"]
       packages: ["scripts"]
 '''
-import os
-tmpdir=os.environ['TMPDIR']
-with open(f"{tmpdir}/tools.yaml", 'w') as ftools:
-  ftools.write(content)
+import os, tempfile
+tmpdirname = tempfile.mkdtemp()
+with open(f"{tmpdirname}/tools.yaml", 'w') as ftools:
+    ftools.write(content)
 ```
 
 Then, the code to go from the configuration file to the [wellies.ToolStore][], 
 will look like:
 
 ```python exec="true" source="above" result="python" session="deploy_tools"
+import os; curdir=os.getcwd(); os.chdir(tmpdirname)  # markdown-exec: hide
+
 from wellies import parse_yaml_files, ToolStore
-import os; curdir=os.getcwd(); os.chdir(os.environ['TMPDIR'])  # markdown-exec: hide
 options = parse_yaml_files(["tools.yaml"])
 os.chdir(curdir)  # markdown-exec: hide
 tool_store = ToolStore("$LIB_DIR", options["tools"])
