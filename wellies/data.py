@@ -6,17 +6,17 @@ from wellies import mars, parse_yaml_files, scripts
 
 class DeployDataFamily(pf.AnchorFamily):
     def __init__(self, data_store, exec_context={}, **kwargs):
-        """Defines "static_data" family contaning all tasks needed to deploy 
+        """Defines "static_data" family contaning all tasks needed to deploy
         all types of datasets defined on a [data.StaticDataStore].
 
         Parameters
         ----------
         data_store : data.StaticDataStore
-            A static data store object, usually created from a dictionary-like 
+            A static data store object, usually created from a dictionary-like
             definition.
         exec_context : dict, optional
-            An execution context mapping to configure each task submit arguments,
-            by default {}
+            An execution context mapping to configure each task submit
+            arguments, by default {}
         """
         super().__init__(name="deploy_data", **kwargs)
 
@@ -275,4 +275,4 @@ class StaticDataStore:
                 rootname = options[data_dir]
             else:
                 rootname = data_dir
-        cls(rootname, options['static_data'])
+        cls(rootname, options["static_data"])

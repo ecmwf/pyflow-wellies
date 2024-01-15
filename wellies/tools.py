@@ -346,7 +346,7 @@ class VirtualEnvTool(Tool):
         ]
         if extra_packages:
             setup.extend(load)
-            pkgs = ' '.join(extra_packages)
+            pkgs = " ".join(extra_packages)
             setup.append(f"pip install {pkgs}")
         super().__init__(name, depends, load, unload, setup, options=options)
 
@@ -563,10 +563,11 @@ def parse_environment(
         extra_packages = options.get("extra_packages", [])
         venv_options = options.get("venv_options", [])
         env = SystemEnvTool(
-            name, lib_dir,
+            name,
+            lib_dir,
             venv_options=venv_options,
             extra_packages=extra_packages,
-            depends=depends
+            depends=depends,
         )
     elif type == "conda" and "environment" in options:
         if "env_file" in options or "extra_packages" in options:

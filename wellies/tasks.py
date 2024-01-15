@@ -18,7 +18,8 @@ class EcfResourcesTask(pf.Task):
       - ECF_*
 
     !!! Attention
-        Following names will generate variables with other names than config keys:
+        Following names will generate variables with other names than config
+        keys:
         - TMPDIR -> SSDTMP
     """
 

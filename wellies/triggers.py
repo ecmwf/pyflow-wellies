@@ -96,8 +96,8 @@ class OnceAMonthFamily(pf.Family):
         )
 
     def generate_node(self):
-        """Before generating node, make sure update_ymd_task is only triggered when all
-        other tasks have completed.
+        """Before generating node, make sure update_ymd_task is only
+        triggered when all other tasks have completed.
         """
         chld = [
             c
