@@ -3,9 +3,9 @@ import os
 from functools import partial
 from textwrap import dedent
 
+import pyflow as pf
 import pytest
 
-import pyflow as pf
 import wellies as wl
 from wellies import tools
 
@@ -140,7 +140,8 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "unload": ["deactivate"],
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
-                f"python3 -m venv {self.lib_dir}/{test_target}  --system-site-packages {extra_pkgs}",
+                f"python3 -m venv {self.lib_dir}/{test_target}  --system-site-packages",
+                f"pip install {extra_pkgs}",
             ],
         }
 
@@ -187,9 +188,9 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         expected = {
             "load": [
-                "set +u",
+                "set +ux",
                 f"conda activate {self.lib_dir}/{test_target}",
-                "set -u",
+                "set -ux",
             ],
             "unload": ["conda deactivate"],
             "setup": [
@@ -211,7 +212,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         conda_prefix = tools_config["environments"][test_target]["environment"]
 
         expected = {
-            "load": ["set +u", f"conda activate {conda_prefix}", "set -u"],
+            "load": ["set +ux", f"conda activate {conda_prefix}", "set -ux"],
             "unload": ["conda deactivate"],
             "setup": [],
         }
@@ -230,9 +231,9 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         expected = {
             "load": [
-                "set +u",
+                "set +ux",
                 f"conda activate {self.lib_dir}/{test_target}",
-                "set -u",
+                "set -ux",
             ],
             "unload": ["conda deactivate"],
             "setup": [
@@ -263,9 +264,9 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         expected = {
             "load": [
-                "set +u",
+                "set +ux",
                 f"conda activate {self.lib_dir}/{test_target}",
-                "set -u",
+                "set -ux",
             ],
             "unload": ["conda deactivate"],
             "setup": [
