@@ -28,7 +28,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with: 
+        with:
+          fetch-depth: 0
           fetch-tags: True
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -51,3 +52,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
