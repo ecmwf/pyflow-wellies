@@ -7,4 +7,4 @@ dependencies:
   - ecflow
   - pip:
     - pyflow-workflow-generator
-    - "tracksuite @ git+https://github.com/ecmwf/tracksuite.git"
+    - "tracksuite @ git+https://github.com/ecmwf/tracksuite.git@hotfix/gh_actions_refspec"
