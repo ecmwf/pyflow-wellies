@@ -17,9 +17,10 @@ class EcfResourcesTask(pf.Task):
       - STHOST
       - ECF_*
 
-    :Attention: Following names will generate variables with other names than
-    config keys
-      - TMPDIR -> SSDTMP
+    !!! Attention
+        Following names will generate variables with other names than config
+        keys:
+        - TMPDIR -> SSDTMP
     """
 
     protected_list = [

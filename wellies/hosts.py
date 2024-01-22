@@ -18,20 +18,20 @@ def get_host(
 
     Parameters
     ----------
-        hostname (str):
-            The name of the host to connect to.
-        user (str):
-            The username to use when connecting to the host.
-        ecflow_path (str, optional):
-            The path to the ecflow_client executable.
-            If None, try to get the current path from the ecflow_client
-            executable.
-            Defaults to None.
-        server_ecfvars (bool, optional):
-            Whether to use server-side ECF_ variables. Defaults to False.
-        **kwargs:
-            Additional keyword arguments to pass to the pyflow host
-            constructor.
+    hostname (str):
+        The name of the host to connect to.
+    user (str):
+        The username to use when connecting to the host.
+    ecflow_path (str, optional):
+        The path to the ecflow_client executable.
+        If None, try to get the current path from the ecflow_client
+        executable.
+        Defaults to None.
+    server_ecfvars (bool, optional):
+        Whether to use server-side ECF_ variables. Defaults to False.
+    **kwargs:
+        Additional keyword arguments to pass to the pyflow host
+        constructor.
 
     Returns:
         Union[pf.LocalHost, pf.TroikaHost]: A pyflow host object.

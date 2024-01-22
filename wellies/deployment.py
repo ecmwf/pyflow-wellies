@@ -3,9 +3,9 @@ import shutil
 import tempfile
 
 import git
+
 import pyflow as pf
 import tracksuite as ts
-
 import wellies as wl
 
 
@@ -44,30 +44,30 @@ def deploy_suite(
 
     Parameters
     ----------
-        suite (dict):
-            The suite to deploy.
-        user (str):
-            The username to use for the deployment.
-        name (str):
-            The name of the suite.
-        hostname (str):
-            The hostname of the remote repository.
-        deploy_dir (str):
-            The target to deploy the suite to.
-        backup_deploy (str, optional):
-            The backup repository to use. Defaults to None.
-        build_dir (str, optional):
-            The build directory to use. If None, a temporary
-            directory will be created. Defaults to None.
-        no_prompt (bool, optional):
-            Skip all prompts and answer yes to all. Defaults to False.
-        no_deploy (bool, optional):
-            Whether to skip the deployment. Defaults to False.
-        message (str, optional):
-            The commit message to use for the deployment. Defaults to None.
-        files (list, optional):
-            The files to deploy. If None, everything is deployed.
-            Defaults to None.
+    suite (dict):
+        The suite to deploy.
+    user (str):
+        The username to use for the deployment.
+    name (str):
+        The name of the suite.
+    hostname (str):
+        The hostname of the remote repository.
+    deploy_dir (str):
+        The target to deploy the suite to.
+    backup_deploy (str, optional):
+        The backup repository to use. Defaults to None.
+    build_dir (str, optional):
+        The build directory to use. If None, a temporary
+        directory will be created. Defaults to None.
+    no_prompt (bool, optional):
+        Skip all prompts and answer yes to all. Defaults to False.
+    no_deploy (bool, optional):
+        Whether to skip the deployment. Defaults to False.
+    message (str, optional):
+        The commit message to use for the deployment. Defaults to None.
+    files (list, optional):
+        The files to deploy. If None, everything is deployed.
+        Defaults to None.
     """
     if build_dir is None:
         build_dir = tempfile.mkdtemp(prefix=f"build_{name}_")

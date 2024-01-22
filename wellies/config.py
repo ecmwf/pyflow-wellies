@@ -232,7 +232,9 @@ def substitute_variables(options, globals=None):
 def parse_execution_contexts(options):
     """parse execution context configuration file.
     Expects a global `execution_contexts` mapping with other mappings
-    that define submit_arguments to be used on pyflow.Task definitions.
+    that define submit_arguments to be used on [pyflow.Task][]
+    definitions.
+
     If a `defaults` mapping is defined it will be used as a default
     definition for all other mappings defined.
 
