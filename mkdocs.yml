@@ -6,6 +6,7 @@ nav:
   - Getting started: index.md
   - Suite configuration:
     - General options: configurations.md
+    - Deployment: config/deployment.md
     - Tool Types: config/tools_config.md
     - Tool Store: config/deploy_tools.md
     - Execution Contexts: config/exec_config.md

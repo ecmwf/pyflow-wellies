@@ -70,8 +70,10 @@ projects
 Although it does not contain any meaningful task, this is already a **valid 
 defined ecFlow suite**. To deploy all of the suite's scripts and write its definition file, just run:
 
+go past make file cmd, it uses tracksuite, first prompt about init remote git and second to confirm scripts deployment. link to deploy page
+
 ```bash
-$ ./deploy.py -y configs/*.yaml
+$ make
 ```
 
 and after loading it on a running ecflow server it will give the suite
