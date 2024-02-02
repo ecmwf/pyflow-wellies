@@ -27,7 +27,10 @@ class EcfResourcesTask(pf.Task):
         "^STHOST$",
         "^ECF_",
     ]
-    replacements = {"TMPDIR": "SSDTMP"}
+    replacements = {
+        "TMPDIR": "SSDTMP",
+        "TIME": "TIMEOUT",
+    }
 
     def __init__(self, *, submit_arguments, **kwargs):
         # init with values as they are
