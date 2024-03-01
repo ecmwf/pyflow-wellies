@@ -252,6 +252,8 @@ def parse_execution_contexts(options):
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
     """
+    PROTECTED=['sthost']
+    replacements = {"tmpdir": "ssdtmp"}
     submit_args_defaults = {}
     if options:
         # remove global special key and add global values
@@ -263,7 +265,15 @@ def parse_execution_contexts(options):
             options[ctx] = new
 
         # remove STHOST. We don't want to create new var at the suite level
-        global_rsrc.pop("sthost", {})
-        submit_args_defaults = {k.upper(): v for k, v in global_rsrc.items()}
+        for prt in PROTECTED:
+            global_rsrc.pop(prt, {})
+        # replace other protected names for new safe variable names
+        new = {}
+        for name, val in global_rsrc.items():
+            if name.lower() in replacements:
+                new[replacements[name.lower()]] = val
+            else:
+                new[name] = val
+        submit_args_defaults = {k.upper(): v for k, v in new.items()}
 
     return options, submit_args_defaults
