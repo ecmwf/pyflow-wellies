@@ -1,0 +1,60 @@
+name: ci-wellies
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  qa:
+    name: qa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - run: pip install flake8 isort[pyproject]
+      - run: isort --check .
+      - run: flake8 .
+
+  setup:
+    name: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: python -m pip install .
+  
+  test:
+    name: pytest
+    env:
+      GIT_PYTHON_TRACE: 1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: wellies-test
+          mamba-version: "*"
+          auto-update-conda: true
+          environment-file: environment.yml
+          auto-activate-base: false
+      - run: git config --global user.email "dummy.user@ecmwf.int"
+      - run: git config --global user.name "Dummy User"
+      - name: Conda check
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Install wellies and run tests
+        shell: bash -l {0}  # required to load conda I think
+        run: |
+          python -m pip install .[test]
+          pytest .

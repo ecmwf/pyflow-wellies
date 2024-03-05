@@ -11,7 +11,7 @@ class OnceAMonthFamily(pf.Family):
     A family whose tasks are only run once a month while
     another/superior YMD is daily.
 
-    Arguments:
+    Parameters
     ----------
     name : str
         Family name.
@@ -96,8 +96,8 @@ class OnceAMonthFamily(pf.Family):
         )
 
     def generate_node(self):
-        """Before generating node, make sure update_ymd_task is only triggered when all
-        other tasks have completed.
+        """Before generating node, make sure update_ymd_task is only
+        triggered when all other tasks have completed.
         """
         chld = [
             c

@@ -1,0 +1,92 @@
+site_name: Wellies Documentation
+repo_url: https://github.com/ecmwf/pyflow-wellies
+site_url: https://pyflow-wellies.readthedocs.io/latest
+
+nav:
+  - Getting started: index.md
+  - Suite configuration:
+    - General options: configurations.md
+    - Deployment: config/deployment.md
+    - Tool Types: config/tools_config.md
+    - Tool Store: config/deploy_tools.md
+    - Execution Contexts: config/exec_config.md
+    - Static Data Types: config/data_config.md
+    - Static Data Deployment: config/deploy_data.md
+  - Tutorials:
+    - Building a new suite: quickstart_guide.md
+    - Git-tracked deployment: tracksuite_guide.md
+  #- How to guides:
+  - API:
+    - Suite Building: api/config.md
+    - Static Data: api/data.md
+    - Tools : api/tools.md
+    - Helper Nodes: api/nodes.md
+    - Scripting: api/scripts.md
+
+exclude_docs: |
+  _*.md
+
+plugins:
+  - search
+  - autorefs
+  - markdown-exec
+  # - gen-files:
+  #     scripts:
+  #       - docs/scripts/gen-ref-pages.py
+  - mkdocstrings:
+        default_handler: python
+        enable_inventory: true
+        handlers:
+          python:
+            import:
+              - url: https://pyflow-workflow-generator.readthedocs.io/en/latest/objects.inv
+            options:
+              show_source: false
+              docstring_style: numpy
+              heading_level: 3
+              show_root_heading: true
+              show_category_heading: true
+              merge_init_into_class: true
+              show_docstrings_attributes: true
+              line_length: 79
+              signature_crossrefs: true
+
+theme:
+  name: readthedocs
+  docs_dir: docs
+  site_dir: site
+  highlightjs: True
+  hljs_languages:
+    - yaml
+    - python
+    - bash
+    - shell
+  include_homepage_in_sidebar: True
+  prev_next_buttons_location: bottom
+  navigation_depth: 2
+  collapse_navigation: False
+  titles_only: False
+  sticky_navigation: True
+  locale: en
+  logo: img/logo_tiny.ico
+
+markdown_extensions:
+  - toc:
+      permalink: "#"
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+  # - pymdownx.tabbed:
+  #     alternate_style: true
+  - pymdownx.superfences
+  - pymdownx.saneheaders
+  - pymdownx.details
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.tab
+
+extra:
+  generator: false
+  social:
+    - icon: img/ECMWF_logo.svg
+      link: 'https://www.ecmwf.int'
+      name: European Centre for Medium-Range Weather Forecasts

@@ -17,16 +17,20 @@ class EcfResourcesTask(pf.Task):
       - STHOST
       - ECF_*
 
-    :Attention: Following names will generate variables with other names than
-    config keys
-      - TMPDIR -> SSDTMP
+    !!! Attention
+        Following names will generate variables with other names than config
+        keys:
+        - TMPDIR -> SSDTMP
     """
 
     protected_list = [
         "^STHOST$",
         "^ECF_",
     ]
-    replacements = {"TMPDIR": "SSDTMP"}
+    replacements = {
+        "TMPDIR": "SSDTMP",
+        "TIME": "TIMEOUT",
+    }
 
     def __init__(self, *, submit_arguments, **kwargs):
         # init with values as they are

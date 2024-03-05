@@ -232,7 +232,9 @@ def substitute_variables(options, globals=None):
 def parse_execution_contexts(options):
     """parse execution context configuration file.
     Expects a global `execution_contexts` mapping with other mappings
-    that define submit_arguments to be used on pyflow.Task definitions.
+    that define submit_arguments to be used on [pyflow.Task][]
+    definitions.
+
     If a `defaults` mapping is defined it will be used as a default
     definition for all other mappings defined.
 
@@ -250,7 +252,9 @@ def parse_execution_contexts(options):
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
     """
-    submit_args_defaults = {}
+    PROTECTED = ["sthost"]
+    replacements = {"tmpdir": "ssdtmp"}
+    default_vars = {}
     if options:
         # remove global special key and add global values
         # to each defined context
@@ -261,7 +265,15 @@ def parse_execution_contexts(options):
             options[ctx] = new
 
         # remove STHOST. We don't want to create new var at the suite level
-        global_rsrc.pop("sthost", {})
-        submit_args_defaults = {k.upper(): v for k, v in global_rsrc.items()}
+        for prt in PROTECTED:
+            global_rsrc.pop(prt, {})
+        # replace other protected names for new safe variable names
+        new = {}
+        for name, val in global_rsrc.items():
+            if name.lower() in replacements:
+                new[replacements[name.lower()]] = val
+            else:
+                new[name] = val
+        default_vars = {k.upper(): v for k, v in new.items()}
 
-    return options, submit_args_defaults
+    return options, default_vars

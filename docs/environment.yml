@@ -1,0 +1,19 @@
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.10
+  - pip
+  - ecflow
+  - jinja2
+  - pyyaml
+  - pip:
+    - pyflow-workflow-generator
+    - "tracksuite @ git+https://github.com/ecmwf/tracksuite.git"
+    - mkdocs
+    - mkdocs-material
+    - mkdocstrings-python
+    - mkdocs-autorefs
+    - mkdocs-gen-files
+    - pymdown-extensions
+    - markdown-exec[ansi]
