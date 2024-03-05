@@ -4,8 +4,11 @@ from os.path import join as pjoin
 import pytest
 import yaml
 
-from wellies.config import (concatenate_yaml_files, overwrite_entries,
-                            substitute_variables)
+from wellies.config import (
+    concatenate_yaml_files,
+    overwrite_entries,
+    substitute_variables,
+)
 
 
 class TestYamlParser:
