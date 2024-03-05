@@ -152,7 +152,7 @@ are going to run.
 The `post_script` added to our retrievals, runs an external conversion tool 
 provided by the `ecmwf-toolbox` module. We need to add such runtime dependency on top of 
 our script. The way to do it is again via the `config` object which has a `tools` 
-attribute poiting to a `ToolStore` object.
+attribute pointing to a `ToolStore` object.
 
 ```python title="suite/nodes.py"
 class IssueFamily(pf.Family):
