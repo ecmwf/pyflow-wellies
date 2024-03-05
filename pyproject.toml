@@ -32,7 +32,7 @@ dependencies = [
     "jinja2",
     "pyyaml",
     "pyflow-workflow-generator",
-    #tracksuite,  # not in PyPi yet
+    "tracksuite",
 ]
 
 [project.urls]
