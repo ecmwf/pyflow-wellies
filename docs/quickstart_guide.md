@@ -52,7 +52,7 @@ The thresholds and upstream area are simple files that we will be accessing from
 
 The new `static_data` entry should look like this.
 
-```yaml
+```yaml title="data.yaml"
 static_data:
     outlets:
         type: git
@@ -74,8 +74,7 @@ The first step of our main computation will involve plotting **EFAS forecast** f
 the available forecast within a **date range** and for each of the existing **two** 
 model runs. In our example we can add configuration options accordingly:
 
-```yaml
-# configs/config.yaml
+```yaml title="configs/config.yaml"
 n_cycles: 2
 start_date: 202401-01
 end_date: 202401-07
@@ -85,8 +84,7 @@ And for the retrieval we can use wellies to configure our MARS request. We want
 a netcdf output and for that we call the `grib_to_netcdf` command line tool. 
 Back to `data.yaml` we can define a custom data type of mars request as:
 
-```yaml
-# configs/data.yaml
+```yaml title="configs/data.yaml"
 forecasts:
     - name: eud
       type: mars
@@ -125,7 +123,7 @@ forecasts:
 And that will be read in the `Config` object in `deploy.py` where we use wellies 
 data parser:
 
-```python
+```python title="suite/nodes.py"
 # class Config:__init__
 from datetime import datetime as dt
 # (...)
@@ -156,8 +154,7 @@ provided by the `ecmwf-toolbox` module. We need to add such runtime dependency o
 our script. The way to do it is again via the `config` object which has a `tools` 
 attribute poiting to a `ToolStore` object.
 
-```python
-# suites/nodes.py
+```python title="suite/nodes.py"
 class IssueFamily(pf.Family):
     def __init__(self, config, hh, **kwargs):
         hh_label = f"{hh:02.0f}"
