@@ -31,7 +31,6 @@ class Config:
         self.deploy_hostname = options.get("deploy_hostname", "localhost")
         self.backup_deploy = options.get('backup_deploy', None)
 
-
         self.output_root = options['output_root']
         self.lib_dir = os.path.join(self.output_root, 'local')
         self.data_dir = os.path.join(self.output_root, 'data')
@@ -41,14 +40,14 @@ class Config:
 
         # other configs parsing and suite variables
         exec_contexts = options.get("execution_contexts", {})
-        self.exec_contexts, self.submit_args_defaults = wl.parse_execution_contexts(exec_contexts)
+        self.exec_contexts, self.exec_contexts_vars = wl.parse_execution_contexts(exec_contexts)
 
         self.suite_variables = {
             'SUITE': self.name,
             'OUTPUT_ROOT': self.output_root,
             'LIB_DIR': self.lib_dir,
             'DATA_DIR': self.data_dir,
-            **self.submit_args_defaults,
+            **self.exec_contexts_vars,
         }
 
         tools = options.get("tools", {})

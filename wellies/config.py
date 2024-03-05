@@ -252,9 +252,9 @@ def parse_execution_contexts(options):
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
     """
-    PROTECTED=['sthost']
+    PROTECTED = ["sthost"]
     replacements = {"tmpdir": "ssdtmp"}
-    submit_args_defaults = {}
+    default_vars = {}
     if options:
         # remove global special key and add global values
         # to each defined context
@@ -274,6 +274,6 @@ def parse_execution_contexts(options):
                 new[replacements[name.lower()]] = val
             else:
                 new[name] = val
-        submit_args_defaults = {k.upper(): v for k, v in new.items()}
+        default_vars = {k.upper(): v for k, v in new.items()}
 
-    return options, submit_args_defaults
+    return options, default_vars
