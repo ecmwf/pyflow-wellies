@@ -1,60 +1,40 @@
-name: ci-wellies
+name: ci
 
-# Controls when the workflow will run
 on:
+  # Trigger the workflow on push to master or develop, except tag creation
   push:
-    branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main", "develop" ]
+    branches:
+      - 'master'
+      - 'develop'
+    tags-ignore:
+      - '**'
+
+  # Trigger the workflow on pull request
+  pull_request: ~
+
+  # Trigger the workflow manually
+  workflow_dispatch: ~
+
+  # Trigger after public PR approved for CI
+  pull_request_target:
+    types: [labeled]
 
 jobs:
-  qa:
-    name: qa
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+  # Run CI including downstream packages on self-hosted runners
+  downstream-ci:
+    name: downstream-ci
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
+    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci.yml@feature/pyflow
+    with:
+      pyflow-wellies: ecmwf/pyflow-wellies@${{ github.event.pull_request.head.sha || github.sha }}
+      python_qa: true
+    secrets: inherit
 
-      - run: pip install flake8 isort[pyproject]
-      - run: isort --check .
-      - run: flake8 .
-
-  setup:
-    name: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-      - run: python -m pip install .
-  
-  test:
-    name: pytest
-    env:
-      GIT_PYTHON_TRACE: 1
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          activate-environment: wellies-test
-          mamba-version: "*"
-          auto-update-conda: true
-          environment-file: environment.yml
-          auto-activate-base: false
-      - run: git config --global user.email "dummy.user@ecmwf.int"
-      - run: git config --global user.name "Dummy User"
-      - name: Conda check
-        shell: bash -l {0}
-        run: |
-          conda info
-          conda list
-      - name: Install wellies and run tests
-        shell: bash -l {0}  # required to load conda I think
-        run: |
-          python -m pip install .[test]
-          pytest .
+  # Build downstream packages on HPC
+  downstream-ci-hpc:
+    name: downstream-ci-hpc
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event.action != 'labeled' || github.event.label.name == 'approved-for-ci' }}
+    uses: ecmwf-actions/downstream-ci/.github/workflows/downstream-ci-hpc.yml@feature/pyflow
+    with:
+      pyflow-wellies: ecmwf/pyflow-wellies@${{ github.event.pull_request.head.sha || github.sha }}
+    secrets: inherit
