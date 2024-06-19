@@ -206,11 +206,12 @@ class LinkData(StaticData):
 
 class MarsData(StaticData):
     def __init__(self, data_dir, name, options):
+        command = options.get("mars_command", "mars")
         script = [
             f"dest_dir={os.path.join(data_dir, name)}",
             "mkdir -p $dest_dir",
             "cd $dest_dir",
-            mars.Retrieve(options["request"]),
+            mars.Retrieve(req=options["request"], command=command),
         ]
         super().__init__(data_dir, name, script, options)
 
