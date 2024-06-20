@@ -27,6 +27,7 @@ def process_file_or_string(entry):
 class StaticData:
     def __init__(self, data_dir: str, name: str, script: str, options: dict):
         self.name = name
+        self.path = os.path.join(data_dir, name)
         self.options = options
         self.dir = data_dir
         pre_script = process_file_or_string(options.get("pre_script", None))
