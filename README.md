@@ -4,7 +4,10 @@
 
 A set of tools to build consistent pyflow suites.
 
-# with pip
+The Wellies documentation can be found [https://pyflow-wellies.readthedocs.io](https://pyflow-wellies.readthedocs.io)
+
+# Installation
+## with pip
 
 First you need to assure you have [ecFlow](https://ecflow.readthedocs.io/en/latest/) installed on your system. 
 The simplest way is to create a conda environment. We recommend using 
