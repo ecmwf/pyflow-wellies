@@ -20,6 +20,14 @@ cd $dest_dir
 
 """
 
+web_script = """
+dest_dir={{ DIR }}/{{ NAME }}
+rm -rf $dest_dir
+mkdir -p $dest_dir
+cd $dest_dir
+wget {{ URL }} -O {{ TARGET }}
+"""
+
 rsync_script = """
 dest_dir={{ DIR }}/{{ NAME }}
 rsync {{ RSYNC_OPTIONS }} {% for item in TARGET %}{{ item }} {% endfor %} $dest_dir/
