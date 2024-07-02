@@ -1,5 +1,5 @@
 import pyflow as pf
-import textwrap
+from wellies import scripts
 
 
 def repeat_factory(options):
@@ -46,66 +46,18 @@ class ArchivedRepeatFamily(pf.Family):
     def exit_hook(self):
         if not self.backup_root:
             return None
-        return textwrap.dedent(
-            """
-            JOBOUT=%ECF_JOBOUT%
-            JOB=%ECF_JOB%
-            ECF_OUT=%ECF_OUT%
-            ECF_HOME=%ECF_HOME%
-            BACKUP_ROOT=%LOGS_BACKUP_ROOT%
-
-            JOB=$(echo $JOB | sed -e "s:$ECF_HOME:$ECF_OUT:")
-            JOBDIR=$(echo ${JOBOUT%%/*})
-            BACKUP_DIR=$(echo $JOBDIR | sed -e s:$ECF_OUT:$BACKUP_ROOT:)
-            if [[ $BACKUP_DIR != "" ]] && [[ $BACKUP_DIR != $JOBDIR ]]
-            then
-                mkdir -p $BACKUP_DIR
-                cp $JOBOUT $BACKUP_DIR/.
-                cp $JOB $BACKUP_DIR/.
-            fi
-            """
-        )
+        return scripts.log_exit_hook
 
     def _loop_task(self):
-        script = textwrap.dedent(
-            f"""
-            dir=$LOGS_BACKUP_ROOT/$SUITE/$FAMILY
-            dir_old=${{dir}}.${self.repeat_var}
-            [[ -d $dir ]] && mv $dir $dir_old
-            """
-        )
         return pf.Task(
             name="loop_logs",
-            script=[script],
+            script=[scripts.log_move_old],
         )
 
     def _archive_task(self):
-        script = textwrap.dedent(
-            f"""
-            dir=$LOGS_BACKUP_ROOT/$SUITE/$FAMILY
-            dir_tar=$LOGS_BACKUP_ROOT/$SUITE
-
-            if [[ -d $dir_tar ]]; then
-                cd $dir_tar
-
-                for log in $(ls -d ${{FAMILY}}.*); do
-                    REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}'')
-                    if [[ $REPEAT_TO_TAR -lt ${self.repeat_var} ]]; then
-                        TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
-                        tar -czvf $TAR_FILE $log
-                        chmod 644 $TAR_FILE
-                        ecp -p $TAR_FILE ${{ECFS_BACKUP}}/$TAR_FILE
-
-                        rm -rf $log
-                        rm -rf $TAR_FILE
-                    fi
-                done
-            fi
-            """
-        )
         return pf.Task(
             name="archive_logs",
-            script=[script],
+            script=[scripts.log_archive],
         )
 
     def generate_node(self):
