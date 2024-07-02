@@ -26,7 +26,6 @@ class ArchivedRepeatFamily(pf.Family):
         **kwargs,
     ):
         self.backup_root = backup_root or None
-        self.repeat_var = repeat["name"]
         self._added_log_tasks = False
         variables = kwargs.pop("variables", {})
         if self.backup_root:
@@ -44,7 +43,7 @@ class ArchivedRepeatFamily(pf.Family):
         )
 
         with self:
-            repeat_factory(repeat)
+            self.repeat_attr = repeat_factory(repeat)
 
     def exit_hook(self):
         if not self.backup_root:
@@ -73,7 +72,7 @@ class ArchivedRepeatFamily(pf.Family):
         script = textwrap.dedent(
             f"""
             dir=$LOGS_BACKUP_ROOT/$SUITE/$FAMILY
-            dir_old=${{dir}}.${self.repeat_var}
+            dir_old=${{dir}}.${self.repeat_attr.name}
             [[ -d $dir ]] && mv $dir $dir_old
             """
         )
@@ -93,7 +92,7 @@ class ArchivedRepeatFamily(pf.Family):
 
                 for log in $(ls -d ${{FAMILY}}.*); do
                     REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}'')
-                    if [[ $REPEAT_TO_TAR -lt ${self.repeat_var} ]]; then
+                    if [[ $REPEAT_TO_TAR -lt ${self.repeat_attr.name} ]]; then
                         TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
                         chmod 644 $TAR_FILE
