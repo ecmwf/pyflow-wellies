@@ -35,9 +35,11 @@ class ArchivedRepeatFamily(pf.Family):
                 )
             variables["LOGS_BACKUP_ROOT"] = self.backup_root
             variables["ECFS_BACKUP"] = ecfs_backup
+        exit_hooks = kwargs.pop("exit_hook", [])
+        exit_hooks.append(self.exit_hook())
         super().__init__(
             name=name,
-            exit_hook=self.exit_hook(),
+            exit_hook=exit_hooks,
             variables=variables,
             **kwargs,
         )

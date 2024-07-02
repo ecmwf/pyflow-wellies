@@ -1,9 +1,17 @@
 import pyflow as pf
+import pytest
 
 from wellies.families import ArchivedRepeatFamily
 
 
-def test_log_archive(tmpdir):
+@pytest.mark.parametrize(
+    "backup, hook, num_tasks",
+    [
+        ["backup", True, 4],
+        [None, False, 2],
+    ],
+)
+def test_log_archive(backup, hook, num_tasks):
     repeat = {
         "name": "YMD",
         "type": "RepeatDate",
@@ -11,16 +19,12 @@ def test_log_archive(tmpdir):
         "end": "2020-01-03",
     }
     with pf.Suite("s") as suite:
-        with ArchivedRepeatFamily(
-            "main", repeat, f"{tmpdir}/store", f"{tmpdir}/ecfs"
-        ) as main:
+        with ArchivedRepeatFamily("main", repeat, backup, backup) as main:
             pf.Task("t1")
             with pf.Family("f1"):
                 pf.Task("t2")
 
-    children = main.executable_children
-    for chld in children:
-        assert chld._exit_hook == [main.exit_hook()]
+    assert bool(main.exit_hook()) == hook
     suite.generate_node()
     tasks = suite.all_tasks
-    assert len(tasks) == 4
+    assert len(tasks) == num_tasks
