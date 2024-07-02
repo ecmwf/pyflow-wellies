@@ -23,11 +23,12 @@ class ArchivedRepeatFamily(pf.Family):
         repeat: dict,
         backup_root: str = None,
         ecfs_backup: str = None,
+        **kwargs,
     ):
         self.backup_root = backup_root or None
         self.repeat_var = repeat["name"]
         self._added_log_tasks = False
-        variables = {}
+        variables = kwargs.pop("variables", {})
         if self.backup_root:
             if not ecfs_backup:
                 raise ValueError(
@@ -39,6 +40,7 @@ class ArchivedRepeatFamily(pf.Family):
             name=name,
             exit_hook=self.exit_hook(),
             variables=variables,
+            **kwargs,
         )
 
         with self:
