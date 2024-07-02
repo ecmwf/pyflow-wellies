@@ -1,7 +1,7 @@
 import pyflow as pf
 import pytest
 
-from wellies.families import ArchivedRepeatFamily
+from wellies.log_archiving import ArchivedRepeatFamily
 
 
 @pytest.mark.parametrize(
