@@ -14,6 +14,7 @@ from .deployment import deploy_suite
 from .hosts import get_host
 from .tasks import EcfResourcesTask
 from .tools import DeployToolsFamily, ToolStore
+from.log_archiving import ArchivedRepeatFamily
 
 try:
     # NOTE: the `_version.py` file must not be present in the git repository

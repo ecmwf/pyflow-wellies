@@ -21,20 +21,22 @@ class ArchivedRepeatFamily(pf.Family):
         self,
         name: str,
         repeat: dict,
-        backup_root: str = None,
-        ecfs_backup: str = None,
+        logs_backup: str = None,
+        logs_archive: str = None,
         **kwargs,
     ):
-        self.backup_root = backup_root or None
+        self.logs_backup = logs_backup or None
+        self.logs_archive = logs_archive or None
         self._added_log_tasks = False
         variables = kwargs.pop("variables", {})
-        if self.backup_root:
-            if not ecfs_backup:
+        if self.logs_backup:
+            variables["LOGS_BACKUP"] = self.logs_backup
+        if self.logs_archive:
+            if not self.logs_backup:
                 raise ValueError(
-                    "ecfs_backup must be provided if backup_root is provided"
+                    "logs_backup must be provided if logs_archive is provided"
                 )
-            variables["LOGS_BACKUP_ROOT"] = self.backup_root
-            variables["ECFS_BACKUP"] = ecfs_backup
+            variables["LOGS_ARCHIVE"] = logs_archive
         exit_hooks = kwargs.pop("exit_hook", [])
         exit_hooks.append(self.exit_hook())
         super().__init__(
@@ -48,7 +50,7 @@ class ArchivedRepeatFamily(pf.Family):
             self.repeat_attr = repeat_factory(repeat)
 
     def exit_hook(self):
-        if not self.backup_root:
+        if not self.logs_backup:
             return None
         return textwrap.dedent(
             """
@@ -56,11 +58,11 @@ class ArchivedRepeatFamily(pf.Family):
             JOB=%ECF_JOB%
             ECF_OUT=%ECF_OUT%
             ECF_HOME=%ECF_HOME%
-            BACKUP_ROOT=%LOGS_BACKUP_ROOT%
+            LOGS_BACKUP=%LOGS_BACKUP%
 
             JOB=$(echo $JOB | sed -e "s:$ECF_HOME:$ECF_OUT:")
             JOBDIR=$(echo ${JOBOUT%%/*})
-            BACKUP_DIR=$(echo $JOBDIR | sed -e s:$ECF_OUT:$BACKUP_ROOT:)
+            BACKUP_DIR=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             if [[ $BACKUP_DIR != "" ]] && [[ $BACKUP_DIR != $JOBDIR ]]
             then
                 mkdir -p $BACKUP_DIR
@@ -73,7 +75,7 @@ class ArchivedRepeatFamily(pf.Family):
     def _loop_task(self):
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP_ROOT/$SUITE/$FAMILY
+            dir=$LOGS_BACKUP/$SUITE/$FAMILY
             dir_old=${{dir}}.${self.repeat_attr.name}
             [[ -d $dir ]] && mv $dir $dir_old
             """
@@ -86,8 +88,8 @@ class ArchivedRepeatFamily(pf.Family):
     def _archive_task(self):
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP_ROOT/$SUITE/$FAMILY
-            dir_tar=$LOGS_BACKUP_ROOT/$SUITE
+            dir=$LOGS_BACKUP/$SUITE/$FAMILY
+            dir_tar=$LOGS_BACKUP/$SUITE
 
             if [[ -d $dir_tar ]]; then
                 cd $dir_tar
@@ -98,7 +100,7 @@ class ArchivedRepeatFamily(pf.Family):
                         TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
                         chmod 644 $TAR_FILE
-                        ecp -p $TAR_FILE ${{ECFS_BACKUP}}/$TAR_FILE
+                        ecp -p $TAR_FILE ${{LOGS_ARCHIVE}}/$TAR_FILE
 
                         rm -rf $log
                         rm -rf $TAR_FILE
@@ -118,7 +120,7 @@ class ArchivedRepeatFamily(pf.Family):
         tasks.
         """
         if not self._added_log_tasks:
-            if self.backup_root:
+            if self.logs_backup:
                 trigger = None
                 for chld in self.executable_children:
                     if trigger is None:
