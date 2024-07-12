@@ -39,7 +39,7 @@ unset ${{ NAME }}
 
 conda_load = """
 set +ux
-conda activate {{ TARGET }}
+{{ CONDA_ACTIVATE_CMD }} activate {{ TARGET }}
 set -ux
 """
 
@@ -404,6 +404,7 @@ class CondaEnvTool(Tool):
         environment: str,
         setup: str = None,
         depends: List[str] = [],
+        conda_activate_cmd: str = "conda",
         options: Dict[str, str] = {},
     ):
         """
@@ -419,11 +420,19 @@ class CondaEnvTool(Tool):
             The setup script, by default None.
         depends : List[str], optional
             A list of dependencies for the tool, by default [].
+        conda_activate_cmd : str, optional
+            The conda command to use to load the environment,
+            some login-nodes reuquire "source" instead of "conda"
+            by default "conda".
         options : Dict[str, str], optional
             A dictionary of options for the tool, by default {}.
         """
-        load = pf.TemplateScript(conda_load, TARGET=environment)
-        unload = "conda deactivate"
+        load = pf.TemplateScript(
+            conda_load,
+            TARGET=environment,
+            CONDA_ACTIVATE_CMD=conda_activate_cmd,
+        )
+        unload = f"{conda_activate_cmd} deactivate"
         super().__init__(name, depends, load, unload, setup, options=options)
 
 
@@ -435,6 +444,7 @@ class FileCondaEnvTool(CondaEnvTool):
         env_file: str,
         depends: List[str] = [],
         conda_cmd: str = "conda",
+        conda_activate_cmd: str = "conda",
         options: Dict[str, any] = {},
     ):
         """
@@ -486,7 +496,12 @@ class FileCondaEnvTool(CondaEnvTool):
         )
         setup_script = [file_setup.script, setup]
         super().__init__(
-            name, env_root, setup_script, depends, options=options
+            name,
+            env_root,
+            setup_script,
+            depends,
+            conda_activate_cmd,
+            options=options,
         )
 
 
@@ -498,6 +513,7 @@ class SimpleCondaEnvTool(CondaEnvTool):
         packages: Union[str, List[str]],
         depends: List[str] = [],
         conda_cmd: str = "conda",
+        conda_activate_cmd: str = "conda",
         options: Dict[str, any] = {},
     ):
         """
@@ -528,7 +544,9 @@ class SimpleCondaEnvTool(CondaEnvTool):
             PACKAGES=packages_str,
             CONDA_CMD=conda_cmd,
         )
-        super().__init__(name, env_root, setup, depends, options=options)
+        super().__init__(
+            name, env_root, setup, depends, conda_activate_cmd, options=options
+        )
 
 
 def parse_environment(
@@ -576,7 +594,12 @@ def parse_environment(
                 "environment, file and extra_packages options cannot be used at the same time for conda"  # noqa: E501
             )
         environment = options["environment"]
-        env = CondaEnvTool(name, environment, depends=depends)
+        env = CondaEnvTool(
+            name,
+            environment,
+            depends=depends,
+            conda_activate_cmd=options.get("conda_activate_cmd", "conda"),
+        )
     elif type == "conda" and "env_file" in options:
         if "environment" in options:
             raise Exception(
@@ -588,6 +611,7 @@ def parse_environment(
             options["env_file"],
             depends,
             conda_cmd=options.get("conda_cmd", "conda"),
+            conda_activate_cmd=options.get("conda_activate_cmd", "conda"),
         )
     elif type == "conda" and "extra_packages" in options:
         if "environment" in options:
@@ -601,6 +625,7 @@ def parse_environment(
             conda_packages,
             depends,
             conda_cmd=options.get("conda_cmd", "conda"),
+            conda_activate_cmd=options.get("conda_activate_cmd", "conda"),
         )
     elif type == "venv":
         raise NotImplementedError("Pure virtual environment not implemented")
