@@ -15,7 +15,7 @@ def repeat_factory(options):
         raise ValueError(f"Unknown repeat type: {options['type']}")
 
 
-class ArchivedRepeatFamily(pf.Family):
+class ArchivedRepeatFamily(pf.AnchorFamily):
 
     def __init__(
         self,
