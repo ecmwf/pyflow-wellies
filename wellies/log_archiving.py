@@ -48,6 +48,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
 
         with self:
             self.repeat_attr = repeat_factory(repeat)
+            self._archive_task()
+            self._loop_task()
 
     def exit_hook(self):
         if not self.logs_backup:
@@ -95,7 +97,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
                 cd $dir_tar
 
                 for log in $(ls -d ${{FAMILY}}.*); do
-                    REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}'')
+                    REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}')
                     if [[ $REPEAT_TO_TAR -lt ${self.repeat_attr.name} ]]; then
                         TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
@@ -116,21 +118,20 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
 
     def generate_node(self):
         """
-        Before generating node, we need to add the log archiving
-        tasks.
+        Before generating node, we need to set the right triggers to the loop_log tasks.
         """
         if not self._added_log_tasks:
             if self.logs_backup:
                 trigger = None
                 for chld in self.executable_children:
+                    if chld.name == "loop_logs":
+                        continue
                     if trigger is None:
                         trigger = chld.complete
                     else:
                         trigger = trigger & chld.complete
                 with self:
-                    archive = self._archive_task()
-                    loop = self._loop_task()
-                    loop.triggers = trigger & archive.complete
+                    self.loop_logs.triggers = trigger
             self._added_log_tasks = True
 
         return super().generate_node()
