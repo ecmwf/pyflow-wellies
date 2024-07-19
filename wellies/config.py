@@ -142,18 +142,28 @@ def nested_set(dic, keys, value):
     dic[keys[-1]] = val_type(value)
 
 
+_ENV_VARS = [
+    "USER",
+    "HOME",
+    "PERM",
+    "HPCPERM",
+    "SCRATCH",
+    "PWD",
+    "_FORTESTING",
+]
+
+
 def get_user_globals():
     now = datetime.now()
-    global_vars = {
-        "USER": os.path.expandvars("$USER"),
-        "HOME": os.path.expandvars("$HOME"),
-        "PERM": os.path.expandvars("$PERM"),
-        "HPCPERM": os.path.expandvars("$HPCPERM"),
-        "SCRATCH": os.path.expandvars("$SCRATCH"),
-        "PWD": os.path.expandvars("$PWD"),
-        "TODAY": now.strftime("%Y%m%d"),
-        "YESTERDAY": (now - timedelta(days=1)).strftime("%Y%m%d"),
-    }
+
+    global_vars = {}
+
+    for var in _ENV_VARS:
+        global_vars[var] = os.path.expandvars(f"${var}")
+
+    global_vars["TODAY"] = now.strftime("%Y%m%d")
+    global_vars["YESTERDAY"] = (now - timedelta(days=1)).strftime("%Y%m%d")
+
     return global_vars
 
 
@@ -176,6 +186,28 @@ class TemplateFormatter(Formatter):
                 ], None, None, None
             else:
                 yield literal_text, field_name, format_spec, conversion
+
+
+def check_environment_variables_substitution(value):
+    """Checks if environment variables are defined in the keys to format
+    and make sure they exist in the environment.
+
+    Parameters
+    ----------
+    value : str
+        The string to check for environment variables
+
+    Raises
+    ------
+    ValueError
+        If an environment variable to be substituted is not set
+    """
+
+    keys_to_format = re.findall(r"\{(.+?)\}", value)
+    for key in keys_to_format:
+        if key in _ENV_VARS:
+            if key not in os.environ:
+                raise ValueError(f"Environment variable {key} is not set")
 
 
 def substitute_variables(options, globals=None):
@@ -211,6 +243,7 @@ def substitute_variables(options, globals=None):
             else:
                 if isinstance(value, str):
                     try:
+                        check_environment_variables_substitution(value)
                         new = formatter.format(value, **newMapping)
                     except KeyError as err:
                         missing = err.args[0]
