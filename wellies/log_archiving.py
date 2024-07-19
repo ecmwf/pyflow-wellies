@@ -16,7 +16,6 @@ def repeat_factory(options):
 
 
 class ArchivedRepeatFamily(pf.AnchorFamily):
-
     def __init__(
         self,
         name: str,
@@ -118,7 +117,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
 
     def generate_node(self):
         """
-        Before generating node, we need to set the right triggers to the loop_log tasks.
+        Before generating node, we need to set the right triggers to the
+        loop_log tasks.
         """
         if not self._added_log_tasks:
             if self.logs_backup:
