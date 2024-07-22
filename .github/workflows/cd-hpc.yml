@@ -34,7 +34,7 @@ jobs:
                 -- [tracksuite] ({{ TRACKSUITE_VERSION }}) [{{ TRACKSUITE_VERSION }}]
                 EOF
             template_data: |
-                WELLIES_VERSION: github.ref_name
+                WELLIES_VERSION: ${{ github.ref_name }}
                 PYFLOW_VERSION: 3.2.1
                 TRACKSUITE_VERSION: 0.3.3
             sbatch_options: |
