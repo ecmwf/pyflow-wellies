@@ -79,16 +79,13 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             return
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP/$SUITE/$FAM
+            dir=$LOGS_BACKUP/$SUITE/$FAMILY
             dir_old=${{dir}}.${self.repeat_attr.name}
             [[ -d $dir ]] && mv $dir $dir_old
             """
         )
         return pf.Task(
             name="loop_logs",
-            variables={
-                "FAM": "%FAMILY%",
-            },
             script=[script],
         )
 
@@ -97,16 +94,16 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             return
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP/$SUITE/$FAM
+            dir=$LOGS_BACKUP/$SUITE/$FAMILY
             dir_tar=$LOGS_BACKUP/$SUITE
 
             if [[ -d $dir_tar ]]; then
                 cd $dir_tar
 
-                for log in $(ls -d ${{FAM}}.*); do
+                for log in $(ls -d ${{FAMILY}}.*); do
                     REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}')
                     if [[ $REPEAT_TO_TAR -lt ${self.repeat_attr.name} ]]; then
-                        TAR_FILE=${{FAM}}_${{REPEAT_TO_TAR}}.tar.gz
+                        TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
                         chmod 644 $TAR_FILE
                         ecp -p $TAR_FILE ${{LOGS_ARCHIVE}}/$TAR_FILE
@@ -120,9 +117,6 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         )
         return pf.Task(
             name="archive_logs",
-            variables={
-                "FAM": "%FAMILY%",
-            },
             script=[script],
         )
 
