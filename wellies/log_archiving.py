@@ -37,7 +37,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
                 )
             variables["LOGS_ARCHIVE"] = logs_archive
         exit_hooks = kwargs.pop("exit_hook", [])
-        exit_hooks.append(self.exit_hook())
+        if self.exit_hook() and self.exit_hook() not in exit_hooks:
+            exit_hooks.append(self.exit_hook())
         super().__init__(
             name=name,
             exit_hook=exit_hooks,
@@ -52,7 +53,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
 
     def exit_hook(self):
         if not self.logs_backup:
-            return ""
+            return None
         return textwrap.dedent(
             """
             JOBOUT=%ECF_JOBOUT%
