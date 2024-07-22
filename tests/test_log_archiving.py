@@ -11,14 +11,14 @@ from wellies.log_archiving import ArchivedRepeatFamily
         [None, False, 2],
     ],
 )
-def test_log_archive(backup, hook, num_tasks):
+def test_log_archive(tmpdir, backup, hook, num_tasks):
     repeat = {
         "name": "YMD",
         "type": "RepeatDate",
         "begin": "2020-01-01",
         "end": "2020-01-03",
     }
-    with pf.Suite("s") as suite:
+    with pf.Suite("s", variables={"ECF_FILES": tmpdir}) as suite:
         with ArchivedRepeatFamily("main", repeat, backup, backup) as main:
             pf.Task("t1")
             with pf.Family("f1"):

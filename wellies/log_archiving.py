@@ -74,6 +74,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         )
 
     def _loop_task(self):
+        if not self.logs_backup:
+            return
         script = textwrap.dedent(
             f"""
             dir=$LOGS_BACKUP/$SUITE/$FAMILY
@@ -87,6 +89,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         )
 
     def _archive_task(self):
+        if not self.logs_backup:
+            return
         script = textwrap.dedent(
             f"""
             dir=$LOGS_BACKUP/$SUITE/$FAMILY
