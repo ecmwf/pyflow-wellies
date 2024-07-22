@@ -39,5 +39,4 @@ jobs:
             sbatch_options: |
                 #SBATCH --job-name=build_wellies_module
                 #SBATCH --time=00:10:00
-                #SBATCH --qos=nf       
-                #SBATCH --queue=deploy
+                #SBATCH --qos=deploy       
