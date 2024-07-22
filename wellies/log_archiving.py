@@ -52,7 +52,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
 
     def exit_hook(self):
         if not self.logs_backup:
-            return None
+            return ""
         return textwrap.dedent(
             """
             JOBOUT=%ECF_JOBOUT%
