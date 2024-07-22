@@ -1,0 +1,43 @@
+on:
+    push
+jobs:
+    build-module:
+        runs-on: [hpc]
+        steps:
+        - uses: ecmwf-actions/reusable-workflows/ci-hpc-generic@v2
+          with:
+            troika_user: ${{ secrets.HPC_CI_SSH_USER }}
+            template: |
+                set -eux
+
+                python3_versions=("3.10.10-01" "3.11.8-01")
+
+                PREFIX=/etc/ecmwf/nfs/dh1_home_a/mawj/apps/wellies/{{ WELLIES_VERSION }}
+                rm -rf $PREFIX
+                mkdir -p $PREFIX
+
+                for version in "${python3_versions[@]}"
+                do
+                    module load python3/$version
+
+                    PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@{{ PYFLOW_VERSION }}
+                    PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@{{ TRACKSUITE_VERSION }}
+                    PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@{{ WELLIES_VERSION }}
+
+                    module unload python3
+                done
+
+                cat > $PREFIX/README.txt << EOF
+                -- [wellies] ({{ WELLIES_VERSION }}) [{{ WELLIES_VERSION }}]
+                -- [pyflow] ({{ PYFLOW_VERSION }}) [{{ PYFLOW_VERSION }}]
+                -- [tracksuite] ({{ TRACKSUITE_VERSION }}) [{{ TRACKSUITE_VERSION }}]
+                EOF
+            template_data: |
+                WELLIES_VERSION: 1.0.0
+                PYFLOW_VERSION: 3.2.1
+                TRACKSUITE_VERSION: 0.3.3
+            sbatch_options: |
+                #SBATCH --job-name=build_wellies_module
+                #SBATCH --time=00:10:00
+                #SBATCH --qos=nf       
+                #SBATCH --queue=deploy
