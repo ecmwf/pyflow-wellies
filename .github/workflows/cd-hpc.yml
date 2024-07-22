@@ -1,7 +1,13 @@
 on:
+    workflow_dispatch:
+        inputs:
+          module-name: 
+            description: 'Module name'
+            required: true
+            type: string
     push:
       tags:
-        - "**"
+        - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
     build-module:
         runs-on: [hpc]
@@ -14,6 +20,7 @@ jobs:
 
                 python3_versions=("3.10.10-01" "3.11.8-01")
 
+                WELLIES_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
                 PREFIX=/usr/local/apps/wellies/{{ WELLIES_VERSION }}
                 rm -rf $PREFIX
                 mkdir -p $PREFIX
@@ -37,9 +44,8 @@ jobs:
 
                 software-sync -s local -p wellies
                 module load modulemgr
-                modulemgr -m all sync wellies
+                modulemgr -v -f -m all sync wellies
             template_data: |
-                WELLIES_VERSION: ${{ github.ref_name }}
                 PYFLOW_VERSION: 3.2.1
                 TRACKSUITE_VERSION: 0.3.3
             sbatch_options: |
