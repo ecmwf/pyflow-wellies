@@ -18,7 +18,7 @@ def test_log_archive(tmpdir, backup, hook, num_tasks):
         "begin": "2020-01-01",
         "end": "2020-01-03",
     }
-    with pf.Suite("s", variables={"ECF_FILES": tmpdir}) as suite:
+    with pf.Suite("s", files=str(tmpdir)) as suite:
         with ArchivedRepeatFamily("main", repeat, backup, backup) as main:
             pf.Task("t1")
             with pf.Family("f1"):
