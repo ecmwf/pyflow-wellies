@@ -6,6 +6,10 @@ on:
         description: 'Module name'
         required: true
         type: string
+      wellies-version:
+        description: 'Wellies version'
+        required: false
+        type: string
       pyflow-version:
         description: 'PyFlow version'
         required: false
@@ -29,7 +33,7 @@ jobs:
 
             python3_versions=("3.10.10-01" "3.11.8-01")
 
-            WELLIES_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
+            WELLIES_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.wellies-version || github.ref_name }}
             PYFLOW_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || '3.2.1' }}
             TRACKSUITE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || '0.3.3' }}
 
