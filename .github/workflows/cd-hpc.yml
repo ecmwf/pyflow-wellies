@@ -6,13 +6,20 @@ on:
         description: 'Module name'
         required: true
         type: string
+      module-tag:
+        description: 'Module tag'
+        required: false
+        default: 'NOT_DEFINED'
+        type: string
       pyflow-version:
         description: 'PyFlow version'
         required: false
+        default: 'master'
         type: string
       tracksuite-version:
         description: 'TrackSuite version'
         required: false
+        default: 'main'
         type: string
   push:
     tags:
@@ -26,28 +33,24 @@ jobs:
           troika_user: ${{ secrets.HPC_CI_SSH_USER }}
           template: |
             set -eux
-
-            python3_versions=("3.10.10-01" "3.11.8-01")
             
             MODULE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
-            WELLIES_VERSION=${{ github.ref_name }}
-            PYFLOW_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || '3.2.1' }}
-            TRACKSUITE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || '0.3.3' }}
+            MODULE_TAG=${{ github.event_name == 'workflow_dispatch' && inputs.module-tag || 'default'}}
+            WELLIES_BRANCH=${{ github.ref_name }}
+            PYFLOW_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || 'master' }}
+            TRACKSUITE_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || 'main' }}
 
             PREFIX=/usr/local/apps/wellies/$MODULE_VERSION
             rm -rf $PREFIX
             mkdir -p $PREFIX
 
-            for version in "${python3_versions[@]}"
-            do
-                module load python3/$version
+            module load python3
 
-                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@$PYFLOW_VERSION
-                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@$TRACKSUITE_VERSION
-                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@$WELLIES_VERSION
-
-                module unload python3
-            done
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@$PYFLOW_BRANCH
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@$TRACKSUITE_BRANCH
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@$WELLIES_BRANCH
+            
+            module unload python3
 
             cat > $PREFIX/README.txt << EOF
             -- [wellies] ($WELLIES_VERSION) [$WELLIES_VERSION]
@@ -58,6 +61,10 @@ jobs:
             software-sync -s local -p wellies
             module load modulemgr
             modulemgr -v -f -m all sync wellies
+            if [ $MODULE_TAG != 'NOT_DEFINED' ]
+            then
+                modulemgr -f -o -m all tag wellies $MODULE_VERSION $MODULE_TAG
+            fi
           sbatch_options: |
             #SBATCH --job-name=build_wellies_module
             #SBATCH --time=00:10:00
