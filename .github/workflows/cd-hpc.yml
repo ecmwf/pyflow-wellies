@@ -1,3 +1,4 @@
+name: hpc-module
 on:
   workflow_dispatch:
     inputs:
