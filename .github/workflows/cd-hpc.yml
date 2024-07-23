@@ -9,7 +9,7 @@ on:
       module-tag:
         description: 'Module tag'
         required: false
-        default: 'NOT_DEFINED'
+        default: 'UNDEFINED'
         type: string
       pyflow-version:
         description: 'PyFlow version'
@@ -61,9 +61,9 @@ jobs:
             software-sync -s local -p wellies
             module load modulemgr
             modulemgr -v -f -m all sync wellies
-            if [ $MODULE_TAG != 'NOT_DEFINED' ]
+            if [ $MODULE_TAG != 'UNDEFINED' ]
             then
-                modulemgr -f -o -m all tag wellies $MODULE_VERSION $MODULE_TAG
+                modulemgr -f -m all tag -o wellies $MODULE_VERSION $MODULE_TAG
             fi
           sbatch_options: |
             #SBATCH --job-name=build_wellies_module
