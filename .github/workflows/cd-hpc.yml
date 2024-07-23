@@ -1,0 +1,62 @@
+on:
+  workflow_dispatch:
+    inputs:
+      module-name:
+        description: 'Module name'
+        required: true
+        type: string
+      pyflow-version:
+        description: 'PyFlow version'
+        required: false
+        type: string
+      tracksuite-version:
+        description: 'TrackSuite version'
+        required: false
+        type: string
+  push:
+    tags:
+    - "[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build-module:
+    runs-on: [hpc]
+    steps:
+      - uses: ecmwf-actions/reusable-workflows/ci-hpc-generic@v2
+        with:
+          troika_user: ${{ secrets.HPC_CI_SSH_USER }}
+          template: |
+            set -eux
+
+            python3_versions=("3.10.10-01" "3.11.8-01")
+
+            WELLIES_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
+            PYFLOW_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || '3.2.1' }}
+            TRACKSUITE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || '0.3.3' }}
+
+            PREFIX=/usr/local/apps/wellies/$WELLIES_VERSION
+            rm -rf $PREFIX
+            mkdir -p $PREFIX
+
+            for version in "${python3_versions[@]}"
+            do
+                module load python3/$version
+
+                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@$PYFLOW_VERSION
+                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@$TRACKSUITE_VERSION
+                PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@$WELLIES_VERSION
+
+                module unload python3
+            done
+
+            cat > $PREFIX/README.txt << EOF
+            -- [wellies] ($WELLIES_VERSION) [$WELLIES_VERSION]
+            -- [pyflow] ($PYFLOW_VERSION) [$PYFLOW_VERSION]
+            -- [tracksuite] ($TRACKSUITE_VERSION) [$TRACKSUITE_VERSION]
+            EOF
+
+            software-sync -s local -p wellies
+            module load modulemgr
+            modulemgr -v -f -m all sync wellies
+          sbatch_options: |
+            #SBATCH --job-name=build_wellies_module
+            #SBATCH --time=00:10:00
+            #SBATCH --qos=deploy       
