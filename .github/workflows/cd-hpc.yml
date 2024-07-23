@@ -24,20 +24,13 @@ jobs:
       - uses: ecmwf-actions/reusable-workflows/ci-hpc-generic@v2
         with:
           troika_user: ${{ secrets.HPC_CI_SSH_USER }}
-          template_data: |
-            repo_name: "danu"
-            repo_url: "https://${{ secrets.BUILD_PACKAGE_HPC_GITHUB_USER }}:${{ secrets.GH_REPO_READ_TOKEN || github.token }}@github.com/${{ github.repository }}.git"
-            ref: "${{github.sha}}"
-            target_name: "${{ github.ref_name }}"
-            ENV_NAME: "${{ inputs.env_name }}"
-
           template: |
             set -eux
 
             python3_versions=("3.10.10-01" "3.11.8-01")
             
             MODULE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
-            WELLIES_VERSION=${{ github.event_name == 'workflow_dispatch' && github.sha || github.ref_name }}
+            WELLIES_VERSION=${{ github.ref_name }}
             PYFLOW_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || '3.2.1' }}
             TRACKSUITE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || '0.3.3' }}
 
