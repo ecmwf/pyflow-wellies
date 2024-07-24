@@ -40,7 +40,7 @@ jobs:
             PYFLOW_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || 'master' }}
             TRACKSUITE_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || 'main' }}
 
-            PREFIX=/usr/local/apps/wellies/$MODULE_VERSION
+            PREFIX=${{ secrets.HPC_APPS_DIR }}/wellies/$MODULE_VERSION
             rm -rf $PREFIX
             mkdir -p $PREFIX
 
