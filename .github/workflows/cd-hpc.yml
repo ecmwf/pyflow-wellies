@@ -52,11 +52,11 @@ jobs:
             
             module unload python3
 
-            cat > $PREFIX/README.txt << EOF
-            -- [wellies] ($WELLIES_VERSION) [$WELLIES_VERSION]
-            -- [pyflow] ($PYFLOW_VERSION) [$PYFLOW_VERSION]
-            -- [tracksuite] ($TRACKSUITE_VERSION) [$TRACKSUITE_VERSION]
-            EOF
+            # cat > $PREFIX/README.txt << EOF
+            # -- [wellies] ($WELLIES_BRANCH) [$WELLIES_BRANCH]
+            # -- [pyflow] ($PYFLOW_BRANCH) [$PYFLOW_BRANCH]
+            # -- [tracksuite] ($TRACKSUITE_BRANCH) [$TRACKSUITE_BRANCH]
+            # EOF
 
             software-sync -s local -p wellies
             module load modulemgr
