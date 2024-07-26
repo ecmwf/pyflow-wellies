@@ -1,5 +1,4 @@
 import textwrap
-from typing import Type
 
 import pyflow as pf
 
@@ -44,7 +43,9 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             **kwargs,
         )
 
-        repeat_options = repeat_options.copy()  # making sure we don't mess up the input object
+        repeat_options = (
+            repeat_options.copy()
+        )  # making sure we don't mess up the input object
         repeat_type = repeat_options.pop("type")
 
         with self:
