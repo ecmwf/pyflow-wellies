@@ -1,25 +1,22 @@
 import textwrap
+from typing import Type
 
 import pyflow as pf
 
 
-def repeat_factory(options):
-    if options["type"] == "RepeatDate":
-        return pf.RepeatDate(
-            options["name"],
-            options["begin"],
-            options["end"],
-            options.get("step", 1),
-        )
-    else:
-        raise ValueError(f"Unknown repeat type: {options['type']}")
+def create_repeat(repeat, options):
+    # Get the class from the module
+    class_ = getattr(pf, repeat)
+    # Create an instance of the class with the provided arguments
+    instance = class_(**options)
+    return instance
 
 
 class ArchivedRepeatFamily(pf.AnchorFamily):
     def __init__(
         self,
         name: str,
-        repeat: dict,
+        repeat_options: dict,
         logs_backup: str = None,
         logs_archive: str = None,
         **kwargs,
@@ -39,6 +36,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         exit_hooks = kwargs.pop("exit_hook", [])
         if self.exit_hook() and self.exit_hook() not in exit_hooks:
             exit_hooks.append(self.exit_hook())
+
         super().__init__(
             name=name,
             exit_hook=exit_hooks,
@@ -46,8 +44,11 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             **kwargs,
         )
 
+        repeat_options = repeat_options.copy()  # making sure we don't mess up the input object
+        repeat_type = repeat_options.pop("type")
+
         with self:
-            self.repeat_attr = repeat_factory(repeat)
+            self.repeat_attr = create_repeat(repeat_type, repeat_options)
             self._archive_task()
             self._loop_task()
 
