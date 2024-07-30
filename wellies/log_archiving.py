@@ -18,11 +18,13 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         repeat_options: dict,
         logs_backup: str = None,
         logs_archive: str = None,
+        submit_arguments: dict = None,
         **kwargs,
     ):
         self.logs_backup = logs_backup or None
         self.logs_archive = logs_archive or None
         self._added_log_tasks = False
+        self.submit_arguments = submit_arguments
         variables = kwargs.pop("variables", {})
         if self.logs_backup:
             variables["LOGS_BACKUP"] = self.logs_backup
@@ -89,6 +91,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         return pf.Task(
             name="loop_logs",
             script=[script],
+            submit_arguments=self.submit_arguments,
         )
 
     def _archive_task(self):
@@ -120,6 +123,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         return pf.Task(
             name="archive_logs",
             script=[script],
+            submit_arguments=self.submit_arguments,
         )
 
     def generate_node(self):
