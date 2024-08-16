@@ -92,9 +92,8 @@ class CustomData(StaticData):
         script = "# Running custom data command"
         super().__init__(data_dir, name, script, options)
 
-class Webdata(StaticData):
+class WebData(StaticData):
     def __init__(self, data_dir, name, options):
-        script = "# Running custom data command"
         url = options.get("url")
         md5 = options.get("md5")
         name = options.get("name")
@@ -106,6 +105,23 @@ class Webdata(StaticData):
                 URL=url
                 )
         options.update({"post_script": "test $(echo {}) == $(md5sum {} | awk '{{print $1}}')".format(md5, name)})
+        super().__init__(data_dir, name, script, options)
+
+class MemoryData(StaticData):
+    """
+    StaticData class for in memory data which is utf-8 encoded.
+    """
+    def __init__(self, data_dir, name, options):
+        data = options.get("data")
+        
+        script = pf.TemplateScript(
+                scripts.memory_script,
+                DIR=data_dir,
+                NAME=name,
+                TARGET=name,
+                DATA=data
+                )
+
         super().__init__(data_dir, name, script, options)
 
 
@@ -242,7 +258,9 @@ def parse_static_data_item(data_dir, name, options):
     elif type == "git":
         data = GitData(data_dir, name, options)
     elif type == "web":
-        data = Webdata(data_dir, name, options)
+        data = WebData(data_dir, name, options)
+    elif type == "memory":
+        data = MemoryData(data_dir, name, options)
     elif type == "ecfs":
         data = ECFSData(data_dir, name, options)
     elif type == "link":
