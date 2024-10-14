@@ -60,7 +60,10 @@ def git_commit_message(message_args):
 
         commit_hash = repo.head.commit.hexsha
         remote_url = next(repo.remote().urls)
-        branch_name = repo.active_branch.name
+        if repo.head.is_detached:
+            branch_name = "Detached HEAD"
+        else:
+            branch_name = repo.active_branch.name
         default_message += "\nGit info:\n"
         default_message += f"  - Remote URL: {remote_url} \n"
         default_message += f"  - Commit: {commit_hash}\n"
