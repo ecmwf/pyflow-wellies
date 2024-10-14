@@ -26,6 +26,65 @@ def _generate_suite(suite, staging_dir, suite_name):
     return def_file
 
 
+def git_commit_message(message_args):
+    """
+    Generate a git commit message with additional repository information
+    (directory, git remote, git hash).
+
+    Parameters
+    ----------
+    message_args : str or None
+        Additional message to append to the default commit message.
+        If None, only the default message is used.
+    Returns
+    -------
+    str
+        The complete commit message including repository information and the
+        additional message if provided.
+    Notes
+    -----
+    The default message includes the version of the wellies suite and the
+    current working directory.
+    If a local git repository is found, the message also includes the remote
+    repository name and the current commit hash.
+    If no local git repository is found, only the default message is used.
+    """
+
+    default_message = (
+        f"suite generated using wellies {wl.__version__}"
+        + f" from directory {os.getcwd()}"
+    )
+
+    try:
+        repo = git.Repo(".")
+
+        commit_hash = repo.head.commit.hexsha
+        remote_url = next(repo.remote().urls)
+        if repo.head.is_detached:
+            branch_name = "Detached HEAD"
+        else:
+            branch_name = repo.active_branch.name
+        default_message += "\nGit info:\n"
+        default_message += f"  - Remote URL: {remote_url} \n"
+        default_message += f"  - Commit: {commit_hash}\n"
+        default_message += f"  - Branch: {branch_name}\n"
+        if repo.is_dirty():
+            modified_files = [item.a_path for item in repo.index.diff(None)]
+            if modified_files:
+                default_message += "  - Local changes:\n"
+                for file in modified_files:
+                    default_message += f"    - {file}\n"
+    except (git.exc.NoSuchPathError, git.exc.InvalidGitRepositoryError):
+        print("Could not find local git repository, using default message")
+
+    if message_args is None:
+        message = default_message
+    else:
+        message = default_message + "\n\n" + {message}
+
+    return message
+
+
 def deploy_suite(
     suite: pf.Suite,
     user: str,
@@ -128,14 +187,9 @@ def deploy_suite(
             if check != "y":
                 print("Aborting deployment")
                 exit(1)
-        default_message = (
-            f"suite generated using wellies {wl.__version__}"
-            + f" from directory {os.getcwd()}"
-        )
-        if message is None:
-            message = default_message
-        else:
-            message = default_message + "\n" + {message}
+
+        message = git_commit_message(message)
+
         if deployer.deploy(message, files):
             print(f"Suite deployed to {target_repo}")
             print(f"Definition file: {target_repo}/{name}.def")
