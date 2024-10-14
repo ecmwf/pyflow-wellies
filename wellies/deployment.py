@@ -28,20 +28,25 @@ def _generate_suite(suite, staging_dir, suite_name):
 
 def git_commit_message(message_args):
     """
-    Generate a git commit message with additional repository information (directory, git remote, git hash).
+    Generate a git commit message with additional repository information
+    (directory, git remote, git hash).
 
     Parameters
     ----------
     message_args : str or None
-        Additional message to append to the default commit message. If None, only the default message is used.
+        Additional message to append to the default commit message.
+        If None, only the default message is used.
     Returns
     -------
     str
-        The complete commit message including repository information and the additional message if provided.
+        The complete commit message including repository information and the
+        additional message if provided.
     Notes
     -----
-    The default message includes the version of the wellies suite and the current working directory.
-    If a local git repository is found, the message also includes the remote repository name and the current commit hash.
+    The default message includes the version of the wellies suite and the
+    current working directory.
+    If a local git repository is found, the message also includes the remote
+    repository name and the current commit hash.
     If no local git repository is found, only the default message is used.
     """
 
@@ -52,11 +57,11 @@ def git_commit_message(message_args):
 
     try:
         repo = git.Repo(".")
-    
+
         commit_hash = repo.head.commit.hexsha
         remote_url = next(repo.remote().urls)
         branch_name = repo.active_branch.name
-        default_message += f"\nGit info:\n"
+        default_message += "\nGit info:\n"
         default_message += f"  - Remote URL: {remote_url} \n"
         default_message += f"  - Commit: {commit_hash}\n"
         default_message += f"  - Branch: {branch_name}\n"
