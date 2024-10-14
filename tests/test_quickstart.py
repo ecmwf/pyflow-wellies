@@ -9,7 +9,17 @@ from wellies.quickstart import main
 def quickstart():
     suite_dir = tempfile.mkdtemp(prefix=f"test_suite_")
     deploy_dir = tempfile.mkdtemp(prefix=f"deploy_")
-    main([f"{suite_dir}", "-p", "test", "--deploy_root", deploy_dir])
+    main(
+        [
+            f"{suite_dir}",
+            "-p",
+            "test",
+            "--deploy_root",
+            deploy_dir,
+            "--output_root",
+            "/my/output/root",
+        ]
+    )
     print(suite_dir)
     print(os.listdir(suite_dir))
     print(os.listdir(os.path.join(suite_dir, "configs")))
