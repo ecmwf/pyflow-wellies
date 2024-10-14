@@ -6,5 +6,5 @@ dependencies:
   - pip
   - ecflow
   - pip:
-    - pyflow-workflow-generator
+    - pyflow-workflow-generator >= 3.4.1
     - "tracksuite @ git+https://github.com/ecmwf/tracksuite.git"
