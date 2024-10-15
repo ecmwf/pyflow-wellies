@@ -4,6 +4,8 @@
 
 # Building a suite from scratch
 
+## A default suite
+
 In this guide we will go through the steps of creating a suite from the very beginning.
 This suite will be named `efas_report` and its code will live in a directory named 
 `projects`.
@@ -14,29 +16,200 @@ $ cd ~/projects/efas_report
 ```
 
 The command will start the project with associated base configuration files in the target directory.
-
 Before we do any further changes, it's always good to keep track of our changes. So, let's initialize a local git repository
 
-```shell
+```console
 $ git init
 $ echo "__pycache__" > .gitignore
 $ git add --all
 $ git commit -m "Start of project from wellies-quickstart"
 ```
 
-We can already deploy this suite by running.
+This example suite is ready to deploy and we can do this by running
 
-```shell
+```console
 $ ./deploy configs/*.yaml
+running on host: localhost
+------------------------------------------------------
+Staging suite to /tmp/build_efas_report_8smyc2z4
+------------------------------------------------------
+Generating suite:
+    -> Deploying suite scripts in /tmp/build_efas_report_8smyc2z4/staging
+    -> Definition file written in /tmp/build_efas_report_8smyc2z4/staging/efas_report.def
+Creating deployer:
+    -> Loading local repo /tmp/build_efas_report_8smyc2z4/local
+    -> Cloning from /perm/username/pyflow/efas_report
+
+Remote repository does not seem to exist. Do you want to initialise it? (N/y) y
+
+Creating remote repository /perm/username/pyflow/efas_report on host localhost with user username
+Creating deployer:
+    -> Loading local repo /tmp/build_efas_report_8smyc2z4/local
+    -> Cloning from /perm/username/pyflow/efas_report
+Changes in staged suite:
+    - Removed:
+        - dummy.txt
+    - Added:
+        - efas_report.def
+        - init/deploy_tools/deploy_tools.man
+        - init/deploy_tools/suite_env/setup.ecf
+        - init/deploy_tools/suite_env/earthkit.ecf
+        - init/deploy_tools/suite_env/packages.man
+        - init/deploy_data/git_sample.ecf
+        - init/deploy_data/mars_sample.ecf
+        - main/dummy.ecf
+For more details, compare the following folders:
+/tmp/build_efas_report_8smyc2z4/staging
+/tmp/build_efas_report_8smyc2z4/local
+------------------------------------------------------
+Deploying suite to /perm/username/pyflow/efas_report
+------------------------------------------------------
+
+You are about to push the staged suite to the target directory. Are you sure? (N/y)y
+Deploying suite to remote locations
+    -> Checking that git repos are in sync
+    -> Staging suite
+    -> Git commit
+    -> Git push to target /perm/username/pyflow/efas_report on host localhost
+Suite deployed to /perm/username/pyflow/efas_report
+Definition file: /perm/username/pyflow/efas_report/efas_report.def
 ```
 
-You will notice that this suite comes already powered with git-tracked deployment provided by [tracksuite](tracksuite_guide.md). We can accept all the prompts and have the suite definition and its scripts deployed to `deploy_dir`, as defined in the main configuration file, `configs/config.yaml`.
+This script has:
 
-We want to run our suite on a remote hpc cluster accessible via ssh with name `hpc`. We 
-can define that with the `hostname` option in `configs/config.yaml` to the desired name.
+1. Read the configuration files
+2. Created suite files in the `/tmp/build_efas_report_8smyc2z4/staging` folder
+3. Created a git repository in `/perm/username/pyflow/efas_report`, our git remote
+4. Cloned that repository to `/tmp/build_efas_report_8smyc2z4/local`
+5. Updated the suite, committed the changes and pushed to `/perm/username/pyflow/efas_report`
 
-If we try to deploy again we will see that all files have been modified. Is that alright!? If we take the advice from 
-the prompt and call a `diff` command on the script `init/deploy_data/mars_sample.ecf` we will see that some headers have been added now that we are setting up to run on a different execution host.
+> [!NOTE]  
+> Paths to the temporary directories have been changed for brevity
+
+We've deployed the default suite, now let's look at how we can configure it to do what we want.
+
+## Customisation
+
+When we ran the deploy script we passed it the path to the configuration files `configs/*.yaml`.
+Within that directory there are four files
+
+```tree
+configs/
+    config.yaml
+    data.yaml
+    execution_contexts.yaml
+    tools.yaml
+```
+
+Let's first take a look at `config.yaml`
+
+### `config.yaml`
+
+```yaml title="config.yaml"
+# Configuration file for pyflow suite.
+
+# This file only contains a selection of most common options.
+# All new entries can be treated on /etc/ecmwf/nfs/dh1_home_a/username/projects/efas_report/suite/config.py:Config
+
+# wellies support simple python string formatting and have some global names available.
+# This will be treated accordingly by wellies.parse_yaml:
+
+# name: mysuite
+# suite_dir: "{HOME}/{name}"
+
+# Available names are:
+# USER, HOME, PERM, SCRATCH, PWD, HPCPERM, TODAY and YESTERDAY
+
+# -------- Suite deployment configuration -------------------------------------
+# host options
+suite_name: "efas_report"
+hostname: "localhost"
+user: "{USER}"
+
+# server options
+deploy_dir: "{PERM}/pyflow/efas_report"
+job_out: "%ECF_HOME%"
+workdir: "$TMPDIR"
+
+output_root: "{SCRATCH}/efas_report"
+
+# ---------- Specific optionals -----------------------------------------------
+# add your project's specific variables and options here
+```
+
+Let's break down the configuration settings.
+
+#### Host options
+
+- `suite_name` - the name of the suite
+- `hostname` - the host on which we want the suite to run, such as our HPC cluster
+- `user` - by default `{USER}` will be replaced with our username, it should be set to your username on the HPC system running the suite
+
+#### Server options
+
+- `deploy_dir` - where the main suite files and git repo will be created, `/perm/username/pyflow/efas_report` above
+- `job_out` - job output directory, where files should be created
+- `workdir` - a temporary working directory read/write purposes
+- `output_root` - a folderpath used for storage of tools, Python environments and static data stores
+
+Let's update the configuration to use a new host and username
+
+```yaml
+# host options
+suite_name: "efas_report"
+hostname: "hpc_system.example.com"
+user: "myusername"
+
+# server options
+deploy_dir: "{PERM}/pyflow/efas_report"
+job_out: "%ECF_HOME%"
+workdir: "$TMPDIR"
+
+output_root: "{SCRATCH}/efas_report"
+```
+
+To deploy the suite again we do
+
+```console
+$ ./deploy configs/*.yaml
+submitting jobs using troika on host: hpc_system.example.com
+------------------------------------------------------
+Staging suite to /tmp/build_efas_report_eheea31w
+------------------------------------------------------
+Generating suite:
+    -> Deploying suite scripts in /tmp/build_efas_report_eheea31w/staging
+    -> Definition file written in /tmp/build_efas_report_eheea31w/staging/efas_report.def
+Creating deployer:
+    -> Loading local repo /tmp/build_efas_report_eheea31w/local
+    -> Cloning from /perm/username/pyflow/efas_report
+Changes in staged suite:
+    - Modified:
+        - efas_report.def
+        - init/deploy_data/git_sample.ecf
+        - init/deploy_data/mars_sample.ecf
+        - init/deploy_tools/suite_env/earthkit.ecf
+        - init/deploy_tools/suite_env/setup.ecf
+        - main/dummy.ecf
+For more details, compare the following folders:
+/tmp/build_efas_report_eheea31w/staging
+/tmp/build_efas_report_eheea31w/local
+------------------------------------------------------
+Deploying suite to /perm/username/pyflow/efas_report
+------------------------------------------------------
+You are about to push the staged suite to the target directory. Are you sure? (N/y)y
+Deploying suite to remote locations
+    -> Checking that git repos are in sync
+    -> Staging suite
+    -> Git commit
+    -> Git push to target /perm/username/pyflow/efas_report on host localhost
+Suite deployed to /perm/username/pyflow/efas_report
+Definition file: /perm/username/pyflow/efas_report/efas_report.def
+```
+
+With this deployment wellies detects that changes have been made to the configuration file, updates the suite and informs us the changes will be committed and pushed to the deployment directory.
+
+You may notice on at the top of the wellies output the line `submitting jobs using troika on host: hpc_system.example.com`, this tells 
+us [troika](https://github.com/ecmwf/troika) will be used to deploy the tasks for this suite. We'll cover different hosts in a later tutorial or you can here more in the [execution contexts](./config/exec_config.md) documentation.
 
 /// admonition | Note
     type: Hint
