@@ -286,3 +286,12 @@ class TestYamlParser:
         print(options)
         print(ref_options)
         assert options == ref_options
+
+    def test_invalid_variable_substitution(self):
+        config_in = """
+        user: dummy
+        path: "{_FORTESTING}"
+        """
+
+        with pytest.raises(ValueError):
+            self._run(config_in, expected=None)

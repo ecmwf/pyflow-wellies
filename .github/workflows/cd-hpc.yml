@@ -1,0 +1,71 @@
+name: hpc-module
+on:
+  workflow_dispatch:
+    inputs:
+      module-name:
+        description: 'Module name'
+        required: true
+        type: string
+      module-tag:
+        description: 'Module tag'
+        required: false
+        default: 'UNDEFINED'
+        type: string
+      pyflow-version:
+        description: 'PyFlow version'
+        required: false
+        default: 'master'
+        type: string
+      tracksuite-version:
+        description: 'TrackSuite version'
+        required: false
+        default: 'main'
+        type: string
+  push:
+    tags:
+    - "[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build-module:
+    runs-on: [hpc]
+    steps:
+      - uses: ecmwf-actions/reusable-workflows/ci-hpc-generic@v2
+        with:
+          troika_user: ${{ secrets.HPC_CI_SSH_USER }}
+          template: |
+            set -eux
+            
+            MODULE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
+            MODULE_TAG=${{ github.event_name == 'workflow_dispatch' && inputs.module-tag || 'default'}}
+            WELLIES_BRANCH=${{ github.ref_name }}
+            PYFLOW_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || 'master' }}
+            TRACKSUITE_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || 'main' }}
+
+            PREFIX=${{ secrets.HPC_APPS_DIR }}/wellies/$MODULE_VERSION
+            rm -rf $PREFIX
+            mkdir -p $PREFIX
+
+            module load python3
+
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@$PYFLOW_BRANCH
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@$TRACKSUITE_BRANCH
+            PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@$WELLIES_BRANCH
+            
+            module unload python3
+
+            # cat > $PREFIX/README.txt << EOF
+            # -- [wellies] ($WELLIES_BRANCH) [$WELLIES_BRANCH]
+            # -- [pyflow] ($PYFLOW_BRANCH) [$PYFLOW_BRANCH]
+            # -- [tracksuite] ($TRACKSUITE_BRANCH) [$TRACKSUITE_BRANCH]
+            # EOF
+
+            software-sync -s local -p wellies
+            module load modulemgr
+            modulemgr -v -f -m all sync wellies
+            if [ $MODULE_TAG != 'UNDEFINED' ]
+            then
+                modulemgr -f -m all tag -o wellies $MODULE_VERSION $MODULE_TAG
+            fi
+          sbatch_options: |
+            #SBATCH --job-name=build_wellies_module
+            #SBATCH --time=00:10:00
+            #SBATCH --qos=deploy       
