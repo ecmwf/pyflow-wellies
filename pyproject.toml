@@ -31,7 +31,7 @@ dynamic = ["version", "readme"]
 dependencies = [
     "jinja2",
     "pyyaml",
-    "pyflow-workflow-generator",
+    "pyflow-workflow-generator >= 3.4.1",
     "tracksuite",
 ]
 

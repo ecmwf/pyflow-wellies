@@ -15,7 +15,7 @@ def test_log_archive(tmpdir, backup, hook, num_tasks):
     repeat = {
         "name": "YMD",
         "type": "RepeatDate",
-        "begin": "2020-01-01",
+        "start": "2020-01-01",
         "end": "2020-01-03",
     }
     with pf.Suite("s", files=str(tmpdir)) as suite:
