@@ -91,6 +91,7 @@ def deploy_suite(
     name: str,
     hostname: str,
     deploy_dir: str,
+    deploy_user: str = None,
     backup_deploy: str = None,
     build_dir: str = None,
     no_prompt: bool = False,
@@ -113,6 +114,8 @@ def deploy_suite(
         The hostname of the remote repository.
     deploy_dir (str):
         The target to deploy the suite to.
+    deploy_user (str, optional):
+        The username to use for remote deployment. Defaults to None.
     backup_deploy (str, optional):
         The backup repository to use. Defaults to None.
     build_dir (str, optional):
@@ -141,10 +144,12 @@ def deploy_suite(
 
     _generate_suite(suite, staging_dir, name)
 
+    deploy_user = user if deploy_user is None else deploy_user
+
     try:
         deployer = ts.GitDeployment(
             host=hostname,
-            user=user,
+            user=deploy_user,
             staging_dir=staging_dir,
             local_repo=local_repo,
             target_repo=target_repo,
@@ -163,7 +168,7 @@ def deploy_suite(
         )
         deployer = ts.GitDeployment(
             host=hostname,
-            user=user,
+            user=deploy_user,
             staging_dir=staging_dir,
             local_repo=local_repo,
             target_repo=target_repo,

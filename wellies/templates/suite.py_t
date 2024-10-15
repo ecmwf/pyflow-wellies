@@ -29,6 +29,7 @@ class Config:
 
         self.deploy_dir = options['deploy_dir']
         self.deploy_hostname = options.get("deploy_hostname", "localhost")
+        self.deploy_user = options.get("deploy_user")
         self.backup_deploy = options.get('backup_deploy', None)
 
         self.output_root = options['output_root']
@@ -82,6 +83,7 @@ if __name__ == '__main__':
         name=config.name,
         hostname=config.deploy_hostname,
         deploy_dir=config.deploy_dir,
+        deploy_user=config.deploy_user,
         backup_deploy=config.backup_deploy,
         build_dir=args.build_dir,
         no_prompt=args.y,
