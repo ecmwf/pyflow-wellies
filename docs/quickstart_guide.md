@@ -337,7 +337,8 @@ class Config:
         ...
 ```
 
-We can easily modify this class to allow us to pass in new configuration options. We want to pass the number of cycles, the start date and the end date. Let's update the class to take these values.
+We can easily modify this class to allow us to pass in new configuration options. 
+We want to pass the number of cycles, the start date and the end date. Let's update the class to take these values.
 
 ```python title="suite/nodes.py"
 from datetime import datetime as dt
@@ -368,9 +369,29 @@ class Config:
     ]
 ```
 
-So, to add such node in our suite we will modify the main family definition at the 
-file `suite/nodes.py` where we have the `MainFamily` definition with a single 
-placeholder task in it. Let's replace this by a repeating node that will run 
+To add such a node to our suite we will modify the main family definition in `suite/nodes.py`.
+At the moment we have the `MainFamily` definition with a single 
+placeholder task in it. 
+
+```
+
+```
+
+```python title="suite/nodes.py"
+class MainFamily(pf.AnchorFamily):
+    def __init__(self, config, **kwargs):
+        super().__init__(name='main', **kwargs)
+        with self:
+            pf.RepeatDate(name='YMD', start=config.start_date, end=config.end_date)
+            f_previous = None
+            for cycle in config.cycles:
+                f_issue = IssueFamily(config, cycle)
+                if f_previous is not None:
+                    f_issue.triggers = f_previous.complete
+                    f_previous = f_issue
+```
+
+Let's replace this by a repeating node that will run 
 every day, retrieve the input data for each cycle and then run our processing. We see 
 that the `MainFamily` class receives a config argument so we can use that to carry 
 on data like, start and end dates and the keys for our data retrieval.
@@ -405,17 +426,7 @@ class IssueFamily(pf.Family):
         n_plt.triggers = n_ret.complete
 
 
-class MainFamily(pf.AnchorFamily):
-    def __init__(self, config, **kwargs):
-        super().__init__(name='main', **kwargs)
-        with self:
-            pf.RepeatDate(name='YMD', start=config.start_date, end=config.end_date)
-            f_previous = None
-            for cycle in config.cycles:
-                f_issue = IssueFamily(config, cycle)
-                if f_previous is not None:
-                    f_issue.triggers = f_previous.complete
-                    f_previous = f_issue
+
 ```
 
 
