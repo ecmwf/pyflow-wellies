@@ -110,6 +110,10 @@ def concatenate_yaml_files(yaml_files):
         with open(yaml_path, "r") as file:
             local_options = yaml.load(file, Loader=yaml.SafeLoader)
 
+            # Skip empty files
+            if local_options is None:
+                continue
+
             # check for duplicates
             duplicated_keys = []
             for key in local_options.keys():
