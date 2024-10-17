@@ -103,8 +103,8 @@ For a quick overview of what these files do:
 
 - `config.yaml` - handles the [pyflow](https://github.com/ecmwf/pyflow) suite and repository
 - [`data.yaml`](./config/data_config.md) - configuration of data retrieval and handling
-- [`execution_contexts.yaml`](./config/exec_config.md) - for configuring how tasks are executed on hosts
-- [`tools.yaml`](./config/tools_config.md) - for software installation, conda environments etc.
+- [`execution_contexts.yaml`](./config/exec_config.md) - for configuring how tasks are executed on hosts and queueing systems such as SLURM 
+- [`tools.yaml`](./config/tools_config.md) - for conda environment creation and loading, environment variable handling etc
 
 
 In this tutorial we'll only cover making changes to `config.yaml` and `data.yaml`, click on filenames above for more information on making changes to the others.
@@ -223,24 +223,14 @@ With this deployment wellies detects that changes have been made to the configur
 
 This file configures data retrieval and handling. In our workflow we will need two datasets that are *static*, or they are data that need to be fetched just once for our computations to work. Within the `configs/data.yaml` we will add entries to transfer the latest station file from the EFAS repository and the computed flood thresholds that we know are available in a shared directory.
 
-We'll start by creating an `outlets` section in our `configs/data.yaml` file
-
-```yaml title="data.yaml"
-static_data:
-    outlets:
-        type: git
-        source: git@git.example.com:myproject/repo.git
-        branch: develop
-        files: ["repodata/stations.csv"]
-```
-
+We'll start by creating an `outlets` section in our `configs/data.yaml` file.
 The EFAS station file is tracked within EFAS suite repository, we tell wellies to clone the repo, use the `develop` branch and just keep the files specified in the `files` list. Next we add a `static_maps` section for the thresholds and upstream area files.
 
 ```yaml title="data.yaml"
 static_data:
     outlets:
         type: git
-        source: git@git.example.com:myproject/repo.git
+        source: https://github.com/myproject/repo.git
         branch: develop
         files: ["repodata/stations.csv"]
     static_maps:
@@ -266,8 +256,8 @@ start_date: 2024-01-01
 end_date: 2024-01-07
 ```
 
-Next we use wellies to configure a MARS request. We give each request a name, a type, here `mars` and then the body of the request.
-The `post_script` keyword allows us to run a tool on the result of the request. We want a netCDF instead of GRIB so we call the `grib_to_netcdf` command line tool provided by the ecmwf-toolbox module. 
+Next we use wellies to configure a MARS request. We give each request a name, a type, here `mars` and a request body.
+The `post_script` keyword allows us to run a tool on the result of the request. We want a netCDF instead of GRIB so we call the `grib_to_netcdf` command line tool provided by the `ecmwf-toolbox` module.
 
 Here we modify `data.yaml` to add those changes:
 
