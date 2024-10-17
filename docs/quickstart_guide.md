@@ -315,7 +315,7 @@ When we run the deploy command
 $ ./deploy config/*.yaml
 ```
 
-wellies reads and parses the YAML files from path given. The configuration settings are stored in a `Config` object that's defined
+wellies reads and parses the YAML files from path given. The configuration settings are stored in a `Config` object created from the class that's defined
 in `deploy.py`.
 
 ```python title="suite/nodes.py"
@@ -337,7 +337,7 @@ class Config:
         ...
 ```
 
-We can easily modify this class to allow us to pass in new configuration options. 
+We can modify this class to allow us to pass in new configuration options. 
 We want to pass the number of cycles, the start date and the end date. Let's update the class to take these values.
 
 ```python title="suite/nodes.py"
@@ -373,37 +373,21 @@ To add such a node to our suite we will modify the main family definition in `su
 At the moment we have the `MainFamily` definition with a single 
 placeholder task in it. 
 
-```
-
-```
 
 ```python title="suite/nodes.py"
 class MainFamily(pf.AnchorFamily):
     def __init__(self, config, **kwargs):
         super().__init__(name='main', **kwargs)
         with self:
-            pf.RepeatDate(name='YMD', start=config.start_date, end=config.end_date)
-            f_previous = None
-            for cycle in config.cycles:
-                f_issue = IssueFamily(config, cycle)
-                if f_previous is not None:
-                    f_issue.triggers = f_previous.complete
-                    f_previous = f_issue
+            pf.Task(
+                name='dummy',
+            )
 ```
 
 Let's replace this by a repeating node that will run 
 every day, retrieve the input data for each cycle and then run our processing. We see 
 that the `MainFamily` class receives a config argument so we can use that to carry 
 on data like, start and end dates and the keys for our data retrieval.
-
-For readability we can define a `IssueFamily` class that holds the logic of a 
-single run of our analysis and transfer the configuration of how many cycles we 
-are going to run.
-
-The `post_script` added to our retrievals, runs an external conversion tool 
-provided by the `ecmwf-toolbox` module. We need to add such runtime dependency on top of 
-our script. The way to do it is again via the `config` object which has a `tools` 
-attribute poiting to a `ToolStore` object.
 
 ```python title="suite/nodes.py"
 class IssueFamily(pf.Family):
@@ -425,17 +409,32 @@ class IssueFamily(pf.Family):
             n_plt = pf.Task(name='plots')
         n_plt.triggers = n_ret.complete
 
-
-
+class MainFamily(pf.AnchorFamily):
+    def __init__(self, config, **kwargs):
+        super().__init__(name='main', **kwargs)
+        with self:
+            pf.RepeatDate(name='YMD', start=config.start_date, end=config.end_date)
+            f_previous = None
+            for cycle in config.cycles:
+                f_issue = IssueFamily(config, cycle)
+                if f_previous is not None:
+                    f_issue.triggers = f_previous.complete
+                    f_previous = f_issue
 ```
 
+For readability we also define a `IssueFamily` class that holds the logic of a 
+single run of our analysis and transfer the configuration of how many cycles we 
+are going to run.
+
+The `post_script` added to our retrievals in `data.yaml` uses an external conversion tool 
+provided by the `ecmwf-toolbox` module. We need to add such runtime dependency on top of 
+our script. The way to do it is again via the `config` object which has a `tools` 
+attribute pointing to a `ToolStore` object. Using this `load` function we can load
+any of the tools defined in our `tool.yaml`.
 
 
 # TODO's
-show jupyter notebook that run earthkit maps plotting for efas data. Create script that runs with arguments appropriate
 
-
-## defined variables
-
-lib_dir
-data_dir
+- Update paths to real files so the tutorial can be run end to end.
+- Show jupyter notebook that run earthkit maps plotting for efas data. 
+- Create script that runs with arguments appropriate
