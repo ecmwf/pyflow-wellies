@@ -8,7 +8,7 @@ and deployment of the suite. We'll use the `wellies-quickstart` tool to create a
 We'll start by creating a new project called `efas_report` in a `projects` folder in our home directory.  We use the `-p` flag to pass in the name of the project. For more options see the help using `-h`.
 
 ```console
-$ wellies-quickstart -p efas_report ~/projects/efas_report
+$ wellies-quickstart ~/projects/efas_report -p efas_report
 ```
 
 Let's have a look at the folder created
