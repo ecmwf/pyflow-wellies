@@ -26,10 +26,10 @@ changes control for multi-users and remote deployment environments.
 Wellies is a pure python package, so installation from source is straightforward
 with `pip`
 
-```shell
-git clone ssh://git@git.ecmwf.int/ecflow/wellies.git
-cd wellies
-pip install .
+```console
+$ git clone ssh://git@git.ecmwf.int/ecflow/wellies.git
+$ cd wellies
+$ pip install .
 ```
 
 ## Quickstart
@@ -46,47 +46,82 @@ help_message = help_message.replace("mkdocs", "wellies-quickstart")
 print(f"```\n{help_message}\n```")
 ```
 
-To start a new project in a `projects` directory, just run
+To start a new project in a `projects` directory in your home folder, just run
 
-```shell
-$ wellies-quickstart -p mysuite projects
+```console
+$ wellies-quickstart ~/projects/mysuite -p mysuite
 ```
 
 This will create the following structure in your target project directory:
 
 ```tree
-projects
-    configs/
-        config.yaml
-        data.yaml
-        execution_contexts.yaml
-        tools.yaml
-    suite/
-        nodes.py
-    deploy.py
-    Makefile
+projects/
+└── mysuite
+    ├── configs
+    │   ├── config.yaml
+    │   ├── data.yaml
+    │   ├── execution_contexts.yaml
+    │   └── tools.yaml
+    ├── deploy.py
+    ├── Makefile
+    └── suite
+        └── nodes.py
 ```
 
 Although it does not contain any meaningful task, this is already a **valid 
 defined ecFlow suite**. To deploy all of the suite's scripts and write its definition file, just run:
 
-go past make file cmd, it uses tracksuite, first prompt about init remote git and second to confirm scripts deployment. link to deploy page
-
-```bash
+```console
 $ make
+running on host: localhost
+------------------------------------------------------
+Staging suite to /build_mysuite_y5r0ft9e
+------------------------------------------------------
+Generating suite:
+    -> Deploying suite scripts in /tmp/build_mysuite_y5r0ft9e/staging
+    -> Definition file written in /tmp/build_mysuite_y5r0ft9e/staging/mysuite.def
+Creating deployer:
+    -> Loading local repo /tmp/build_mysuite_y5r0ft9e/local
+    -> Cloning from /perm/username/pyflow/mysuite
+Changes in staged suite:
+    - Removed:
+        - dummy.txt
+    - Added:
+        - init/deploy_tools/deploy_tools.man
+        - init/deploy_tools/suite_env/setup.ecf
+        - init/deploy_tools/suite_env/earthkit.ecf
+        - init/deploy_tools/suite_env/packages.man
+        - init/deploy_data/git_sample.ecf
+        - init/deploy_data/mars_sample.ecf
+        - main/dummy.ecf
+        - mysuite.def
+For more details, compare the following folders:
+/tmp/build_mysuite_y5r0ft9e/staging
+/tmp/build_mysuite_y5r0ft9e/local
+------------------------------------------------------
+Deploying suite to /perm/username/pyflow/mysuite
+------------------------------------------------------
+You are about to push the staged suite to the target directory. Are you sure? (N/y)y
+Could not find local git repository, using default message
+Deploying suite to remote locations
+    -> Checking that git repos are in sync
+    -> Staging suite
+    -> Git commit
+    -> Git push to target /perm/username/pyflow/mysuite on host localhost
+Suite deployed to /perm/username/pyflow/mysuite
+Definition file: /perm/username/pyflow/mysuite/mysuite.def
 ```
 
-and after loading it on a running ecflow server it will give the suite
+After loading the suite on a running ecflow server it will give the suite
 
 ![Template suite](img/mysuite.png)
-
-*Template suite on ecflow*
 
 This will provide a starting base for your suite. From there you can modify the 
 project towards your own workflow.
 
+### Next 
+
 The [Tutorials](quickstart_guide.md) section contains further examples on suite 
 development from this base structure.
 
-For details about how wellies can help configuring your suites, please check one 
-of the [Suite Configuration](configurations.md) section.
+For details about how wellies can help configuring your suites, please check one of the [Suite Configuration](configurations.md) sections.
