@@ -15,16 +15,6 @@ import wellies as wl
 
 pw_user = getpwuid(os.getuid())
 
-# DEFAULTS = {
-#     "host": "localhost",
-#     "user": "{USER}",
-#     "author": pw_user.pw_gecos,
-#     "output_root": "{SCRATCH}",
-#     "deploy_root": "{PERM}/pyflow",
-#     "job_out": "%ECF_HOME%",
-#     "workdir": "$TMPDIR",
-# }
-
 DEFAULTS = {
     "host": "localhost",
     "user": "{USER}",
@@ -131,8 +121,6 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
     )
-
-    raise ValueError
 
     return None
 

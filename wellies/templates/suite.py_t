@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import os
-from pathlib import Path
 from dataclasses import dataclass
 
 from suite.nodes import MainSuite
+from typing import Optional
 
 import wellies as wl
 
@@ -29,17 +29,17 @@ class Host:
         submit_arguments: dict,
         job_out: str,
         workdir: str,
-        troika_kwargs: dict= {},
+        troika_kwargs: Optional[dict] = None,
     ):
+        if troika_kwargs is None:
+            troika_kwargs = {}
+
         self.hostname = hostname
         self.user = user
-        troika_kwargs = troika_kwargs
-        submit_arguments = submit_arguments
         self.job_out = job_out
         self.workdir = workdir
         
-        self.submit_arguments, submit_arguments_vars = wl.parse_execution_contexts(submit_arguments)
-        self.variables = submit_arguments_vars
+        self.submit_arguments, self.variables = wl.parse_submit_arguments(submit_arguments)
 
         self.pyflow_host = wl.get_host(
             hostname=hostname, user=user, **troika_kwargs

@@ -4,6 +4,6 @@ WELLIES_VERSION = {{ version }}
 user:
 	module load wellies/$(WELLIES_VERSION); \
 	module list; \
-	./deploy.py configs/config.yaml configs/data.yaml configs/execution_contexts.yaml configs/tools.yaml ${ARGS}
+	./deploy.py configs/config.yaml configs/data.yaml configs/host.yaml configs/tools.yaml ${ARGS}
 
 default: user
