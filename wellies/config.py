@@ -16,7 +16,9 @@ def get_parser() -> ArgumentParser:
     Returns:
     ArgumentParser: An ArgumentParser object including the wellies options.
     """
-    description = "\n" "Generate required files for a pyflow suite project." "\n"
+    description = (
+        "\n" "Generate required files for a pyflow suite project." "\n"
+    )
     parser = ArgumentParser(
         usage="%(prog)s <CONFIG_FILE>",
         description=description,
@@ -69,7 +71,9 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-def parse_yaml_files(config_files: list, set_variables=None, global_vars=None) -> dict:
+def parse_yaml_files(
+    config_files: list, set_variables=None, global_vars=None
+) -> dict:
     """
     Concatenates the config dictionaries and check for duplicates
     Override values in files with entries given on set_variables.
@@ -176,9 +180,13 @@ class TemplateFormatter(Formatter):
         bash_var_label = r"(\$\{.*\})"
         varnames = re.findall(bash_var_name, format_string)
         varlabels = re.findall(bash_var_label, format_string)
-        for literal_text, field_name, format_spec, conversion in super().parse(format_string):
+        for literal_text, field_name, format_spec, conversion in super().parse(
+            format_string
+        ):
             if field_name in varnames:
-                yield literal_text.strip(r"$") + varlabels[varnames.index(field_name)], None, None, None
+                yield literal_text.strip(r"$") + varlabels[
+                    varnames.index(field_name)
+                ], None, None, None
             else:
                 yield literal_text, field_name, format_spec, conversion
 
@@ -205,7 +213,9 @@ def check_environment_variables_substitution(value: str) -> None:
                 raise ValueError(f"Environment variable {key} is not set")
 
 
-def substitute_variables(options: dict, globals: Optional[dict] = None) -> dict:
+def substitute_variables(
+    options: dict, globals: Optional[dict] = None
+) -> dict:
     """Parse base configuration file using the keys on that same file to
     string format other values.
     Replaced variables will always be of type string.
