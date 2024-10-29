@@ -5,7 +5,7 @@ from .config import (
     get_parser,
     get_user_globals,
     overwrite_entries,
-    parse_execution_contexts,
+    parse_submit_arguments,
     parse_yaml_files,
     substitute_variables,
 )

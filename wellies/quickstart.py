@@ -19,10 +19,15 @@ DEFAULTS = {
     "host": "localhost",
     "user": "{USER}",
     "author": pw_user.pw_gecos,
-    "output_root": "{SCRATCH}",
     "deploy_root": "{PERM}/pyflow",
-    "job_out": "%ECF_HOME%",
-    "workdir": "$TMPDIR",
+    "output_root": "{SCRATCH}",
+    "ecflow_server": {
+        "hostname": "localhost",
+        "user": "{USER}",
+    },
+    "ecflow_variables": {
+        "OUTPUT_ROOT": "{SCRATCH}",
+    }
 }
 
 
@@ -68,12 +73,10 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     options.setdefault("project_root", root_path)
     os.makedirs(root_path, exist_ok=True)
 
-    out_root = options["output_root"]
-    out_root = path.join(out_root, project)
-    options["output_root"] = out_root
+    # Read this from the ecflow variable and add the project name
+    out_root = path.join(options["ecflow_variables"]["OUTPUT_ROOT"], project)
+    options["ecflow_variables"]["OUTPUT_ROOT"] = out_root
 
-    options.setdefault("lib_dir", path.join("{output_root}", "local"))
-    options.setdefault("data_dir", path.join("{output_root}", "data"))
     options.setdefault(
         "deploy_dir", path.join(options["deploy_root"], project)
     )
@@ -107,8 +110,8 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         renderer.render("config.yaml_t", options),
     )
     write_file(
-        path.join(config_dir, "execution_contexts.yaml"),
-        renderer.render("execution_contexts.yaml_t", options),
+        path.join(config_dir, "host.yaml"),
+        renderer.render("host.yaml_t", options),
     )
     write_file(
         path.join(config_dir, "tools.yaml"),
