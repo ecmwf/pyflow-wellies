@@ -14,16 +14,26 @@
 
 # -------- Suite deployment configuration -------------------------------------
 # host options
-suite_name: "{{ project }}"
-hostname: "{{ host }}"
-user: "{{ user }}"
+# suite_name: "{{ project }}"
+name: "{{ project }}
 
+ecflow_server:
+  hostname: "{{ host }}"
+  user: "{{ user }}"
+  deploy_dir: "{{ deploy_dir }}"
+
+# -------- Global variables ------------------------------------
+ecflow_variables:
+  OUTPUT_ROOT: "{{ output_root }}"
+  LIB_DIR: "%OUTPUT_ROOT%/local"
+  DATA_DIR: "%OUTPUT_ROOT%/data"
+
+# TODO - old - remove these
 # server options
-deploy_dir: "{{ deploy_dir }}"
-job_out: "{{ job_out }}"
-workdir: "{{ workdir }}"
-
-output_root: "{{ output_root }}"
+# deploy_dir: "{{ deploy_dir }}"
+# job_out: "{{ job_out }}"
+# workdir: "{{ workdir }}"
+# output_root: "{{ output_root }}"
 
 # ---------- Specific optionals -----------------------------------------------
 # add your project's specific variables and options here
