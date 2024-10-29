@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from collections import abc
 from datetime import datetime, timedelta
 from string import Formatter
-
+from typing import Optional
 import yaml
 
 
@@ -15,9 +15,7 @@ def get_parser() -> ArgumentParser:
     Returns:
     ArgumentParser: An ArgumentParser object including the wellies options.
     """
-    description = (
-        "\n" "Generate required files for a pyflow suite project." "\n"
-    )
+    description = "\n" "Generate required files for a pyflow suite project." "\n"
     parser = ArgumentParser(
         usage="%(prog)s <CONFIG_FILE>",
         description=description,
@@ -70,7 +68,7 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-def parse_yaml_files(config_files, set_variables=None, global_vars=None):
+def parse_yaml_files(config_files: list, set_variables=None, global_vars=None) -> dict:
     """
     Concatenates the config dictionaries and check for duplicates
     Override values in files with entries given on set_variables.
@@ -177,18 +175,14 @@ class TemplateFormatter(Formatter):
         bash_var_label = r"(\$\{.*\})"
         varnames = re.findall(bash_var_name, format_string)
         varlabels = re.findall(bash_var_label, format_string)
-        for literal_text, field_name, format_spec, conversion in super().parse(
-            format_string
-        ):
+        for literal_text, field_name, format_spec, conversion in super().parse(format_string):
             if field_name in varnames:
-                yield literal_text.strip(r"$") + varlabels[
-                    varnames.index(field_name)
-                ], None, None, None
+                yield literal_text.strip(r"$") + varlabels[varnames.index(field_name)], None, None, None
             else:
                 yield literal_text, field_name, format_spec, conversion
 
 
-def check_environment_variables_substitution(value):
+def check_environment_variables_substitution(value: str) -> None:
     """Checks if environment variables are defined in the keys to format
     and make sure they exist in the environment.
 
@@ -210,19 +204,22 @@ def check_environment_variables_substitution(value):
                 raise ValueError(f"Environment variable {key} is not set")
 
 
-def substitute_variables(options, globals=None):
-    """parse base configuration file using the keys on that same file to
+def substitute_variables(options: dict, globals: Optional[dict] = None) -> dict:
+    """Parse base configuration file using the keys on that same file to
     string format other values.
     Replaced variables will always be of type string.
 
     Parameters
     ----------
         options : dict
-            execution_contexts configuration dictionnary (from yaml file)
+            submit_arguments configuration dictionary (from yaml file)
         globals: dict, default=None
             A dictionary with globals key-value pairs to use on the string
             format substitution to be performed on the file content.
             New local assignments will take prevalence.
+    Returns
+    -------
+        dict: A dictionary with all variables substituted.
 
     :Attention: Does not support Lists
 
@@ -259,13 +256,12 @@ def substitute_variables(options, globals=None):
     global_subs = get_user_globals()
     if globals is not None:
         global_subs.update(globals)
+
     return update(options, global_subs)
 
 
-def parse_execution_contexts(options):
-    """parse execution context configuration file.
-    Expects a global `execution_contexts` mapping with other mappings
-    that define submit_arguments to be used on [pyflow.Task][]
+def parse_submit_arguments(options: dict) -> tuple:
+    """Parse submission arguments to be used on [pyflow.Task][]
     definitions.
 
     If a `defaults` mapping is defined it will be used as a default
@@ -276,11 +272,11 @@ def parse_execution_contexts(options):
     Parameters
     ----------
     options : dict
-        execution_contexts configuration dictionnary (from yaml file)
+        submit_arguments configuration dictionary (from yaml file)
 
     Returns
     -------
-    execution_contexts, submit_arguments_defaults : dict, dict
+    submit_arguments, submit_arguments_defaults : dict, dict
         Return parsed options as two dictionaries. The base execution contexts
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
