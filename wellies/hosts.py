@@ -46,7 +46,7 @@ def get_host(
         host = pf.LocalHost(
             hostname, user=user, ecflow_path=ecflow_path, **kwargs
         )
-        print("running on host: " + str(hostname))
+        print("Running on host: " + str(hostname))
     else:
         extra_variables = extra_variables or {}
         extra_variables["HOST"] = f"%SCHOST:{hostname}%"
@@ -58,6 +58,6 @@ def get_host(
             ecflow_path=ecflow_path,
             **kwargs,
         )
-        print("submitting jobs using troika on host: " + str(hostname))
+        print("Submitting jobs using troika on host: " + str(hostname))
 
     return host
