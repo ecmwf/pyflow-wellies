@@ -18,7 +18,7 @@ efas_report/
 ├── configs
 │   ├── config.yaml
 │   ├── data.yaml
-│   ├── execution_contexts.yaml
+│   ├── host.yaml
 │   └── tools.yaml
 ├── deploy.py
 ├── Makefile
@@ -117,7 +117,7 @@ For a quick overview of what these files do:
 
 - `config.yaml` - handles the [pyflow](https://github.com/ecmwf/pyflow) suite, repository and ecflow server config
 - [`data.yaml`](./config/data_config.md) - configuration of data retrieval and handling
-- [`execution_contexts.yaml`](./config/exec_config.md) - for configuring how tasks are executed on hosts and queueing systems such as SLURM 
+- [`host.yaml`](./config/exec_config.md) - for configuring how tasks are executed on hosts and queueing systems such as SLURM 
 - [`tools.yaml`](./config/tools_config.md) - for conda environment creation and loading, environment variable handling etc
 
 

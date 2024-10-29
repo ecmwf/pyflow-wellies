@@ -9,7 +9,7 @@ chooses to delegate all properties that determine the execution process to the
 For more on this topic, please check pyflow's
 [job characteristics](https://pyflow-workflow-generator.readthedocs.io/en/latest/content/introductory-course/host-management.html#Job-Characteristics)
 
-**wellies** offers the `execution_context` configuration option to shorten this 
+**wellies** offers the `submit_arguments` configuration option to shorten this 
 gap. It's mainly useful for HPC execution environments to handle job options 
 single or multi-Host suites.
 
@@ -22,11 +22,11 @@ used, but nothing blocks one to create `Host`-specific mappings to handle differ
 
 ## Basic use
 
-In a `execution_contexts` configuration entry, you can define different 
+In a `submit_arguments` configuration entry, you can define different 
 groups of submission options to be use for different tasks.
 
-```yaml title="execution_contexts.yaml"
-execution_contexts:
+```yaml title="host.yaml"
+submit_arguments:
   serial:
     queue: nf
     tasks: 1
@@ -40,11 +40,11 @@ execution_contexts:
 Skipping the file handling part, these values can be rendered into a python 
 object like
 
-```python title="config.py" exec="true" source="above" session="exec_ctx"
+```python title="config.py" exec="true" source="above" session="submit_args"
 import pyflow as pf
 import wellies as wl
 
-contexts, defaults = wl.parse_execution_contexts(dict(
+arguments, defaults = wl.parse_submit_arguments(dict(
     serial=dict(queue='nf', tasks=1, memory_per_task="4gb"),
     small_parallel=dict(queue='nf', tasks=16, memory_per_task="2gb"),
 ))
@@ -53,7 +53,7 @@ contexts, defaults = wl.parse_execution_contexts(dict(
 In the `Task` definition code, you pass have those parsed dictionaries 
 directly to a `Task` object.
 
-```python title="suite.py" exec="true" source="above" session="exec_ctx"
+```python title="suite.py" exec="true" source="above" session="submit_args"
 
 with pf.Suite(
     name="mysuite",
@@ -88,7 +88,7 @@ The full **pyflow** generated script for each task will contain the appropriate
 `Slurm` headers.
 
 **t1**
-```python exec="true" title="t1.ecf" session="exec_ctx" result="shell"
+```python exec="true" title="t1.ecf" session="submit_args" result="shell"
 script, includes = t1.generate_script()
 script = '\n'.join(script[:6])
 print(f"{script}")
@@ -96,7 +96,7 @@ print("(...)")
 ```
 
 **t2**
-```python exec="true" title="t2.ecf" session="exec_ctx" result="shell"
+```python exec="true" title="t2.ecf" session="submit_args" result="shell"
 script, includes = t2.generate_script()
 script = '\n'.join(script[:6])
 print(f"{script}")
@@ -105,13 +105,13 @@ print("(...)")
 
 ## Using defaults and the wellies parser
 
-In a `execution_contexts` configuration entry, `defaults` is a reserved key. If 
+In a `submit_arguments` configuration entry, `defaults` is a reserved key. If 
 present, its entries will be passed to every other execution context entry 
 to form a complete and self-sufficient list of options for each context
 entry as in the example below.
 
-```yaml title="execution_contexts.yaml"
-execution_contexts:
+```yaml title="host.yaml"
+submit_arguments:
   defaults:
     job_name: "%FAMILY1:NOT_DEF%_%TASK%"
     queue: nf
@@ -127,9 +127,9 @@ execution_contexts:
 
 Will result the following parsed options dictionary:
 
-```python exec="true" session="exec_ctx" result="python"
+```python exec="true" session="submit_args" result="python"
 
-contexts, defaults = wl.parse_execution_contexts(dict(
+contexts, defaults = wl.parse_submit_arguments(dict(
     defaults=dict(job_name="%FAMILY1:NOT_DEF%_%TASK%",queue='nf'),
     serial=dict(tasks=1, memory_per_task="4gb", tmpdir="10gb"),
     small_parallel=dict(tasks=16, memory_per_task="2gb", tmpdir="20gb"),
@@ -151,7 +151,7 @@ that can be tweaked by a simple script regeneration step than having to
 replace a complex running node because some variable value just changed.
 ///
 
-You can notice above that [wellies.parse_execution_contexts][] returns two 
+You can notice above that [wellies.parse_submit_arguments][] returns two 
 values. We used the first one to define each task's `submit_arguments` 
 parameter. The second returned value is another dictionary with a direct 
 translation of any `defaults` values in a format ready to be used as node 
@@ -160,7 +160,7 @@ open for the developer to decide.
 
 With the configuration example above, the variable defaults dictionary will be:
 
-```python exec="true" session="exec_ctx" result="python"
+```python exec="true" session="submit_args" result="python"
 print("defaults =", defaults)
 ```
 
@@ -175,7 +175,7 @@ will inspect its own parents for variables matching in name **and** value
 to use instead of defining new ones.
 
 
-```python title="suite.py" exec="true" source="above" result="shell" session="exec_ctx"
+```python title="suite.py" exec="true" source="above" result="shell" session="submit_args"
 from wellies.tasks import EcfResourcesTask
 
 with pf.Suite(
@@ -212,7 +212,7 @@ submission when the actual job file is written. The values are well defined
 for each task in the suite definition, either at task level or above, like 
 `JOB_NAME`.
 
-```python exec="true" session="exec_ctx" result="shell"
+```python exec="true" session="submit_args" result="shell"
 script, includes = t2.generate_script()
 script = '\n'.join([l for l in script if l.startswith('#SBATCH')])
 print("(...)")
@@ -225,7 +225,7 @@ Now, if we want to add a third task that uses the same `execution_context` as
 out of control quite easily. That's where the parent inspection feature comes 
 at help.
 
-```python title="suite.py" exec="true" source="above" result="shell" session="exec_ctx"
+```python title="suite.py" exec="true" source="above" result="shell" session="submit_args"
 from wellies.tasks import EcfResourcesTask
 
 with pf.Suite(
@@ -265,7 +265,7 @@ imagine that those can be managed together.
 All tasks headers will remain the same, referring to Ecflow variables for its 
 variables. 
 
-```python exec="true" title="t1.ecf" session="exec_ctx" result="shell"
+```python exec="true" title="t1.ecf" session="submit_args" result="shell"
 script, includes = t1.generate_script()
 script = '\n'.join([l for l in script if l.startswith('#SBATCH')])
 print("(...)")
