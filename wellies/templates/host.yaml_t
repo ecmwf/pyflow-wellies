@@ -1,0 +1,13 @@
+host:
+  hostname: "{{ host }}"
+  user: "{{ user }}"
+  job_out: "%ECF_HOME%"
+  workdir: "$TMPDIR"
+  submit_arguments:
+    defaults:
+      queue: nf
+      memory_per_task: 8Gb
+      job_name: "%FAMILY1:NOT_DEF%_%TASK%"
+      tmpdir: 20Gb
+    sequential:
+      tasks: 1
