@@ -1,9 +1,11 @@
 # flake8: noqa
 import os
 import subprocess
+
 import pytest
 
 from wellies.quickstart import main
+
 
 @pytest.fixture 
 def quickstart(tmpdir):
