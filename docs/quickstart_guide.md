@@ -117,7 +117,7 @@ For a quick overview of what these files do:
 
 - `config.yaml` - handles the main options of the suite (paths, hosts, user, etc.)
 - [`data.yaml`](./config/data_config.md) - configuration of data retrieval and handling
-- [`host.yaml`](./config/exec_config.md) - for configuring how tasks are executed on hosts and queueing systems such as SLURM 
+- [`host.yaml`](./config/host.md) - for configuring how tasks are executed on hosts and queueing systems such as SLURM 
 - [`tools.yaml`](./config/tools_config.md) - for conda environment creation and loading, environment variable handling etc
 
 
@@ -133,7 +133,7 @@ As mentioned above, this file handles the main options of the suite. We'll start
 # Configuration file for pyflow suite.
 
 # This file only contains a selection of most common options.
-# All new entries can be treated on /home/username/projects/efas_report/suite/config.py:Config
+# All new entries can be treated on {{ project_root }}/suite/config.py:Config
 
 # wellies support simple python string formatting and have some global names available.
 # This will be treated accordingly by wellies.parse_yaml:
@@ -145,51 +145,51 @@ As mentioned above, this file handles the main options of the suite. We'll start
 # USER, HOME, PERM, SCRATCH, PWD, HPCPERM, TODAY and YESTERDAY
 
 # -------- Suite deployment configuration -------------------------------------
-# host options
-suite_name: "efas_report"
-hostname: "localhost"
-user: "{USER}"
-workdir: "$TMPDIR"
-output_root: "{SCRATCH}/efas_report"
+name: "efas_report"
 
-# example options
-deploy_dir: "{PERM}/pyflow/efas_report"
-job_out: "%ECF_HOME%"
+ecflow_server:
+  hostname: "localhost"
+  user: "{USER}"
+  deploy_dir: "{PERM}/pyflow/efas_report"
 
+# -------- Global variables ------------------------------------
+ecflow_variables:
+  OUTPUT_ROOT: "{SCRATCH}"
+  LIB_DIR: "%OUTPUT_ROOT%/local"
+  DATA_DIR: "%OUTPUT_ROOT%/data"
 
 # ---------- Specific optionals -----------------------------------------------
 # add your project's specific variables and options here
+
 ```
 
 To break down the configuration settings:
 
-#### Host options
+- `name` - the name of the suite
+- `ecflow_server`
+    - `hostname` - hostname of the ecflow server
+    - `user` - username to use on the ecflow server
+    - `deploy_dir` - directory to deploy suite files on the ecflow server
+- `ecflow_variables` - any number of variables that can be used by the ecflow suite, required values are
+    - `OUTPUT_ROOT` - suite output root path
+    - `LIB_DIR` - directory used for storage of tools, Python environments
+    - `DATA_DIR` - used for storage of static data
 
-- `suite_name` - the name of the suite
-- `hostname` - the host on which we want the suite to run, typically the hostname of the HPC
-- `user` - by default `{USER}` will be replaced with your local username, it should be set to your username on the HPC system running the suite
-- `workdir` - the working directory where the tasks will run on the HPC by default (for read/write purposes)
-- `output_root` - a folderpath used for storage of tools, Python environments and static data stores
-
-#### Suite options
-
-- `deploy_dir` - where the main suite files (and git repo tracking the deployment) will be created, in this case `/perm/username/pyflow/efas_report`
-- `job_out` - job output directory, where files related to the jobs will be created (logs, submission scripts, etc.)
-
-Let's update the configuration to use a fixed username
+Let's update the configuration to use a fixed username on the ecflow server
 
 ```yaml title="config.yaml"
-# host options
-suite_name: "efas_report"
-hostname: "localhost"
-user: "myusername"
+name: "efas_report"
 
-# example options
-deploy_dir: "{PERM}/pyflow/efas_report"
-job_out: "%ECF_HOME%"
-workdir: "$TMPDIR"
+ecflow_server:
+  hostname: "localhost"
+  user: "ecflow_username"
+  deploy_dir: "{PERM}/pyflow/efas_report"
 
-output_root: "{SCRATCH}/efas_report"
+# -------- Global variables ------------------------------------
+ecflow_variables:
+  OUTPUT_ROOT: "{SCRATCH}"
+  LIB_DIR: "%OUTPUT_ROOT%/local"
+  DATA_DIR: "%OUTPUT_ROOT%/data"
 ```
 
 To deploy the updated suite we do
