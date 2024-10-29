@@ -48,8 +48,8 @@ jobs:
       - name: Conda check
         shell: bash -l {0}
         run: |
-          mamba info
-          mamba list
+          conda info
+          conda list
       - name: Install wellies and run tests
         shell: bash -l {0}  # required to load conda I think
         run: |
