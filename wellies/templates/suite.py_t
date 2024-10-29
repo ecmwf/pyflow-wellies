@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 from suite.nodes import MainSuite
-from typing import Optional
 
 import wellies as wl
 
