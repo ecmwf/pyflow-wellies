@@ -39,22 +39,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          activate-environment: wellies-test
-          mamba-version: "*"
-          auto-update-conda: true
+          environment-name: wellies-test
           environment-file: environment.yml
-          auto-activate-base: false
-      - run: git config --global user.email "dummy.user@ecmwf.int"
-      - run: git config --global user.name "Dummy User"
-      - name: Conda check
-        shell: bash -l {0}
-        run: |
-          conda info
-          conda list
       - name: Install wellies and run tests
-        shell: bash -l {0}  # required to load conda I think
+        shell: bash -l {0}  # required to load conda environment
         run: |
+          git config --global user.email "dummy.user@ecmwf.int"
+          git config --global user.name "Dummy User"
           python -m pip install .[test]
           pytest .
