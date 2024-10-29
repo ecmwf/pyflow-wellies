@@ -43,10 +43,10 @@ jobs:
         with:
           environment-name: wellies-test
           environment-file: environment.yml
-      - run: | # important to set to avoid git errors when running tracksuite tests
-        git config --global user.email "dummy.user@ecmwf.int"
-        git config --global user.name "Dummy User"
+      
       - name: Install wellies and run tests
         run: |
+          git config --global user.email "dummy.user@ecmwf.int"
+          git config --global user.name "Dummy User"
           python -m pip install .[test]
           pytest .
