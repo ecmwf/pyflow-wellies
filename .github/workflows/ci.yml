@@ -43,8 +43,8 @@ jobs:
         with:
           environment-name: wellies-test
           environment-file: environment.yml
-      
       - name: Install wellies and run tests
+        shell: bash -l {0}  # required to load conda environment
         run: |
           git config --global user.email "dummy.user@ecmwf.int"
           git config --global user.name "Dummy User"
