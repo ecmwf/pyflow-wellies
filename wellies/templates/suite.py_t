@@ -63,7 +63,7 @@ class Config:
         # Ecflow server options
         self.ecflow_server = EcflowServer(**options["ecflow_server"])
 
-        # HPC sever options
+        # HPC server options
         self.host = Host(**options["host"])
         
         # Optional suite deployment
