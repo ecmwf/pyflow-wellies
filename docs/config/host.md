@@ -1,6 +1,6 @@
-# Managing task execution context
+# Host - Managing task submission arguments
 
-**pyflow** defines a [Host][pyflow.Host] object to supply the necessary context 
+**pyflow** defines a [Host][pyflow.Host] object to supply the necessary submission arguments 
 for task level execution within ecflow suites. It defines different extensible 
 [host types](https://pyflow-workflow-generator.readthedocs.io/en/latest/content/introductory-course/host-management.html#Existing-Host-Classes). Specially for executions within a 
 queueing system, there are many options on how to submit jobs. **pyflow** 
@@ -17,7 +17,7 @@ The main idea is to provide to the `Task`, specific `submit_arguments` options
 that will serve to one or many `Host`'s it's going to be executed on.
 
 The actual list of valid options, depend on the `Host` object that will be 
-used, but nothing blocks one to create `Host`-specific mappings to handle different contexts. Here we will focus on options valid for a 
+used, but nothing blocks one to create `Host`-specific mappings to handle different arguments. Here we will focus on options valid for a 
 [pyflow.SLURMHost][] that uses `Slurm` submission system.
 
 ## Basic use
@@ -26,18 +26,23 @@ In a `submit_arguments` configuration entry, you can define different
 groups of submission options to be use for different tasks.
 
 ```yaml title="host.yaml"
-submit_arguments:
-  serial:
-    queue: nf
-    tasks: 1
-    memory_per_task: 4Gb
-  small_parallel:
-    queue: nf
-    tasks: 16
-    memory_per_task: 2Gb
+host:
+    hostname: "localhost"
+    user: "a_username"
+    job_out: "%ECF_HOME%"
+    workdir: "$TMPDIR"
+    submit_arguments:
+        serial:
+            queue: nf
+            tasks: 1
+            memory_per_task: 4Gb
+        small_parallel:
+            queue: nf
+            tasks: 16
+            memory_per_task: 2Gb
 ```
 
-Skipping the file handling part, these values can be rendered into a python 
+Skipping the file handling part, the submit arguments values can be rendered into a Python 
 object like
 
 ```python title="config.py" exec="true" source="above" session="submit_args"
@@ -67,12 +72,12 @@ with pf.Suite(
 
     t1 = pf.Task(
         name='t1',
-        submit_arguments=contexts['serial'],  #(2)!
+        submit_arguments=submit_arguments['serial'],  #(2)!
         script=["echo 'Hello from t1'"],
     )
     t2 = pf.Task(
         name='t2',
-        submit_arguments=contexts['small_parallel'],
+        submit_arguments=submit_arguments['small_parallel'],
         script=["echo 'Hello from t2'"],
     )
 ```
@@ -106,9 +111,8 @@ print("(...)")
 ## Using defaults and the wellies parser
 
 In a `submit_arguments` configuration entry, `defaults` is a reserved key. If 
-present, its entries will be passed to every other execution context entry 
-to form a complete and self-sufficient list of options for each context
-entry as in the example below.
+present, its entries will be passed to every other submission arguments entry 
+to form a complete and self-sufficient list of options for each entry as in the example below.
 
 ```yaml title="host.yaml"
 submit_arguments:
@@ -129,13 +133,13 @@ Will result the following parsed options dictionary:
 
 ```python exec="true" session="submit_args" result="python"
 
-contexts, defaults = wl.parse_submit_arguments(dict(
+submit_arguments, defaults = wl.parse_submit_arguments(dict(
     defaults=dict(job_name="%FAMILY1:NOT_DEF%_%TASK%",queue='nf'),
     serial=dict(tasks=1, memory_per_task="4gb", tmpdir="10gb"),
     small_parallel=dict(tasks=16, memory_per_task="2gb", tmpdir="20gb"),
 ))
 
-print(contexts)
+print(submit_arguments)
 ```
 
 ## Submission arguments as Eclow variables
@@ -191,11 +195,11 @@ with pf.Suite(
 
     t1 = EcfResourcesTask(
         name='t1',
-        submit_arguments=contexts['serial'],  #(2)!
+        submit_arguments=submit_arguments['serial'],  #(2)!
     )
     t2 = EcfResourcesTask(
         name='t2',
-        submit_arguments=contexts['small_parallel'],
+        submit_arguments=submit_arguments['small_parallel'],
     )
 
 print(mysuite)
@@ -203,7 +207,7 @@ print(mysuite)
 
 1. We simply pass `defaults` dictionary as a `variables` parameter. This can be 
 done on any node. It is a design decision.
-2. Using the `execution_context` configuration entry does not change. Everything 
+2. Using the `submit_arguments` configuration entry does not change. Everything 
 happens in the tast initializer.
 
 Task *t2* `Slurm` headers will be modified to receive values from Ecflow 
@@ -220,7 +224,7 @@ print(f"{script}")
 print("(...)")
 ```
 
-Now, if we want to add a third task that uses the same `execution_context` as 
+Now, if we want to add a third task that uses the same `submit_arguments` as 
 `t1` we would have many similar variables defined for each task. This will grow 
 out of control quite easily. That's where the parent inspection feature comes 
 at help.
@@ -242,15 +246,15 @@ with pf.Suite(
     with pf.Family(name='f1', variables=dict(SSDTMP='10gb')) as n_f1:  #(1)!
       t1 = EcfResourcesTask(
           name='t1',
-          submit_arguments=contexts['serial'],
+          submit_arguments=submit_arguments['serial'],
       )
       t2 = EcfResourcesTask(
           name='t2',
-          submit_arguments=contexts['small_parallel'],  #(2)!
+          submit_arguments=submit_arguments['small_parallel'],  #(2)!
       )
       t3 = EcfResourcesTask(
           name='t3',
-          submit_arguments=contexts['serial'],  #(3)!
+          submit_arguments=submit_arguments['serial'],  #(3)!
       )
 
 print(mysuite)
