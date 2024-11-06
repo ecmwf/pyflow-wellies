@@ -19,15 +19,8 @@ DEFAULTS = {
     "host": "localhost",
     "user": "{USER}",
     "author": pw_user.pw_gecos,
-    "deploy_root": "{PERM}/pyflow",
     "output_root": "{SCRATCH}",
-    "ecflow_server": {
-        "hostname": "localhost",
-        "user": "{USER}",
-    },
-    "ecflow_variables": {
-        "OUTPUT_ROOT": "{SCRATCH}",
-    }
+    "deploy_root": "{PERM}/pyflow",
 }
 
 
@@ -55,7 +48,14 @@ class PyflowSuiteRenderer:
 
 
 def start_project(options: Dict, overwrite: bool = False) -> None:
-    """Generate project basic structure based on options."""
+    """Generate project basic structure based on options.
+    
+    Args:
+        options (dict): project options
+        overwrite (bool, optional): overwrite existing files. Defaults to False.
+    Returns:
+        None
+    """
 
     def write_file(fpath: str, content: str) -> None:
         if overwrite or not path.isfile(fpath):
@@ -73,9 +73,9 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     options.setdefault("project_root", root_path)
     os.makedirs(root_path, exist_ok=True)
 
-    # Read this from the ecflow variable and add the project name
-    out_root = path.join(options["ecflow_variables"]["OUTPUT_ROOT"], project)
-    options["ecflow_variables"]["OUTPUT_ROOT"] = out_root
+    out_root = options["output_root"]
+    out_root = path.join(out_root, project)
+    options["output_root"] = out_root
 
     options.setdefault(
         "deploy_dir", path.join(options["deploy_root"], project)
