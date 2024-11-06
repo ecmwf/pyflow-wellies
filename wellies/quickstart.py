@@ -49,7 +49,7 @@ class PyflowSuiteRenderer:
 
 def start_project(options: Dict, overwrite: bool = False) -> None:
     """Generate project basic structure based on options.
-    
+
     Args:
         options (dict): project options
         overwrite (bool, optional): overwrite existing files. Defaults to False.
@@ -77,9 +77,7 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     out_root = path.join(out_root, project)
     options["output_root"] = out_root
 
-    options.setdefault(
-        "deploy_dir", path.join(options["deploy_root"], project)
-    )
+    options.setdefault("deploy_dir", path.join(options["deploy_root"], project))
     options["localhost"] = gethostname()
     options["version"] = wl.__version__
 
@@ -193,9 +191,7 @@ def get_parser() -> ArgumentParser:
         dest="job_out",
         help="Jog output directory",
     )
-    group.add_argument(
-        "-u", "--user", metavar="USER", dest="user", help="User"
-    )
+    group.add_argument("-u", "--user", metavar="USER", dest="user", help="User")
     group.add_argument(
         "--host", metavar="HOST", dest="host", help="Target host"
     )
