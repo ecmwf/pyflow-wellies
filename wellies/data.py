@@ -136,7 +136,7 @@ class CopyData(StaticData):
 
 
 class GitData(StaticData):
-    def __init__(self, data_dir, name, options):
+    def __init__(self, data_dir, name, options, build_dir=None):
         files = options.get("files")
         if files is None:
             script = pf.TemplateScript(
@@ -147,7 +147,7 @@ class GitData(StaticData):
                 BRANCH=options.get("branch"),
             )
         else:
-            build_dir = options.get('build_dir', os.path.join(data_dir, "git"))
+            build_dir = build_dir if build_dir else os.path.join(data_dir, "git")
             if not isinstance(files, list):
                 files = [files]
             files = [os.path.join(build_dir, name, f) for f in files]
@@ -215,14 +215,14 @@ class MarsData(StaticData):
         super().__init__(data_dir, name, script, options)
 
 
-def parse_static_data_item(data_dir, name, options):
+def parse_static_data_item(data_dir, name, options, build_dir=None):
     type = options["type"]
     if type == "rsync":
         data = RsyncData(data_dir, name, options)
     elif type == "copy":
         data = CopyData(data_dir, name, options)
     elif type == "git":
-        data = GitData(data_dir, name, options)
+        data = GitData(data_dir, name, options, build_dir=build_dir)
     elif type == "ecfs":
         data = ECFSData(data_dir, name, options)
     elif type == "link":
@@ -237,7 +237,7 @@ def parse_static_data_item(data_dir, name, options):
 
 
 class StaticDataStore:
-    def __init__(self, data_dir: str, static_data_dict: dict):
+    def __init__(self, data_dir: str, static_data_dict: dict, build_dir=None):
         """
         The StaticDataStore contains a set of static data items and their
         associated scripts to be used to deploy the items when running the
@@ -253,7 +253,7 @@ class StaticDataStore:
         """
         self.static_data = {}
         for name, options in static_data_dict.items():
-            data = parse_static_data_item(data_dir, name, options)
+            data = parse_static_data_item(data_dir, name, options, build_dir=build_dir)
             self.static_data[name] = data
 
     def __getitem__(self, item):
