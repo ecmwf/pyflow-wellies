@@ -147,7 +147,7 @@ class GitData(StaticData):
                 BRANCH=options.get("branch"),
             )
         else:
-            build_dir = os.path.join(data_dir, "git")
+            build_dir = options.get('build_dir', os.path.join(data_dir, "git"))
             if not isinstance(files, list):
                 files = [files]
             files = [os.path.join(build_dir, name, f) for f in files]
