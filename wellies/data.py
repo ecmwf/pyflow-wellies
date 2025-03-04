@@ -147,7 +147,6 @@ class GitData(StaticData):
                 BRANCH=options.get("branch"),
             )
         else:
-            build_dir = build_dir if build_dir else os.path.join(data_dir, "git")
             if not isinstance(files, list):
                 files = [files]
             files = [os.path.join(build_dir, name, f) for f in files]
@@ -237,7 +236,7 @@ def parse_static_data_item(data_dir, name, options, build_dir=None):
 
 
 class StaticDataStore:
-    def __init__(self, data_dir: str, static_data_dict: dict, build_dir=None):
+    def __init__(self, data_dir: str, static_data_dict: dict, build_dir: str=None):
         """
         The StaticDataStore contains a set of static data items and their
         associated scripts to be used to deploy the items when running the
@@ -250,7 +249,11 @@ class StaticDataStore:
         static_data_dict (dict):
             A dictionary containing the names of the static data items as
             keys and their deployment options as values.
+        data_dir (str):
+            The directory where data are staged on the running host when needed.
         """
+        self.data_dir = data_dir
+        self.build_dir = os.path.join(data_dir, "build") if build_dir is None else build_dir
         self.static_data = {}
         for name, options in static_data_dict.items():
             data = parse_static_data_item(data_dir, name, options, build_dir=build_dir)
