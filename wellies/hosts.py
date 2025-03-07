@@ -11,6 +11,7 @@ def get_host(
     user: str,
     ecflow_path: str = None,
     server_ecfvars: bool = False,
+    extra_variables: dict = None,
     **kwargs,
 ) -> pf.Host:
     """
@@ -29,6 +30,8 @@ def get_host(
         Defaults to None.
     server_ecfvars (bool, optional):
         Whether to use server-side ECF_ variables. Defaults to False.
+    extra_variables (dict, optional):
+        Additional ecflow variables to set on the host
     **kwargs:
         Additional keyword arguments to pass to the pyflow host
         constructor.
@@ -45,10 +48,12 @@ def get_host(
         )
         print("running on host: " + str(hostname))
     else:
+        extra_variables = {"HOST": f"%SCHOST:{hostname}%", **(extra_variables or {})},
+
         host = pf.TroikaHost(
             "%HOST%",
             user=user,
-            extra_variables={"HOST": f"%SCHOST:{hostname}%"},
+            extra_variables=extra_variables,
             server_ecfvars=server_ecfvars,
             ecflow_path=ecflow_path,
             **kwargs,
