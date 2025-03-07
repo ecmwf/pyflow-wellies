@@ -48,8 +48,8 @@ def get_host(
         )
         print("running on host: " + str(hostname))
     else:
-        extra_variables = {"HOST": f"%SCHOST:{hostname}%", **(extra_variables or {})},
-
+        extra_variables = extra_variables or {}
+        extra_variables["HOST"] = f"%SCHOST:{hostname}%"
         host = pf.TroikaHost(
             "%HOST%",
             user=user,
