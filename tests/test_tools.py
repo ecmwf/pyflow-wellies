@@ -277,6 +277,14 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
+    def test_custom_env(self, tools_config):
+        test_target = "customenv"
+        expected = {
+            "load": ["source /path/to/env/load.sh"],
+            "unload": ["unloadenv"],
+        }
+        self._run(test_target, expected, tools_config)
+
 
 class TestPackageToolScripts(BaseToolScriptsTest):
     section = "packages"
