@@ -40,7 +40,7 @@ the prompt and call a `diff` command on the script `init/deploy_data/mars_sample
 
 /// admonition | Note
     type: Hint
-In the [execution configuration](config/exec_config) there is extra information about how the Host type and the Task share some features about the execution context and how one can leverage that.
+In the [execution configuration](config/exec_config.md) there is extra information about how the Host type and the Task share some features about the execution context and how one can leverage that.
 ///
 
 Other entries of the main configuration file look good for the moment and we are leaving them as they are for now.

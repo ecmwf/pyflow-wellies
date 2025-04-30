@@ -125,6 +125,11 @@ def tools_config(custom_script_file):
                     "files": "environment.yaml",
                 },
             },
+            "customenv": {
+                "type": "custom",
+                "load": "source /path/to/env/load.sh",
+                "unload": "unloadenv",
+            }
         },
     }
 

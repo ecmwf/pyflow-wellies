@@ -43,6 +43,8 @@ file needs to be retrieved.
 - **Folder environment**: This is namespace environment type where packages can be 
 installed with appropriate dependencies. The created namespace will be added to 
 the system `PATH` for discoverability.
+- **Custom environment**: Custom environment with custom `load`, `unload` and `setup` 
+commands or scripts.
 
 All Tool types also accept a `depends` option where a list of 
 dependencies can be defined by each tool `name`. Environment types accept a 
@@ -549,5 +551,38 @@ for tt in ['setup', 'load', 'unload']:
         lines=pf.Script.generate_list_scripts(sc)
 
     print('\n'.join([l for l in lines if l is not None]))
+    print()
+```
+
+### Custom Environments
+
+Custom environment is a flexible alternative to generate any other type of environemnt. Supports
+definition of `load`, `unload` and `setup` scripts or commands from the configuration files.
+
+```yaml title="tools.yaml"
+tools:
+  environments:
+    myenv:
+        type: custom
+        load: "/path/to/env/load.sh"
+        unload: "unload_myenv"
+```
+
+The wellies' generated snippets for the custom environment will be
+
+```python exec="true" id="custom_env" result="shell"
+import os,sys
+sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
+from wellies.tools import parse_environment
+tool = parse_environment(
+    lib_dir="$LIB_DIR",
+    name="myenv",
+    options=dict(load="/path/to/env/load.sh", unload="unload_myenv")
+)
+for tt in ['setup', 'load', 'unload']:
+    print(f"--------{tt} script-----------")
+    sc = tool.scripts[tt]
+    if sc: 
+        print('\n'.join(sc.generate_stub()))
     print()
 ```
