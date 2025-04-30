@@ -6,7 +6,7 @@ from wellies import mars, parse_yaml_files, scripts
 
 
 class DeployDataFamily(pf.AnchorFamily):
-    def __init__(self, data_store, exec_context={}, **kwargs):
+    def __init__(self, data_store, name='deploy_data', exec_context={}, **kwargs):
         """Defines "static_data" family contaning all tasks needed to deploy
         all types of datasets defined on a [data.StaticDataStore].
 
@@ -19,7 +19,7 @@ class DeployDataFamily(pf.AnchorFamily):
             An execution context mapping to configure each task submit
             arguments, by default {}
         """
-        super().__init__(name="deploy_data", **kwargs)
+        super().__init__(name=name, **kwargs)
 
         with self:
             has_tasks = False
