@@ -8,7 +8,7 @@
 
 
 <p align="center">
-  <img src="https://img.shields.io/badge/ESEE-Foundation-orange" alt="ESEE Foundation">
+  <img src="https://raw.githubusercontent.com/ecmwf/codex/raw/refs/heads/main/ESEE/production_chain_badge.svg" alt="ESEE Production Chain">
   <a href="https://github.com/ecmwf/codex/blob/refs/heads/main/Project%20Maturity/readme.md">
     <img src="https://img.shields.io/badge/Maturity-Incubating-lightskyblue" alt="Maturity Incubating">
   </a>
