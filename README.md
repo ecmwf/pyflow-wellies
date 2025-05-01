@@ -13,8 +13,8 @@
     <img src="https://img.shields.io/badge/Maturity-Incubating-lightskyblue" alt="Maturity Incubating">
   </a>
 
-<a href="https://github.com/ecmwf/pyflow_wellies/actions/workflows/ci-wellies.yaml">
-    <img src="https://github.com/ecmwf/pyflow_wellies/actions/workflows/ci-wellies.yaml/badge.svg" alt="CI Status">
+<a href="https://github.com/ecmwf/pyflow_wellies/actions/workflows/ci.yml">
+    <img src="https://github.com/ecmwf/pyflow_wellies/actions/workflows/ci.yml/badge.svg" alt="CI Status">
   </a>
 
 <a href="https://codecov.io/gh/ecmwf/pyflow_wellies">
