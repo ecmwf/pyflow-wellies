@@ -74,7 +74,11 @@ def git_commit_message(message_args):
                 default_message += "  - Local changes:\n"
                 for file in modified_files:
                     default_message += f"    - {file}\n"
-    except (git.exc.NoSuchPathError, git.exc.InvalidGitRepositoryError):
+    except (
+        git.exc.NoSuchPathError,
+        git.exc.InvalidGitRepositoryError,
+        ValueError,
+    ):
         print("Could not find local git repository, using default message")
 
     if message_args is None:
