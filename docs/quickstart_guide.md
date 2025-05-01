@@ -39,7 +39,7 @@ $ git commit -m "Start of project from wellies-quickstart"
 The example suite is ready to deploy and we can do this using `deploy.py` and passing it the paths to our configuration files.
 
 ```console
-$ ./deploy configs/*.yaml
+$ ./deploy.py configs/*.yaml
 running on host: localhost
 ------------------------------------------------------
 Staging suite to /tmp/build_efas_report_8smyc2z4
