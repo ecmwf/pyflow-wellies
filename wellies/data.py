@@ -1,12 +1,9 @@
 import os
-from typing import Dict
-from typing import Optional
+from typing import Dict, Optional
 
 import pyflow as pf
 
-from wellies import mars
-from wellies import parse_yaml_files
-from wellies import scripts
+from wellies import mars, parse_yaml_files, scripts
 
 
 def process_file_or_string(entry):
