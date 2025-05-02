@@ -40,43 +40,27 @@ The example suite is ready to deploy and we can do this using `deploy.py` and pa
 
 ```shell
 $ ./deploy.py configs/*.yaml
-running on host: localhost
+Running on host: localhost
 ------------------------------------------------------
-Staging suite to /tmp/build_efas_report_8smyc2z4
+Staging suite to /tmp/build_efas_report_p87xrk00
 ------------------------------------------------------
 Generating suite:
-    -> Deploying suite scripts in /tmp/build_efas_report_8smyc2z4/staging
-    -> Definition file written in /tmp/build_efas_report_8smyc2z4/staging/efas_report.def
+    -> Deploying suite scripts in /tmp/build_efas_report_p87xrk00/staging
+    -> Definition file written in /tmp/build_efas_report_p87xrk00/staging/efas_report.def
 Creating deployer:
-    -> Loading local repo /tmp/build_efas_report_8smyc2z4/local
-    -> Cloning from /perm/username/pyflow/efas_report
-
-Remote repository does not seem to exist. Do you want to initialise it? (N/y) y
-
-Creating remote repository /perm/username/pyflow/efas_report on host localhost with user username
-Creating deployer:
-    -> Loading local repo /tmp/build_efas_report_8smyc2z4/local
+    -> Loading local repo /tmp/build_efas_report_p87xrk00/local
     -> Cloning from /perm/username/pyflow/efas_report
 Changes in staged suite:
-    - Removed:
-        - dummy.txt
-    - Added:
+    - Modified:
         - efas_report.def
-        - init/deploy_tools/deploy_tools.man
-        - init/deploy_tools/suite_env/setup.ecf
-        - init/deploy_tools/suite_env/earthkit.ecf
-        - init/deploy_tools/suite_env/packages.man
-        - init/deploy_data/git_sample.ecf
-        - init/deploy_data/mars_sample.ecf
-        - main/dummy.ecf
 For more details, compare the following folders:
-/tmp/build_efas_report_8smyc2z4/staging
-/tmp/build_efas_report_8smyc2z4/local
+/tmp/build_efas_report_p87xrk00/staging
+/tmp/build_efas_report_p87xrk00/local
 ------------------------------------------------------
 Deploying suite to /perm/username/pyflow/efas_report
 ------------------------------------------------------
-
 You are about to push the staged suite to the target directory. Are you sure? (N/y)y
+Could not find local git repository, using default message
 Deploying suite to remote locations
     -> Checking that git repos are in sync
     -> Staging suite
@@ -89,9 +73,9 @@ Definition file: /perm/username/pyflow/efas_report/efas_report.def
 This script has:
 
 1. Read the configuration files
-2. Created suite files in the `/tmp/build_efas_report_8smyc2z4/staging` folder
+2. Created suite files in the `/tmp/build_efas_report_p87xrk00/staging` folder
 3. Created a git repository in `/perm/username/pyflow/efas_report`, our git remote
-4. Cloned that repository to `/tmp/build_efas_report_8smyc2z4/local`
+4. Cloned that repository to `/tmp/build_efas_report_p87xrk00/local`
 5. Updated the suite, committed the changes and pushed to `/perm/username/pyflow/efas_report`
 
 /// admonition | Note
@@ -105,6 +89,7 @@ We've deployed the default suite, now let's look at how we can configure it to d
 
 We can deploy this default suite to an ecflow server using `ecflow_client`.
 You'll need to either load the `ecflow` module or [install ecflow](https://ecflow.readthedocs.io/en/latest/install/index.html).
+Here we'll cover deploying the suite to an ecflow server running locally.
 
 ```console
 $ ecflow_client --host ecflow_server.example.com --port 3141 --load /perm/username/pyflow/efas_report/efas_report.def
