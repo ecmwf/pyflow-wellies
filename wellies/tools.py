@@ -1,10 +1,14 @@
 import os
 from os import path
-from typing import Dict, List, Union
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 import pyflow as pf
 
-from wellies import data, scripts
+from wellies import data
+from wellies import scripts
 
 module_use = """
 module use {{ MODULEFILES }}
@@ -900,7 +904,7 @@ class DeployPackagesFamily(pf.Family):
         tools: ToolStore,
         env_packages: List[str],
         env: str,
-        exec_context: Dict[str, any],
+        submit_arguments: Dict[str, str],
         **kwargs,
     ):
         super().__init__(name="packages", **kwargs)
@@ -916,7 +920,7 @@ class DeployPackagesFamily(pf.Family):
                 deploy_tasks[package] = pf.Task(
                     name=package,
                     submit_arguments=package_tool.options.get(
-                        "exec_context", exec_context
+                        "submit_arguments", submit_arguments
                     ),
                     script=tool_script,
                     labels={"version": "NA"},
@@ -945,7 +949,10 @@ class DeployToolsFamily(pf.AnchorFamily):
     """
 
     def __init__(
-        self, tools: ToolStore, exec_context: Dict[str, any] = {}, **kwargs
+        self,
+        tools: ToolStore,
+        submit_arguments: Optional[Dict[str, str]] = None,
+        **kwargs,
     ):
         """
         Creates the DeployToolsFamily and pass the extra arguments to the
@@ -955,10 +962,13 @@ class DeployToolsFamily(pf.AnchorFamily):
         ----------
         tools : ToolStore
             The name of the tool.
-        exec_context : Dict[str, any], optional
+        submit_arguments : Dict[str, any], optional
             The execution context of the nodes, by default {}.
         """
         super().__init__(name="deploy_tools", **kwargs)
+
+        if submit_arguments is None:
+            submit_arguments = {}
 
         with self:
             has_tasks = False
@@ -973,14 +983,14 @@ class DeployToolsFamily(pf.AnchorFamily):
                         env_task = pf.Task(
                             name="setup",
                             submit_arguments=env_tool.options.get(
-                                "exec_context", exec_context
+                                "submit_arguments", submit_arguments
                             ),
                             script=tools.setup(env),
                         )
                         if "packages" in options:
                             env_packages = options["packages"]
                             package_family = DeployPackagesFamily(
-                                tools, env_packages, env, exec_context
+                                tools, env_packages, env, submit_arguments
                             )
                             package_family.triggers = env_task.complete
 
