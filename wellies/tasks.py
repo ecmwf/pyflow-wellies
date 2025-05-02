@@ -5,7 +5,7 @@ import pyflow as pf
 
 class EcfResourcesTask(pf.Task):
     """Class that automatically sets ecflow variables for each submit_arguments
-    key:value pair as they are in the execution context configuration file.
+    key:value pair as they are in the host configuration file.
 
     Using variables makes it easier to change job directives values after
     deployment and using ecflow api.

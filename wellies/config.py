@@ -288,7 +288,7 @@ def parse_submit_arguments(options: dict) -> tuple:
     Returns
     -------
     submit_arguments, submit_arguments_defaults : dict, dict
-        Return parsed options as two dictionaries. The base execution contexts
+        Return parsed options as two dictionaries. The base submit arguments
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
     """
