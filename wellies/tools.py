@@ -1,10 +1,15 @@
 import os
 from os import path
-from typing import Dict, List, Union
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 import pyflow as pf
 
-from wellies import data, scripts
+from wellies import data
+from wellies import scripts
 
 module_use = """
 module use {{ MODULEFILES }}
@@ -91,11 +96,11 @@ class Tool:
     def __init__(
         self,
         name: str,
-        depends: Union[List[str], str] = [],
+        depends: Optional[Union[List[str], str]] = None,
         load: Union[List[str], str] = "",
         unload: Union[List[str], str] = "",
         setup: Union[List[str], str] = "",
-        options: Dict[str, any] = {},
+        options: Optional[Dict] = None,
     ):
         """
         A tool is a software that can be loaded/unloaded in the task script.
@@ -120,6 +125,12 @@ class Tool:
         options: dict
             dictionary of options for the tool
         """
+        if depends is None:
+            depends = []
+
+        if options is None:
+            options = {}
+
         self.name = name
         self.options = options
         self.depends = depends if isinstance(depends, list) else [depends]
@@ -135,8 +146,8 @@ class ModuleTool(Tool):
         name: str,
         module_name: str,
         version: str,
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         A module tool is a tool that can be loaded/unloaded using the
@@ -169,8 +180,8 @@ class PrivateModuleTool(Tool):
         module_name: str,
         version: str,
         modulefiles: str,
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         Extension of the ModuleTool class to load a module from a custom
@@ -208,8 +219,8 @@ class EnvVarTool(Tool):
         var: str,
         value: str,
         setup: Union[List[str], str] = None,
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         Environment variable tool.
@@ -252,8 +263,8 @@ class FolderTool(EnvVarTool):
         self,
         name: str,
         lib_dir: str,
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         Folder tool extending the environment variable tool.
@@ -282,7 +293,9 @@ class FolderTool(EnvVarTool):
 
 
 class PackageTool(Tool):
-    def __init__(self, name: str, lib_dir: str, options: Dict[str, any]):
+    def __init__(
+        self, name: str, lib_dir: str, options: Optional[Dict] = None
+    ):
         """
         Package tool that installs a user package in an environment.
         The package is downloaded in the lib_dir/build directory and the user
@@ -308,9 +321,9 @@ class VirtualEnvTool(Tool):
         name: str,
         lib_dir: str,
         venv_options: Union[str, List[str]] = "",
-        extra_packages: Union[str, List[str]] = [],
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        extra_packages: Optional[List[str]] = None,
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         A tool that creates a python virtual environment and sets the right
@@ -325,11 +338,15 @@ class VirtualEnvTool(Tool):
         venv_options : Union[str, List[str]], optional
             Additional options to pass to the `python3 -m venv` command, by
             default "".
+        extra_packages : Union[List[str]], optional, extra packages to install in environment
         depends : List[str], optional
             A list of dependencies for the tool, by default [].
         options : Dict[str], optional
             A dictionary of options for the tool, by default {}.
         """
+        if extra_packages is None:
+            extra_packages = []
+
         env_root = path.join(lib_dir, name)
         load = [
             "\nsource {}".format(path.join(env_root, "bin", "activate")),
@@ -337,18 +354,22 @@ class VirtualEnvTool(Tool):
                 path.join(env_root, "lib")
             ),
         ]
+
         unload = "deactivate"
         if not isinstance(venv_options, list):
             venv_options = [venv_options]
         opts = " ".join(venv_options)
+
         setup = [
             f"rm -rf {env_root}",
             f"python3 -m venv {env_root} {opts}",
         ]
+
         if extra_packages:
             setup.extend(load)
             pkgs = " ".join(extra_packages)
             setup.append(f"pip install {pkgs}")
+
         super().__init__(name, depends, load, unload, setup, options=options)
 
 
@@ -358,9 +379,9 @@ class SystemEnvTool(VirtualEnvTool):
         name: str,
         lib_dir: str,
         venv_options: Union[str, List[str]] = "",
-        extra_packages: Union[str, List[str]] = [],
-        depends: List[str] = [],
-        options: Dict[str, any] = {},
+        extra_packages: Optional[List[str]] = None,
+        depends: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
     ):
         """
         An extension of the VirtualEnvTool class that creates a python virtual
@@ -376,6 +397,7 @@ class SystemEnvTool(VirtualEnvTool):
         venv_options : Union[str, List[str]], optional
             Additional options to pass to the `python3 -m venv` command, by
             default "".
+        extra_packages : Union[List[str]], optional, extra packages to install in environment
         depends : List[str], optional
             A list of dependencies for the tool, by default [].
         options : Dict[str], optional
@@ -403,9 +425,9 @@ class CondaEnvTool(Tool):
         name: str,
         environment: str,
         setup: str = None,
-        depends: List[str] = [],
+        depends: Optional[List[str]] = None,
         conda_activate_cmd: str = "conda",
-        options: Dict[str, str] = {},
+        options: Optional[Dict[str, str]] = None,
     ):
         """
         An environment tool that can load and unload a conda environment.
@@ -716,7 +738,7 @@ def parse_env_var(name: str, options: Dict[str, any]) -> EnvVarTool:
 
 
 class ToolStore:
-    def __init__(self, lib_dir: str, options: Dict[str, any]):
+    def __init__(self, lib_dir: str, options: Optional[Dict] = None):
         """
         The ToolStore class is a container for all the tools of a suite.
         The constructor parses the options and creates the tools.
@@ -730,6 +752,7 @@ class ToolStore:
         """
         if options is None:
             options = {}
+
         self.modules = options.get("modules", {})
         self.packages = options.get("packages", {})
         self.environments = options.get("environments", {})
@@ -945,7 +968,7 @@ class DeployToolsFamily(pf.AnchorFamily):
     """
 
     def __init__(
-        self, tools: ToolStore, exec_context: Dict[str, any] = {}, **kwargs
+        self, tools: ToolStore, exec_context: Optional[Dict] = None, **kwargs
     ):
         """
         Creates the DeployToolsFamily and pass the extra arguments to the
@@ -960,9 +983,13 @@ class DeployToolsFamily(pf.AnchorFamily):
         """
         super().__init__(name="deploy_tools", **kwargs)
 
+        if exec_context is None:
+            exec_context = {}
+
         with self:
             has_tasks = False
             env_families = {}
+            # Create setup tasks for the environments
             for env, options in tools.environments.items():
                 env_tool = tools[env]
                 if env_tool.scripts["setup"] is not None:
@@ -984,7 +1011,7 @@ class DeployToolsFamily(pf.AnchorFamily):
                             )
                             package_family.triggers = env_task.complete
 
-            # create dependencies between environments tasks
+            # Create dependencies between environments tasks
             for env in tools.environments:
                 for depend in tools[env].depends:
                     if depend in env_families:
