@@ -24,7 +24,9 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         self.logs_backup = logs_backup or None
         self.logs_archive = logs_archive or None
         self._added_log_tasks = False
-        self.submit_arguments = submit_arguments
+        self.submit_arguments = (
+            submit_arguments if submit_arguments is not None else {}
+        )
         variables = kwargs.pop("variables", {})
         if self.logs_backup:
             variables["LOGS_BACKUP"] = self.logs_backup

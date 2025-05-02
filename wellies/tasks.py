@@ -35,7 +35,7 @@ class EcfResourcesTask(pf.Task):
     def __init__(self, *, submit_arguments, **kwargs):
         # init with values as they are
         submit_args = submit_arguments.copy()
-        # update variable lists with values set on exec_context configuration
+        # update variable lists with values set on submit_arguments config
         new_vars = kwargs.pop("variables", {})
         new_vars.update(
             {

@@ -1,44 +1,12 @@
 import os
+from typing import Dict
+from typing import Optional
 
 import pyflow as pf
-from typing import Dict, Optional
 
-from wellies import mars, parse_yaml_files, scripts
-
-
-class DeployDataFamily(pf.AnchorFamily):
-    def __init__(self, data_store, exec_context: Optional[Dict] = None, **kwargs):
-        """Defines "static_data" family contaning all tasks needed to deploy
-        all types of datasets defined on a [data.StaticDataStore].
-
-        Parameters
-        ----------
-        data_store : data.StaticDataStore
-            A static data store object, usually created from a dictionary-like
-            definition.
-        exec_context : dict, optional
-            An execution context mapping to configure each task submit
-            arguments, by default None
-        """
-        super().__init__(name="deploy_data", **kwargs)
-
-        if exec_context is None:
-            exec_context = {}
-
-        with self:
-            has_tasks = False
-            for dataset, data in data_store.items():
-                has_tasks = True
-                pf.Task(
-                    name=dataset,
-                    submit_arguments=data.options.get(
-                        "exec_context", exec_context
-                    ),
-                    script=data.script,
-                    labels={"version": "NA"},
-                )
-            if not has_tasks:
-                self.defstatus = pf.state.complete
+from wellies import mars
+from wellies import parse_yaml_files
+from wellies import scripts
 
 
 def process_file_or_string(entry):
@@ -56,7 +24,7 @@ def process_file_or_string(entry):
 
 
 class StaticData:
-    def __init__(self, data_dir, name, script, options):
+    def __init__(self, data_dir: str, name: str, script: str, options: dict):
         self.name = name
         self.options = options
         pre_script = process_file_or_string(options.get("pre_script", None))
@@ -87,6 +55,7 @@ class StaticData:
                     "",
                 ]
             )
+
         self.script = pf.Script(script_list)
 
 
@@ -281,3 +250,43 @@ class StaticDataStore:
             else:
                 rootname = data_dir
         cls(rootname, options["static_data"])
+
+
+class DeployDataFamily(pf.AnchorFamily):
+    def __init__(
+        self,
+        data_store: StaticDataStore,
+        submit_arguments: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """Defines "static_data" family contaning all tasks needed to deploy
+        all types of datasets defined on a [data.StaticDataStore].
+
+        Parameters
+        ----------
+        data_store : data.StaticDataStore
+            A static data store object, usually created from a dictionary-like
+            definition.
+        submit_arguments : dict, optional
+            An saubmit argument mapping to configure each task submit
+            arguments, by default None
+        """
+        super().__init__(name="deploy_data", **kwargs)
+
+        if submit_arguments is None:
+            submit_arguments = {}
+
+        with self:
+            has_tasks = False
+            for dataset, data in data_store.items():
+                has_tasks = True
+                pf.Task(
+                    name=dataset,
+                    submit_arguments=data.options.get(
+                        "submit_arguments", submit_arguments
+                    ),
+                    script=data.script,
+                    labels={"version": "NA"},
+                )
+            if not has_tasks:
+                self.defstatus = pf.state.complete
