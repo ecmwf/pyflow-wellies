@@ -7,7 +7,7 @@ and deployment of the suite. We'll use the `wellies-quickstart` tool to create a
 
 We'll start by creating a new project called `efas_report` in a `projects` folder in our home directory.  We use the `-p` flag to pass in the name of the project. For more options see the help using `-h`.
 
-```console
+```shell
 $ wellies-quickstart ~/projects/efas_report -p efas_report
 ```
 
@@ -28,7 +28,7 @@ efas_report/
 
 We can see that the suite configuration files, deployment Python script, Makefile and suite customisation code has been created for us. Before we start we'll initialise a git repository so we can keep track of our changes.
 
-```console
+```shell
 $ cd ~/projects/efas_report
 $ git init
 $ echo "__pycache__" > .gitignore
@@ -38,7 +38,7 @@ $ git commit -m "Start of project from wellies-quickstart"
 
 The example suite is ready to deploy and we can do this using `deploy.py` and passing it the paths to our configuration files.
 
-```console
+```shell
 $ ./deploy.py configs/*.yaml
 running on host: localhost
 ------------------------------------------------------

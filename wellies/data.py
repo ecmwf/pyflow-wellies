@@ -1,12 +1,13 @@
 import os
 
 import pyflow as pf
+from typing import Dict, Optional
 
 from wellies import mars, parse_yaml_files, scripts
 
 
 class DeployDataFamily(pf.AnchorFamily):
-    def __init__(self, data_store, exec_context={}, **kwargs):
+    def __init__(self, data_store, exec_context: Optional[Dict] = None, **kwargs):
         """Defines "static_data" family contaning all tasks needed to deploy
         all types of datasets defined on a [data.StaticDataStore].
 
@@ -17,9 +18,12 @@ class DeployDataFamily(pf.AnchorFamily):
             definition.
         exec_context : dict, optional
             An execution context mapping to configure each task submit
-            arguments, by default {}
+            arguments, by default None
         """
         super().__init__(name="deploy_data", **kwargs)
+
+        if exec_context is None:
+            exec_context = {}
 
         with self:
             has_tasks = False
