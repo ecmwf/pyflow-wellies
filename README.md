@@ -8,32 +8,31 @@
 
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ecmwf/codex/refs/heads/main/ESEE/production_chain_badge.svg" alt="ESEE Production Chain">
+   <a href="https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE">
+    <img src="https://raw.githubusercontent.com/ecmwf/codex/refs/heads/main/ESEE/production_chain_badge.svg" alt="ESEE Production Chain">
+  </a>
   <a href="https://github.com/ecmwf/codex/blob/refs/heads/main/Project%20Maturity/readme.md">
     <img src="https://img.shields.io/badge/Maturity-Incubating-lightskyblue" alt="Maturity Incubating">
   </a>
-
-<a href="https://codecov.io/gh/ecmwf/pyflow_wellies">
+  <!-- <a href="https://codecov.io/gh/ecmwf/pyflow_wellies">
     <img src="https://codecov.io/gh/ecmwf/pyflow_wellies/branch/develop/graph/badge.svg" alt="Code Coverage">
-  </a>
-
+  </a> -->
   <a href="https://opensource.org/licenses/apache-2-0">
     <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0">
   </a>
-
-  <a href="https://github.com/ecmwf/pyflow_wellies/releases">
-    <img src="https://img.shields.io/github/v/release/ecmwf/pyflow_wellies?color=blue&label=Release&style=flat-square" alt="Latest Release">
+  <a href="https://github.com/ecmwf/pyflow-wellies/releases">
+    <img src="https://img.shields.io/github/v/release/ecmwf/pyflow-wellies?color=purple&label=Release" alt="Latest Release">
   </a>
-  <a href="https://pyflow_wellies.readthedocs.io/en/latest/?badge=latest">
-    <img src="https://readthedocs.org/projects/pyflow_wellies/badge/?version=latest" alt="Documentation Status">
+  <a href="https://pyflow-wellies.readthedocs.io/en/latest">
+    <img src="https://readthedocs.org/projects/pyflow-wellies/badge/?version=latest" alt="Documentation Status">
   </a>
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a> *
-  <a href="#installation">Installation</a> *
-  <a href="#contributing">Contributing</a> *
-  <a href="#contributors">Contributors</a> *
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#contributing">Contributing</a> •
+<!--   <a href="#contributors">Contributors</a> • -->
   <a href="https://pyflow_wellies.readthedocs.io/en/latest/">Documentation</a>
 </p>
 
