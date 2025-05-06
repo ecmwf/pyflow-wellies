@@ -1,7 +1,7 @@
 <h3 align="center">
 <picture>
-    <source srcset="https://raw.githubusercontent.com/ecmwf/logos/refs/heads/feature/add-logo-pyflow_wellies-20250501113719/logos/pyflow/pyflow_wellies_dark.png" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/ecmwf/logos/refs/heads/feature/add-logo-pyflow_wellies-20250501113719/logos/pyflow/pyflow_wellies_light.png" width="100">
+    <source srcset="https://raw.githubusercontent.com/ecmwf/logos/feature/add-logo-pyflow_wellies-20250501113719/logos/pyflow/logo_wellies_dark.svg" media="(prefers-color-scheme: dark)">
+    <img src="https://raw.githubusercontent.com/ecmwf/logos/feature/add-logo-pyflow_wellies-20250501113719/logos/pyflow/logo_wellies_light.svg" width="100">
   </picture>
 </br>
 </h3>
