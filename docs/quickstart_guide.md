@@ -26,7 +26,7 @@ efas_report/
     └── nodes.py
 ```
 
-We can see that the suite configuration files, deployment Python script, Makefile and suite customisation code has been created for us. Before we start we'll initialise a git repository so we can keep track of our changes.
+We can see that the suite configuration files, deployment Python script, Makefile and suite customisation code have been created for us. Before we start we'll initialise a git repository so we can keep track of our changes.
 
 ```shell
 $ cd ~/projects/efas_report
