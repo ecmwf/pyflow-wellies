@@ -627,6 +627,14 @@ def parse_environment(
             conda_cmd=options.get("conda_cmd", "conda"),
             conda_activate_cmd=options.get("conda_activate_cmd", "conda"),
         )
+    elif type == "custom":
+        env = Tool(
+            name,
+            depends,
+            options.get("load", ""),
+            options.get("unload", ""),
+            options.get("setup", None),
+        )
     elif type == "venv":
         raise NotImplementedError("Pure virtual environment not implemented")
     else:

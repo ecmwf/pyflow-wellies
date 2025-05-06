@@ -38,18 +38,19 @@ plugins:
         enable_inventory: true
         handlers:
           python:
-            import:
+            inventories:
               - url: https://pyflow-workflow-generator.readthedocs.io/en/latest/objects.inv
             options:
-              show_source: false
-              docstring_style: numpy
-              heading_level: 3
-              show_root_heading: true
-              show_category_heading: true
-              merge_init_into_class: true
-              show_docstrings_attributes: true
-              line_length: 79
-              signature_crossrefs: true
+              extra:
+                show_source: false
+                docstring_style: numpy
+                heading_level: 3
+                show_root_heading: true
+                show_category_heading: true
+                merge_init_into_class: true
+                show_docstrings_attributes: true
+                line_length: 79
+                signature_crossrefs: true
 
 theme:
   name: readthedocs

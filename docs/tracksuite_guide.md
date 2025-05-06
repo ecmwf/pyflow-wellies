@@ -87,7 +87,7 @@ In the *deploy.py* script, the [wellies.deploy_suite][] function takes care of i
     )
 ```
 
-The global options come from the configuration object, which is driven by yaml configuration files (see [Deployment configuration](deployment.md)). In particular, the **backup_deploy** option allows to push the changes of the suite to a remote repository, for instance hosted on GitHub or BitBucket. This would allow users to monitor the deployment of the suite on a web interface, without having to connect directly to their deployment host.
+The global options come from the configuration object, which is driven by yaml configuration files (see [Deployment configuration](configurations.md)). In particular, the **backup_deploy** option allows to push the changes of the suite to a remote repository, for instance hosted on GitHub or BitBucket. This would allow users to monitor the deployment of the suite on a web interface, without having to connect directly to their deployment host.
 
 The command line arguments provide the following dynamic options:
 
