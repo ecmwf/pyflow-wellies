@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 import os
 from dataclasses import dataclass
 from typing import Optional
-
-from suite.nodes import MainSuite
+import yaml
 
 import wellies as wl
 
@@ -55,10 +53,14 @@ class Config:
 
     def __init__(self, args):
 
-        options = wl.parse_yaml_files(args.config_files, args.set, self.global_vars)
+        # Parse the configuration files
+        with open(args.configs_file, "r") as file:
+            config_files = yaml.load(file, Loader=yaml.SafeLoader)
+        config_files = config_files[args.config_name]
+        options = wl.parse_yaml_files(config_files, args.set)
 
-        # Suite general options
-        self.name = options["name"]
+        # put everything from the yaml into class variables
+        self.__dict__.update(options)
 
         # Ecflow server options
         self.ecflow_server = EcflowServer(**options["ecflow_server"])
@@ -80,41 +82,6 @@ class Config:
         # Suite variables
         self.suite_variables = {
             "SUITE": self.name,
-            **options["ecflow_variables"],
             **self.host.variables,
+            **options["ecflow_variables"],
         }
-
-
-if __name__ == "__main__":
-
-    # Create parser and parse arguments
-    parser = wl.get_parser()
-    args = parser.parse_args()
-
-    # Create config object and suite
-    config = Config(args)
-    
-    suite = MainSuite(
-        config,
-        name=config.name,
-        host=config.host.pyflow_host,
-        files=config.ecflow_server.deploy_dir,
-        variables=config.suite_variables,
-        out=config.host.job_out,
-        workdir=config.host.workdir,
-    )
-
-    # Deploy suite scripts and definition file
-    ecflow_server = config.ecflow_server
-    wl.deploy_suite(
-        suite,
-        name=config.name,
-        hostname=ecflow_server.hostname,
-        user=ecflow_server.user,
-        deploy_dir=ecflow_server.deploy_dir,
-        backup_deploy=config.backup_deploy,
-        build_dir=args.build_dir,
-        no_prompt=args.y,
-        no_deploy=args.no_deploy,
-        message=args.message,
-    )

@@ -1,15 +1,13 @@
 # Configuration file for pyflow suite.
 
 # This file only contains a selection of most common options.
-# All new entries can be treated on {{ project_root }}/suite/config.py:Config
+# All new entries can be treated on {{ project_root }}/{{ project }}/config.py:Config
 
 # wellies support simple python string formatting and have some global names available.
 # This will be treated accordingly by wellies.parse_yaml:
-
 # name: mysuite
 # suite_dir: "{HOME}/{name}"
-
-# Available names are:
+# Available variables:
 # USER, HOME, PERM, SCRATCH, PWD, HPCPERM, TODAY and YESTERDAY
 
 # -------- Suite deployment configuration -------------------------------------
@@ -17,12 +15,13 @@
 # suite_name: "{{ project }}"
 name: "{{ project }}"
 
+# -------- Ecflow server ------------------------------------------------------
 ecflow_server:
   hostname: "{{ host }}"
   user: "{{ user }}"
   deploy_dir: "{{ deploy_dir }}"
 
-# -------- Global variables ------------------------------------
+# -------- Global variables ---------------------------------------------------
 ecflow_variables:
   OUTPUT_ROOT: "{{ output_root }}"
   LIB_DIR: "%OUTPUT_ROOT%/local"

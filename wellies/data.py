@@ -3,7 +3,8 @@ from typing import Dict, Optional
 
 import pyflow as pf
 
-from wellies import mars, parse_yaml_files, scripts
+from wellies import mars, scripts
+from wellies.config import parse_yaml_files
 
 
 def process_file_or_string(entry):

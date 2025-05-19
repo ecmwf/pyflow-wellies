@@ -6,6 +6,7 @@ from .config import (
     get_user_globals,
     overwrite_entries,
     parse_submit_arguments,
+    get_config_files,
     parse_yaml_files,
     substitute_variables,
 )
