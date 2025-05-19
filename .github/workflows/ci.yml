@@ -49,4 +49,10 @@ jobs:
           git config --global user.email "dummy.user@ecmwf.int"
           git config --global user.name "Dummy User"
           python -m pip install .[test]
-          pytest .
+          pytest . --junitxml=report.xml
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v1
+        with:
+          name: Pytest Results
+          path: report.xml
+          reporter: java-junit
