@@ -84,24 +84,34 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     options["localhost"] = gethostname()
     options["version"] = wl.__version__
 
-    # write main executable file and Makefile
+    # write main executable file and build
     suite_file = path.join(root_path, "deploy.py")
-    write_file(suite_file, renderer.render("suite.py_t", options))
+    write_file(suite_file, renderer.render("deploy.py_t", options))
     st = os.stat(suite_file)
     os.chmod(suite_file, st.st_mode | stat.S_IEXEC)
+    build_file = path.join(root_path, "build.sh")
+    write_file(build_file, renderer.render("build.sh_t", options))
+    st = os.stat(build_file)
+    os.chmod(build_file, st.st_mode | stat.S_IEXEC)
+
+    # write file hosting the configuration setups
     write_file(
-        path.join(root_path, "Makefile"),
-        renderer.render("Makefile_t", options),
+        path.join(root_path, "configs.yaml"),
+        renderer.render("configs.yaml_t", options),
     )
-
-    # create suite folder containing nodes.py
-    suite_dir = path.join(root_path, "suite")
+    
+    # create suite folder containing config.py and nodes.py
+    suite_dir = path.join(root_path, project)
     os.makedirs(suite_dir, exist_ok=True)
-
+    write_file(
+        path.join(suite_dir, "config.py"),
+        renderer.render("config.py_t", options),
+    )
     write_file(
         path.join(suite_dir, "nodes.py"),
         renderer.render("nodes.py_t", options),
     )
+    write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
 
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
@@ -121,6 +131,14 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     write_file(
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
+    )
+
+    # write test file
+    test_dir = path.join(root_path, "tests")
+    os.makedirs(test_dir, exist_ok=True)
+    write_file(
+        path.join(test_dir, "test_configs.py"),
+        renderer.render("test_configs.py_t", options),
     )
 
     return None

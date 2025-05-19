@@ -1,0 +1,5 @@
+user:
+  - configs/config.yaml
+  - configs/host.yaml
+  - configs/data.yaml
+  - configs/tools.yaml
