@@ -20,14 +20,19 @@ def get_parser() -> ArgumentParser:
         "\n" "Generate required files for a pyflow suite project." "\n"
     )
     parser = ArgumentParser(
-        usage="%(prog)s <CONFIG_FILE>",
+        usage="%(prog)s <CONFIG_NAME>",
         description=description,
     )
     parser.add_argument(
-        "config_files",
-        nargs="+",
-        metavar="CONFIG_FILES",
-        help="YAML configuration files path (order is important)",
+        "config_name",
+        metavar="CONFIG_NAME",
+        help="YAML configuration ",
+    )
+    parser.add_argument(
+        "--configs_file",
+        default="configs.yaml",
+        metavar="CONFIG_NAME",
+        help="YAML configuration ",
     )
     parser.add_argument(
         "-s",
@@ -69,6 +74,33 @@ def get_parser() -> ArgumentParser:
         action="store_true",
     )
     return parser
+
+
+def get_config_files(
+    config_name: str, configs_file: str
+) -> list:
+    """
+    Get the list of configuration files to be used for the suite.
+
+    Parameters
+    ----------
+    config_name : str
+        The name of the configuration to be used.
+    configs_file : str
+        The path to the YAML file containing the configurations.
+
+    Returns
+    -------
+    list
+        A list of configuration files to be used.
+    """
+    with open(configs_file, "r") as file:
+        configs = yaml.load(file, Loader=yaml.SafeLoader)
+
+    if config_name not in configs:
+        raise KeyError(f"Configuration '{config_name}' not found in {configs_file}")
+
+    return configs[config_name]
 
 
 def parse_yaml_files(
