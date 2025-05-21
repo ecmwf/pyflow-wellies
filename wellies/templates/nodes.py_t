@@ -9,11 +9,13 @@ class InitFamily(pf.AnchorFamily):
             # install environments and packages
             wl.DeployToolsFamily(
                 config.tools,
+                submit_arguments="sequential",
             )
 
             # setup static data (remote/local copy/link)
             wl.DeployDataFamily(
                 config.static_data,
+                submit_arguments="sequential",
             )
 
 
@@ -23,6 +25,7 @@ class MainFamily(pf.AnchorFamily):
         with self:
             pf.Task(
                 name='dummy',
+                submit_arguments="sequential",
             )
 
 
@@ -54,4 +57,3 @@ class Suite(pf.Suite):
             f_init = InitFamily(config=config, inlimits=self.work)
             f_main = MainFamily(config=config, inlimits=self.work)
             f_main.triggers = f_init.complete
-
