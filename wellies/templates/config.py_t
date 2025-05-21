@@ -1,47 +1,10 @@
 import os
-from dataclasses import dataclass
-from typing import Optional
-import yaml
+
+from suite.nodes import MainSuite
 
 import wellies as wl
 
 ROOT_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-
-
-@dataclass
-class EcflowServer:
-    """Class to store ecflow server configuration"""
-
-    hostname: str
-    user: str
-    deploy_dir: str
-
-
-class Host:
-    """Class to store host configuration"""
-    
-    def __init__(
-        self,
-        hostname: str,
-        user: str,
-        submit_arguments: dict,
-        job_out: str,
-        workdir: str,
-        troika_kwargs: Optional[dict] = None,
-    ):
-        if troika_kwargs is None:
-            troika_kwargs = {}
-
-        self.hostname = hostname
-        self.user = user
-        self.job_out = job_out
-        self.workdir = workdir
-        
-        self.submit_arguments, self.variables = wl.parse_submit_arguments(submit_arguments)
-
-        self.pyflow_host = wl.get_host(
-            hostname=hostname, user=user, **troika_kwargs
-        )
 
 
 class Config:
@@ -63,11 +26,11 @@ class Config:
         self.__dict__.update(options)
 
         # Ecflow server options
-        self.ecflow_server = EcflowServer(**options["ecflow_server"])
+        self.ecflow_server = wl.EcflowServer(**options["ecflow_server"])
 
         # HPC server options
-        self.host = Host(**options["host"])
-        
+        self.host, submit_variables = wl.get_host(**options["host"])
+
         # Optional suite deployment
         self.backup_deploy = options.get("backup_deploy", None)
 
@@ -78,10 +41,43 @@ class Config:
         # Static data
         static_data = options.get("static_data", {})
         self.static_data = wl.StaticDataStore("$DATA_DIR", static_data)
-        
+
         # Suite variables
         self.suite_variables = {
             "SUITE": self.name,
-            **self.host.variables,
             **options["ecflow_variables"],
+            **submit_variables,
         }
+
+
+if __name__ == "__main__":
+
+    # Create parser and parse arguments
+    parser = wl.get_parser()
+    args = parser.parse_args()
+
+    # Create config object and suite
+    config = Config(args)
+    ecflow_server = config.ecflow_server
+
+    suite = MainSuite(
+        config,
+        name=config.name,
+        host=config.host,
+        files=ecflow_server.deploy_dir,
+        variables=config.suite_variables,
+    )
+
+    # Deploy suite scripts and definition file
+    wl.deploy_suite(
+        suite,
+        name=config.name,
+        hostname=ecflow_server.hostname,
+        user=ecflow_server.user,
+        deploy_dir=ecflow_server.deploy_dir,
+        backup_deploy=config.backup_deploy,
+        build_dir=args.build_dir,
+        no_prompt=args.y,
+        no_deploy=args.no_deploy,
+        message=args.message,
+    )
