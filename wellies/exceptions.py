@@ -1,0 +1,2 @@
+class WelliesConfigurationError(Exception):
+    pass

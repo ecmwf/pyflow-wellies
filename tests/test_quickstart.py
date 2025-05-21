@@ -7,7 +7,7 @@ import pytest
 from wellies.quickstart import main
 
 
-@pytest.fixture 
+@pytest.fixture
 def quickstart(tmpdir):
     suite_dir = os.path.join(tmpdir, "suite")
     deploy_dir = os.path.join(tmpdir, "deploy")
@@ -49,28 +49,40 @@ def test_quickstart_deploy(quickstart):
     subprocess.check_call(
         [
             f"{suite_dir}/deploy.py",
-            os.path.join(suite_dir, "configs", "config.yaml"),
-            os.path.join(suite_dir, "configs", "host.yaml"),
+            "user",
+            "-d",
+            "lineups.yaml",
             "-y",
-        ]
+        ],
+        cwd=suite_dir,
     )
 
     def_file = os.path.join(deploy_dir, "test", "test.def")
     assert os.path.exists(def_file)
 
-@pytest.mark.xfail(reason="We require a host.yaml for suite build")
+
 def test_quickstart_tools_nohost_fails(quickstart):
+
     suite_dir, deploy_dir = quickstart
 
-    # test deployment
-    subprocess.check_call(
-        [
-            f"{suite_dir}/deploy.py",
-            os.path.join(suite_dir, "configs", "config.yaml"),
-            os.path.join(suite_dir, "configs", "tools.yaml"),
-            "-y",
-        ]
-    )
+    failing_config = "\nmissing_host:\n    - configs/config.yaml\n    - configs/tools.yaml\n"
 
-    def_file = os.path.join(deploy_dir, "test", "test.def")
-    assert os.path.exists(def_file)
+    with open(os.path.join(suite_dir, "lineups.yaml"), "a") as fin:
+        fin.write("\n" + failing_config)
+
+    # test deployment
+    try:
+        subprocess.run(
+            [
+                f"{suite_dir}/deploy.py",
+                "missing_host",
+                "-y",
+            ],
+            cwd=suite_dir,
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        assert b"WelliesConfigurationError" in exc.stderr
+    else:
+        raise Exception("This test should have failed")

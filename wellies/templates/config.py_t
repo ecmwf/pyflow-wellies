@@ -1,6 +1,5 @@
 import os
-
-from suite.nodes import MainSuite
+import yaml
 
 import wellies as wl
 
@@ -17,10 +16,11 @@ class Config:
     def __init__(self, args):
 
         # Parse the configuration files
-        with open(args.configs_file, "r") as file:
-            config_files = yaml.load(file, Loader=yaml.SafeLoader)
-        config_files = config_files[args.config_name]
-        options = wl.parse_yaml_files(config_files, args.set)
+        options = wl.parse_yaml_files(
+            args.deployments,
+            config_name=args.name,
+            set_variables=args.set,
+        )
 
         # put everything from the yaml into class variables
         self.__dict__.update(options)
@@ -45,39 +45,6 @@ class Config:
         # Suite variables
         self.suite_variables = {
             "SUITE": self.name,
-            **options["ecflow_variables"],
+            **options.get("ecflow_variables", {}),
             **submit_variables,
         }
-
-
-if __name__ == "__main__":
-
-    # Create parser and parse arguments
-    parser = wl.get_parser()
-    args = parser.parse_args()
-
-    # Create config object and suite
-    config = Config(args)
-    ecflow_server = config.ecflow_server
-
-    suite = MainSuite(
-        config,
-        name=config.name,
-        host=config.host,
-        files=ecflow_server.deploy_dir,
-        variables=config.suite_variables,
-    )
-
-    # Deploy suite scripts and definition file
-    wl.deploy_suite(
-        suite,
-        name=config.name,
-        hostname=ecflow_server.hostname,
-        user=ecflow_server.user,
-        deploy_dir=ecflow_server.deploy_dir,
-        backup_deploy=config.backup_deploy,
-        build_dir=args.build_dir,
-        no_prompt=args.y,
-        no_deploy=args.no_deploy,
-        message=args.message,
-    )
