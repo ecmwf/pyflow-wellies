@@ -9,6 +9,8 @@ from typing import Optional
 
 import yaml
 
+from wellies.exceptions import WelliesConfigurationError
+
 
 def get_parser() -> ArgumentParser:
     """
@@ -25,13 +27,14 @@ def get_parser() -> ArgumentParser:
         description=description,
     )
     parser.add_argument(
-        "config_name",
+        "name",
         metavar="CONFIG_NAME",
         help="YAML configuration ",
     )
     parser.add_argument(
-        "--configs_file",
-        default="configs.yaml",
+        "-d",
+        "--deployments",
+        default="lineups.yaml",
         metavar="CONFIG_NAME",
         help="YAML configuration ",
     )
@@ -105,10 +108,11 @@ def get_config_files(config_name: str, configs_file: str) -> list:
 
 
 def parse_yaml_files(
-    config_files: list, set_variables=None, global_vars=None
+    configs_file: str, config_name: str, set_variables=None, global_vars=None
 ) -> dict:
     """
-    Concatenates the config dictionaries and check for duplicates
+    Selects the group of files to read, as defined in a main deployments
+    definition. Concatenates the config dictionaries and check for duplicates
     Override values in files with entries given on set_variables.
     This integrates well with wellies command line option `-s` to do
     variable substitution.
@@ -120,6 +124,9 @@ def parse_yaml_files(
 
     """
 
+    # selects files to actually read
+    config_files = get_config_files(config_name, configs_file)
+
     # concatenate all yaml files into one dict
     options = concatenate_yaml_files(config_files)
 
@@ -128,6 +135,8 @@ def parse_yaml_files(
 
     # subsitute variables
     options = substitute_variables(options, global_vars)
+
+    validate_main_keys(options)
 
     return options
 
@@ -359,3 +368,15 @@ def parse_submit_arguments(options: dict) -> tuple:
         default_vars = {k.upper(): v for k, v in new.items()}
 
     return options, default_vars
+
+
+def validate_main_keys(options: dict) -> bool:
+
+    required = ["host", "ecflow_server"]
+
+    for entry in required:
+        if entry not in options:
+            raise WelliesConfigurationError(
+                f"Configs must include a '{entry}' entry. "
+                "Check the documentation for more information"
+            )

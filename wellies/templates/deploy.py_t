@@ -15,19 +15,18 @@ if __name__ == "__main__":
 
     # Create config object and suite
     config = Config(args)
-    
+    ecflow_server = config.ecflow_server
+
     suite = Suite(
         config,
         name=config.name,
-        host=config.host.pyflow_host,
-        files=config.ecflow_server.deploy_dir,
+        host=config.host,
+        files=ecflow_server.deploy_dir,
         variables=config.suite_variables,
-        out=config.host.job_out,
-        workdir=config.host.workdir,
+
     )
 
     # Deploy suite scripts and definition file
-    ecflow_server = config.ecflow_server
     wl.deploy_suite(
         suite,
         name=config.name,
