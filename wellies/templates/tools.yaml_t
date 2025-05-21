@@ -1,6 +1,8 @@
 # Put here configuration related to environment and tools
 # For a complete list of options, see:
 # https://pyflow-wellies.readthedocs.io/latest/config/tools_config/#tool-types
+ecflow_variables:
+  MODULES_VERSION: "new"
 
 tools:
 
@@ -8,9 +10,9 @@ tools:
   modules:
     python:
       name: python3
-      version: 3.10.10-01
+      version: $MODULES_VERSION
     ecmwf-toolbox:
-      version: 2023.10.0.0
+      version: $MODULES_VERSION
       depends: [python]
 
   # ---------- Extra installables -----------------------------------------------

@@ -2,7 +2,8 @@ import os
 import re
 from argparse import ArgumentParser
 from collections import abc
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from string import Formatter
 from typing import Optional
 
@@ -76,9 +77,7 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-def get_config_files(
-    config_name: str, configs_file: str
-) -> list:
+def get_config_files(config_name: str, configs_file: str) -> list:
     """
     Get the list of configuration files to be used for the suite.
 
@@ -98,7 +97,9 @@ def get_config_files(
         configs = yaml.load(file, Loader=yaml.SafeLoader)
 
     if config_name not in configs:
-        raise KeyError(f"Configuration '{config_name}' not found in {configs_file}")
+        raise KeyError(
+            f"Configuration '{config_name}' not found in {configs_file}"
+        )
 
     return configs[config_name]
 
@@ -141,21 +142,30 @@ def overwrite_entries(options, set_values):
 
 def concatenate_yaml_files(yaml_files):
     options = {}
+    accepted_concatenation = ["ecflow_variables"]
     for yaml_path in yaml_files:
         with open(yaml_path, "r") as file:
             local_options = yaml.load(file, Loader=yaml.SafeLoader)
 
-            # check for duplicates
-            duplicated_keys = []
-            for key in local_options.keys():
-                if options.get(key) is not None:
-                    duplicated_keys.append(key)
-            if duplicated_keys:
-                raise KeyError(
-                    f"Following keys found in {yaml_path} already exist in config: {duplicated_keys}"  # noqa: E501
-                )
+        # concatenated first
+        for key in accepted_concatenation:
+            if key in local_options:
+                options[key] = {
+                    **options.get(key, {}),
+                    **local_options.pop(key),
+                }
 
-            options.update(local_options)
+        # check for duplicates
+        duplicated_keys = []
+        for key in local_options.keys():
+            if options.get(key) is not None:
+                duplicated_keys.append(key)
+        if duplicated_keys:
+            raise KeyError(
+                f"Following keys found in {yaml_path} already exist in config: {duplicated_keys}"  # noqa: E501
+            )
+
+        options.update(local_options)
     return options
 
 
