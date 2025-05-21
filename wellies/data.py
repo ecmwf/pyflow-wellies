@@ -1,9 +1,11 @@
 import os
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
 
 import pyflow as pf
 
-from wellies import mars, scripts
+from wellies import mars
+from wellies import scripts
 from wellies.config import parse_yaml_files
 
 
