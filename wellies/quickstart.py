@@ -7,9 +7,11 @@ from argparse import ArgumentParser
 from os import path
 from pwd import getpwuid
 from socket import gethostname
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment
+from jinja2 import PackageLoader
 
 import wellies as wl
 
@@ -19,8 +21,8 @@ DEFAULTS = {
     "host": "localhost",
     "user": "{USER}",
     "author": pw_user.pw_gecos,
-    "output_root": "{SCRATCH}",
-    "deploy_root": "{PERM}/pyflow",
+    "output_root": "{HOME}/output",
+    "deploy_root": "{HOME}/pyflow",
 }
 
 
@@ -99,7 +101,7 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(root_path, "configs.yaml"),
         renderer.render("configs.yaml_t", options),
     )
-    
+
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)
     os.makedirs(suite_dir, exist_ok=True)
