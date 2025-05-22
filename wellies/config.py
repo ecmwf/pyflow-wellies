@@ -29,14 +29,14 @@ def get_parser() -> ArgumentParser:
     parser.add_argument(
         "name",
         metavar="CONFIG_NAME",
-        help="YAML configuration ",
+        help="YAML configuration profile name",
     )
     parser.add_argument(
-        "-d",
-        "--deployments",
-        default="lineups.yaml",
+        "-p",
+        "--profiles",
+        default="profiles.yaml",
         metavar="CONFIG_NAME",
-        help="YAML configuration ",
+        help="YAML configuration profiles ",
     )
     parser.add_argument(
         "-s",
@@ -107,25 +107,32 @@ def get_config_files(config_name: str, configs_file: str) -> list:
     return configs[config_name]
 
 
-def parse_yaml_files(
-    configs_file: str, config_name: str, set_variables=None, global_vars=None
+def parse_profiles(
+    profiles_file: str, config_name: str, set_variables=None, global_vars=None
 ) -> dict:
     """
     Selects the group of files to read, as defined in a main deployments
-    definition. Concatenates the config dictionaries and check for duplicates
-    Override values in files with entries given on set_variables.
+    definition. Return the options from the concatenated files in the profiles.
     This integrates well with wellies command line option `-s` to do
     variable substitution.
-
-    Example
-    -------
-
-    >>> deploy.py config.yml -s host=localhost
-
     """
 
     # selects files to actually read
-    config_files = get_config_files(config_name, configs_file)
+    config_files = get_config_files(config_name, profiles_file)
+
+    # concatenate all yaml files into one dict
+    options = parse_yaml_files(config_files, set_variables, global_vars)
+
+    return options
+
+
+def parse_yaml_files(
+    config_files: list, set_variables=None, global_vars=None
+) -> dict:
+    """
+    Concatenates the config dictionaries and check for duplicates
+    Override values in files with entries given on set_variables.
+    """
 
     # concatenate all yaml files into one dict
     options = concatenate_yaml_files(config_files)

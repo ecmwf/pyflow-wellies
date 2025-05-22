@@ -98,8 +98,8 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
 
     # write file hosting the configuration setups
     write_file(
-        path.join(root_path, "lineups.yaml"),
-        renderer.render("lineups.yaml_t", options),
+        path.join(root_path, "profiles.yaml"),
+        renderer.render("profiles.yaml_t", options),
     )
 
     # create suite folder containing config.py and nodes.py
@@ -119,8 +119,8 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     config_dir = path.join(root_path, "configs")
     os.makedirs(config_dir, exist_ok=True)
     write_file(
-        path.join(config_dir, "config.yaml"),
-        renderer.render("config.yaml_t", options),
+        path.join(config_dir, "user.yaml"),
+        renderer.render("user.yaml_t", options),
     )
     write_file(
         path.join(config_dir, "host.yaml"),
