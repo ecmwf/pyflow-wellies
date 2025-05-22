@@ -1,30 +1,6 @@
 # ---------- Data paths --------------------------------------------
-# example of path:
-#   - data_link:
-#       pre_script: "# Linking static data"
-#       type: link
-#       source: "path/to/dir"
-#       post_script: echo 'my custom data install command'
-#   - data_ecfs:
-#        type: ecfs
-#        source: "ec:/path/to/archive.tgz"
-#        post_script: "tar -xzvf archive.tgz ."
-#   - data_rsync: 
-#       type: rsync
-#       source: "remote:path/to/dir"
-#       rsync_options: "-avz"
-#   - data_git:
-#       type: git
-#       source: ssh://git.ecmwf.int/cefl/danu.git
-#       branch: develop
-#   - data_mars:
-#       type: mars
-#       request:
-#           class: od
-#           stream: oper ...
-#   - data_custom:
-#       type: custom
-#       post_script: /path/to/data/script/retrieval.sh
+# For a complete list of options, see:
+# https://pyflow-wellies.readthedocs.io/latest/config/data_config/
 static_data:
     git_sample:
         type: git

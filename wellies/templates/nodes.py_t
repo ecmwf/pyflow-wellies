@@ -31,29 +31,10 @@ class MainFamily(pf.AnchorFamily):
 
 class Suite(pf.Suite):
     def __init__(self, config, **kwargs):
-
-        # add your execution limits here
-        limits = {
-            'work': 20,
-        }
-
-        labels = {
-            'info': 'this is the {{ project }} suite'
-        }
-
-        super().__init__(
-            limits=limits,
-            labels=labels,
-            defstatus=pf.state.suspended,
-            **kwargs
-        )
-
-        limits = {
-            k: getattr(self, k) for k in limits.keys()
-        }
+        super().__init__(defstatus=pf.state.suspended, **kwargs)
 
         with self:
 
-            f_init = InitFamily(config=config, inlimits=self.work)
-            f_main = MainFamily(config=config, inlimits=self.work)
+            f_init = InitFamily(config=config, inlimits="work")
+            f_main = MainFamily(config=config, inlimits="work")
             f_main.triggers = f_init.complete

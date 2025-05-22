@@ -24,7 +24,6 @@ def get_host(
     ecflow_path: str = None,
     server_ecfvars: bool = False,
     extra_variables: dict = None,
-    job_out: str = None,
     submit_arguments: dict = None,
     **kwargs,
 ) -> pf.Host:
@@ -56,7 +55,6 @@ def get_host(
     if ecflow_path is None:
         ecflow_path = os.path.dirname(shutil.which("ecflow_client"))
 
-    kwargs.setdefault("log_directory", job_out)
     options = submit_arguments or {}
     submit_arguments, variables = parse_submit_arguments(options)
     if hostname in local_host:

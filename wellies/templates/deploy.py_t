@@ -24,7 +24,8 @@ if __name__ == "__main__":
         host=config.host,
         files=ecflow_server.deploy_dir,
         variables=config.suite_variables,
-
+        limits=config.limits,
+        labels=config.labels,
     )
 
     # Deploy suite scripts and definition file
