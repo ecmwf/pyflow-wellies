@@ -16,8 +16,8 @@ class Config:
     def __init__(self, args):
 
         # Parse the configuration files
-        options = wl.parse_yaml_files(
-            args.deployments,
+        options = wl.parse_profiles(
+            args.profiles,
             config_name=args.name,
             set_variables=args.set,
         )
