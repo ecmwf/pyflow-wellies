@@ -50,8 +50,8 @@ def test_quickstart_deploy(quickstart):
         [
             f"{suite_dir}/deploy.py",
             "user",
-            "-d",
-            "lineups.yaml",
+            "-p",
+            "profiles.yaml",
             "-y",
         ],
         cwd=suite_dir,
@@ -65,9 +65,11 @@ def test_quickstart_tools_nohost_fails(quickstart):
 
     suite_dir, deploy_dir = quickstart
 
-    failing_config = "\nmissing_host:\n    - configs/config.yaml\n    - configs/tools.yaml\n"
+    failing_config = (
+        "\nmissing_host:\n    - configs/user.yaml\n    - configs/tools.yaml\n"
+    )
 
-    with open(os.path.join(suite_dir, "lineups.yaml"), "a") as fin:
+    with open(os.path.join(suite_dir, "profiles.yaml"), "a") as fin:
         fin.write("\n" + failing_config)
 
     # test deployment
