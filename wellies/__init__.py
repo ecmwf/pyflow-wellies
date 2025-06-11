@@ -5,8 +5,9 @@ from .config import get_config_files
 from .config import get_parser
 from .config import get_user_globals
 from .config import overwrite_entries
+from .config import parse_profiles
 from .config import parse_submit_arguments
-from .config import parse_profiles, parse_yaml_files
+from .config import parse_yaml_files
 from .config import substitute_variables
 from .data import DeployDataFamily
 from .data import StaticDataStore
