@@ -10,8 +10,7 @@ them is not clear.
 ## Main features
 
 - ***YAML*-based configuration** for your suites: wellies provides simple 
-patterns 
-to help configuring your suite, making them more flexible and suitable for 
+patterns to help configuring your suite, making them more flexible and suitable for 
 different use cases and environments.
 - Simple template to start your **suite design from scratch**: Don't get blocked
 by a blanck page; with `wellies-quickstart` starting to code a new workflow is 
