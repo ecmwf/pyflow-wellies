@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # isort: skip_file
-import os
-
 from {{ project }}.config import Config
 from {{ project }}.nodes import Suite
 
