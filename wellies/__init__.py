@@ -1,23 +1,22 @@
 # flake8: noqa
 
-from .config import concatenate_yaml_files
-from .config import get_config_files
-from .config import get_parser
-from .config import get_user_globals
-from .config import overwrite_entries
-from .config import parse_profiles
-from .config import parse_submit_arguments
-from .config import parse_yaml_files
-from .config import substitute_variables
-from .data import DeployDataFamily
-from .data import StaticDataStore
+from .config import (
+    concatenate_yaml_files,
+    get_config_files,
+    get_parser,
+    get_user_globals,
+    overwrite_entries,
+    parse_profiles,
+    parse_submit_arguments,
+    parse_yaml_files,
+    substitute_variables,
+)
+from .data import DeployDataFamily, StaticDataStore
 from .deployment import deploy_suite
-from .hosts import EcflowServer
-from .hosts import get_host
+from .hosts import EcflowServer, get_host
 from .log_archiving import ArchivedRepeatFamily
 from .tasks import EcfResourcesTask
-from .tools import DeployToolsFamily
-from .tools import ToolStore
+from .tools import DeployToolsFamily, ToolStore
 
 try:
     # NOTE: the `_version.py` file must not be present in the git repository

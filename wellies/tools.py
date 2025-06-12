@@ -1,14 +1,10 @@
 import os
 from os import path
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Dict, List, Optional, Union
 
 import pyflow as pf
 
-from wellies import data
-from wellies import scripts
+from wellies import data, scripts
 
 module_use = """
 module use {{ MODULEFILES }}

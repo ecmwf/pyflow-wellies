@@ -1,14 +1,7 @@
 # Configuration file for pyflow suite.
 
 # This file only contains a selection of most common options.
-# All new entries can be treated on {{ project_root }}/{{ project }}/config.py:Config
-
-# wellies support simple python string formatting and have some global names available.
-# This will be treated accordingly by wellies.parse_yaml:
-# name: mysuite
-# suite_dir: "{HOME}/{name}"
-# Available variables:
-# USER, HOME, PERM, SCRATCH, PWD, HPCPERM, TODAY and YESTERDAY
+# For more information: https://pyflow-wellies.readthedocs.io/latest/configurations/
 
 # -------- Main Suite configuration -------------------------------------------
 name: "{{ project }}"

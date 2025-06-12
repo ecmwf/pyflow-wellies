@@ -16,6 +16,7 @@ class EcflowServer:
     hostname: str
     user: str
     deploy_dir: str
+    group: str = None  # Optional suites group for the ecflow server
 
 
 def get_host(
