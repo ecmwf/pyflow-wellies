@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import stat
 import sys
 from argparse import ArgumentParser
 from os import path
 from pwd import getpwuid
 from socket import gethostname
-from typing import Dict
-from typing import List
+from typing import Dict, List
 
-from jinja2 import Environment
-from jinja2 import PackageLoader
+from jinja2 import Environment, PackageLoader
 
 import wellies as wl
 
@@ -71,17 +70,16 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     templatedir = options.get("templatedir")
     renderer = PyflowSuiteRenderer(templatedir)
 
-    project = options.get("project")
+    project = options["project"]
     root_path = path.abspath(options["path"])
-    options.setdefault("project_root", root_path)
     os.makedirs(root_path, exist_ok=True)
 
     out_root = options["output_root"]
-    out_root = path.join(out_root, project)
+    out_root = path.join(out_root, "{name}")
     options["output_root"] = out_root
 
     options.setdefault(
-        "deploy_dir", path.join(options["deploy_root"], project)
+        "deploy_dir", path.join(options["deploy_root"], "{name}")
     )
     options["localhost"] = gethostname()
     options["version"] = wl.__version__
@@ -153,10 +151,13 @@ def valid_dir(d: Dict) -> bool:
     if not path.isdir(root):
         return False
 
+    # Replace all special characters in the project name with underscores
     reserved_names = [
         "configs",
-        "suite",
-        d["project"] + ".py",
+        "tests",
+        d["project"],
+        "deploy.py",
+        "build.sh",
     ]
     if set(reserved_names) & set(os.listdir(root)):
         return False
@@ -178,14 +179,12 @@ def get_parser() -> ArgumentParser:
         "definitions which can be deployed with pyflow.\n"
     )
     parser = ArgumentParser(
-        usage="%(prog)s [OPTIONS] <PROJECT_DIR>", description=description
+        usage="%(prog)s [OPTIONS] <PROJECT>", description=description
     )
     parser.add_argument(
-        "path",
-        metavar="PROJECT_DIR",
-        default=".",
-        nargs="?",
-        help="project root",
+        "project",
+        metavar="PROJECT",
+        help="project name",
     )
     parser.add_argument(
         "-i",
@@ -198,10 +197,10 @@ def get_parser() -> ArgumentParser:
     group = parser.add_argument_group("Project basic options")
     group.add_argument(
         "-p",
-        "--project",
-        metavar="PROJECT",
-        dest="project",
-        help="project name",
+        "--path",
+        metavar="PATH",
+        dest="path",
+        help="project path",
     )
     group.add_argument(
         "--author", metavar="AUTHOR", dest="author", help="project author"
@@ -263,10 +262,15 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
     options = vars(args)
     # delete None values
     options = {k: v for k, v in options.items() if v is not None}
+    options.setdefault("path", path.join(os.getcwd(), options["project"]))
+    options["project"] = re.sub(
+        r"\W", "_", options["project"]
+    )  # can't have special characters in python module names
+    options["profiles"] = '"profiles.yaml"'  # default profiles file
     try:
         if "interactive" in options:
             ask_user(options)
-        elif {"project"}.issubset(options):
+        else:
             # quiet mode with all required params satisfied, use default
             d2 = DEFAULTS.copy()
             d2.update(options)
@@ -283,14 +287,9 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
                     " Please specify a new root path."
                 )
                 return 1
-            if options["project"] in ["suite", "installers"]:
+            if options["project"] in ["configs", "tests"]:
                 print("invalid project name. Please select another one.")
                 return 1
-        else:
-            print(
-                'non-interactive mode, but any of "project" is not specified.'
-            )
-            return 1
 
     except (KeyboardInterrupt, EOFError):
         print()

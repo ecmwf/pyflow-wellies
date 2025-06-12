@@ -9,23 +9,20 @@ from wellies.quickstart import main
 
 @pytest.fixture
 def quickstart(tmpdir):
-    suite_dir = os.path.join(tmpdir, "suite")
+    suite_dir = os.path.join(tmpdir, "my-suite-path")
     deploy_dir = os.path.join(tmpdir, "deploy")
 
     main(
         [
-            f"{suite_dir}",
+            "my-suite",
             "-p",
-            "test",
+            f"{suite_dir}",
             "--deploy_root",
             str(deploy_dir),
             "--output_root",
             "/my/output/root",
         ]
     )
-    # print(suite_dir)
-    # print(os.listdir(suite_dir))
-    # print(os.listdir(os.path.join(suite_dir, "configs")))
 
     return suite_dir, deploy_dir
 
@@ -57,7 +54,7 @@ def test_quickstart_deploy(quickstart):
         cwd=suite_dir,
     )
 
-    def_file = os.path.join(deploy_dir, "test", "test.def")
+    def_file = os.path.join(deploy_dir, "my_suite", "my_suite.def")
     assert os.path.exists(def_file)
 
 

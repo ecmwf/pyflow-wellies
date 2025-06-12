@@ -2,8 +2,7 @@ import os
 import re
 from argparse import ArgumentParser
 from collections import abc
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from string import Formatter
 from typing import Optional
 
@@ -158,6 +157,7 @@ def overwrite_entries(options, set_values):
 
 def concatenate_yaml_files(yaml_files):
     options = {}
+    concat_options = {}
     accepted_concatenation = ["ecflow_variables"]
     for yaml_path in yaml_files:
         with open(yaml_path, "r") as file:
@@ -166,8 +166,8 @@ def concatenate_yaml_files(yaml_files):
         # concatenated first
         for key in accepted_concatenation:
             if key in local_options:
-                options[key] = {
-                    **options.get(key, {}),
+                concat_options[key] = {
+                    **concat_options.get(key, {}),
                     **local_options.pop(key),
                 }
 
@@ -182,6 +182,7 @@ def concatenate_yaml_files(yaml_files):
             )
 
         options.update(local_options)
+        options.update(concat_options)
     return options
 
 

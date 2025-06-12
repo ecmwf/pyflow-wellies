@@ -129,7 +129,7 @@ def tools_config(custom_script_file):
                 "type": "custom",
                 "load": "source /path/to/env/load.sh",
                 "unload": "unloadenv",
-            }
+            },
         },
     }
 
