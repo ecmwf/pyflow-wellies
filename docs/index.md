@@ -1,21 +1,19 @@
 # Welcome to wellies documentation
 
-Wellies provides extra features to help you build consistent and configurable 
-pyflow suites. This guide assumes a good level of familiarity with 
-[ecflow](https://ecflow.readthedocs.io) suites and using 
-[pyflow](http://pyflow-workflow-generator.readthedocs.io) for its design and 
-generation. Please refer to these projects' documentantion if some point about 
-them is not clear.
+Wellies provides extra features to help you build consistent and configurable
+pyflow suites. This guide assumes a good level of familiarity with
+[ecflow](https://ecflow.readthedocs.io) suites and using [pyflow](http://pyflow-workflow-generator.readthedocs.io) for its design and generation.
+Please refer to these projects' documentantion if some point about  them is not clear.
 
 ## Main features
 
-- ***YAML*-based configuration** for your suites: wellies provides simple 
-patterns to help configuring your suite, making them more flexible and suitable for 
+- ***YAML*-based configuration** for your suites: wellies provides simple
+patterns to help configuring your suite, making them more flexible and suitable for
 different use cases and environments.
 - Simple template to start your **suite design from scratch**: Don't get blocked
-by a blanck page; with `wellies-quickstart` starting to code a new workflow is 
+by a blanck page; with `wellies-quickstart` starting to code a new workflow is
 one command away.
-- **Git-tracked suite deployment** from [tracksuite](https://github.com/ecmwf/tracksuite): Wellies comes fully integrated with tracksuite providing git-based 
+- **Git-tracked suite deployment** from [tracksuite](https://github.com/ecmwf/tracksuite): Wellies comes fully integrated with tracksuite providing git-based
 changes control for multi-users and remote deployment environments.
 - **Extended *pyflow* nodes** for improved suite design, configuration and monitoring.
 - **Template scripts** for improved reproducibility and support to D-R-Y design when it comes to scripting, like when dealing with datetime objects, *MARS* requests and others.
@@ -26,14 +24,19 @@ Wellies is a pure python package, so installation from source is straightforward
 with `pip`
 
 ```console
+$ pip install pyflow-wellies
+```
+
+or for developers
+```console
 $ git clone ssh://git@git.ecmwf.int/ecflow/wellies.git
 $ cd wellies
-$ pip install .
+$ pip install -e .
 ```
 
 ## Quickstart
 
-The quickest way to get familiar with wellies' features is using the 
+The quickest way to get familiar with wellies' features is using the
 `wellies-quickstart` command-line tool to start a project from zero.
 
 ```python exec="true" id="quickstart-help"
@@ -48,30 +51,34 @@ print(f"```\n{help_message}\n```")
 To start a new project in a `projects` directory in your home folder, just run
 
 ```console
-$ wellies-quickstart ~/projects/mysuite -p mysuite
+$ wellies-quickstart mysuite
 ```
 
 This will create the following structure in your target project directory:
 
 ```tree
-projects/
+mysuite/
+├── build.sh
+├── configs
+│   ├── data.yaml
+│   ├── host.yaml
+│   ├── tools.yaml
+│   └── user.yaml
+├── deploy.py
 └── mysuite
-    ├── configs
-    │   ├── config.yaml
-    │   ├── data.yaml
-    │   ├── execution_contexts.yaml
-    │   └── tools.yaml
-    ├── deploy.py
-    ├── Makefile
-    └── suite
-        └── nodes.py
+    └── __init__.py
+    └── config.py
+    └── nodes.py
+├── profiles.yaml
+└── tests
+    └── test_configs.py
 ```
 
-Although it does not contain any meaningful task, this is already a **valid 
+Although it does not contain any meaningful task, this is already a **valid
 defined ecFlow suite**. To deploy all of the suite's scripts and write its definition file, just run:
 
 ```console
-$ make
+$ ./build.sh user
 running on host: localhost
 ------------------------------------------------------
 Staging suite to /build_mysuite_y5r0ft9e
@@ -111,16 +118,16 @@ Suite deployed to /perm/username/pyflow/mysuite
 Definition file: /perm/username/pyflow/mysuite/mysuite.def
 ```
 
-After loading the suite on a running ecflow server it will give the suite
+After loading the suite on a running ecflow server, it will appear as following on the ecFlow UI.
 
 ![Template suite](img/mysuite.png)
 
-This will provide a starting base for your suite. From there you can modify the 
-project towards your own workflow.
+This will provide a starting base for your suite. From there you can modify the
+project and build your own workflow.
 
-### Next 
+### Next
 
-The [Tutorials](quickstart_guide.md) section contains further examples on suite 
+The [Tutorials](quickstart_guide.md) section contains further examples on suite
 development from this base structure.
 
 For details about how wellies can help configuring your suites, please check one of the [Suite Configuration](configurations.md) sections.
