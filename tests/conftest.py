@@ -1,5 +1,16 @@
+from dataclasses import dataclass
+
+import pyflow as pf
 import pytest
 import yaml
+
+import wellies as wl
+
+
+@dataclass
+class WelliesTestHost:
+    host: pf.Host
+    defaults: dict
 
 
 @pytest.fixture
@@ -142,3 +153,35 @@ def tools_file(tmp_path, tools_config):
     with open(fpath, "w") as fout:
         fout.write(yaml.dump(tools_config))
     return fpath
+
+
+@pytest.fixture
+def slurmhost_config():
+    config_in = dict(
+        host=dict(
+            hostname="slurm",
+            user="beans",
+            ecflow_path="/usr/bin/ecflow_client",
+            submit_arguments=dict(
+                defaults=dict(
+                    job_name="%TASK%",
+                    account="project",
+                ),
+                serial=dict(
+                    queue="q1",
+                    total_tasks=1,
+                ),
+                parallel=dict(
+                    queue="qp",
+                ),
+            ),
+        )
+    )
+
+    return config_in
+
+
+@pytest.fixture
+def wlhost(slurmhost_config):
+    host, defaults = wl.get_host(**slurmhost_config["host"])
+    return WelliesTestHost(host, defaults)

@@ -1,6 +1,7 @@
 import re
 
 import pyflow as pf
+from pyflow.attributes import make_variable
 
 
 class EcfResourcesTask(pf.Task):
@@ -32,11 +33,18 @@ class EcfResourcesTask(pf.Task):
         "TIME": "TIMEOUT",
     }
 
-    def __init__(self, *, submit_arguments, **kwargs):
-        # init with values as they are
-        submit_args = submit_arguments.copy()
-        # update variable lists with values set on submit_arguments config
+    def __init__(self, name, submit_arguments, **kwargs):
+
         new_vars = kwargs.pop("variables", {})
+        super().__init__(name, **kwargs)
+
+        # init with values as they are
+        if isinstance(submit_arguments, str):
+            submit_args = self.host.submit_arguments[submit_arguments].copy()
+        else:
+            submit_args = submit_arguments.copy()
+            # update variable lists with values set on submit_arguments config
+
         new_vars.update(
             {
                 self.replacements.get(k.upper(), k.upper()): v
@@ -52,10 +60,7 @@ class EcfResourcesTask(pf.Task):
                 if not self._is_protected(k)
             }
         )
-
-        super().__init__(
-            variables=new_vars, submit_arguments=submit_args, **kwargs
-        )
+        self.submit_arguments = submit_args
 
         # after node is created, if variable in parent node with same value,
         # remove from task
@@ -63,11 +68,10 @@ class EcfResourcesTask(pf.Task):
             try:
                 parent_val = self._parent_lookup(key)
             except AttributeError:
-                pass
+                make_variable(self, key, val)
             else:
-                if val == parent_val:
-                    var_node = [v for v in self.variables if v.name == key][0]
-                    self.remove_node(var_node)
+                if val != parent_val:
+                    make_variable(self, key, val)
 
     def _is_protected(self, key):
         for protected in self.protected_list:
