@@ -9,7 +9,7 @@ nav:
     - Deployment: config/deployment.md
     - Tool Types: config/tools_config.md
     - Tool Store: config/deploy_tools.md
-    - Execution Contexts: config/exec_config.md
+    - Execution Host: config/host.md
     - Static Data Types: config/data_config.md
     - Static Data Deployment: config/deploy_data.md
   - Tutorials:
