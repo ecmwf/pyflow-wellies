@@ -29,7 +29,7 @@ $ pip install pyflow-wellies
 
 or for developers
 ```console
-$ git clone ssh://git@git.ecmwf.int/ecflow/wellies.git
+$ git clone git@github.com:ecmwf/pyflow-wellies.git
 $ cd wellies
 $ pip install -e .
 ```
