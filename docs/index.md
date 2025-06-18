@@ -45,6 +45,7 @@ sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.quickstart import get_parser
 help_message=get_parser().format_help()
 help_message = help_message.replace("mkdocs", "wellies-quickstart")
+help_message = help_message.replace("__main__", "wellies-quickstart")
 print(f"```\n{help_message}\n```")
 ```
 
