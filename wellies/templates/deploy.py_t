@@ -4,6 +4,7 @@ from {{ project }}.config import Config
 from {{ project }}.nodes import Suite
 
 import wellies as wl
+import logging
 
 
 if __name__ == "__main__":
@@ -11,6 +12,10 @@ if __name__ == "__main__":
     # Create parser and parse arguments
     parser = wl.get_parser()
     args = parser.parse_args()
+
+    # Set log level from args
+    if hasattr(args, "log_level"):
+        logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO), format='%(levelname)s: %(message)s')
 
     # Create config object and suite
     config = Config(args)

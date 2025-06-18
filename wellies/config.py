@@ -23,12 +23,12 @@ def get_parser() -> ArgumentParser:
         "\n" "Generate required files for a pyflow suite project." "\n"
     )
     parser = ArgumentParser(
-        usage="%(prog)s <CONFIG_NAME>",
+        usage="%(prog)s <PROFILE>",
         description=description,
     )
     parser.add_argument(
         "name",
-        metavar="CONFIG_NAME",
+        metavar="PROFILE",
         help="YAML configuration profile name",
     )
     parser.add_argument(
