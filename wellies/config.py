@@ -2,7 +2,8 @@ import os
 import re
 from argparse import ArgumentParser
 from collections import abc
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from string import Formatter
 from typing import Optional
 
@@ -75,6 +76,12 @@ def get_parser() -> ArgumentParser:
         "--no_deploy",
         help="Skip deployment",
         action="store_true",
+    )
+    parser.add_argument(
+        "--log_level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level for the suite deployment",
     )
     return parser
 
