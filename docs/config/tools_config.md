@@ -5,10 +5,10 @@ execution environment of one or more of your workflow's tasks. They can be
 dependent on each other and contain up to three script snippets that will be
 used on different contexts:
 
-- setup: Defines how a tool can be installed on the suite's workspace.
-- load: For any occasion when preparation action needs to be done to make a
+- `#!python setup`: Defines how a tool can be installed on the suite's workspace.
+- `#!python load`: For any occasion when preparation action needs to be done to make a
 tool discoverable for use.
-- unload: The opposite operation of load. Makes the tool not available
+- `#!python unload`: The opposite operation of load. Makes the tool not available
 anymore.
 
 ## Tool types

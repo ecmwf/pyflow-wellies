@@ -92,3 +92,66 @@ the substitution will raise an error if the variable is not defined and used in 
 
 In the following pages the specifics for other wellies' components will be
 detailed.
+
+## Special keys
+
+In this section, reserved keys that have a special meaning in the configuration files are described.
+
+### ecflow_variables
+This key is used to define one-level mapping for variables that will be defined at the ecFlow suite level.
+It is special because it can be defined in any of the configuration files, but it will be merged into the main configuration file
+when the suite is built, allowing for more contextualised definition of variables.
+
+It is important to note that, due to this behaviour and unlike with other keys or configuration entries
+(where an error is raised), any duplication just overwrites the previous value. Therefore, the order of
+parsing configuration files may alter the final mapping of variables in the presence of duplicates.
+
+/// admonition | Note
+    type: note
+
+The order of the configuration files may also alter the way template variables are dealt with. In this case,
+duplicates also overwrite previous values, and missing variables raise a `KeyError`.
+///
+
+Considering we have the following two configuration files:
+
+````yaml title="config.yaml"
+host: localhost
+ecflow_server:
+    hostname: localhost
+    user: username
+ecflow_variables:
+    EXPVER: "001"
+````
+
+````yaml title="tools.yaml"
+ecflow_variables:
+    MODULES_VERSION: "latest"
+tools:
+    modules:
+        python:
+            version: "${MODULES_VERSION:-default}"
+````
+
+```python exec="true" session="merged_variables" id="write_example_files_merged_variables"
+import os, tempfile
+tmpdirname = tempfile.mkdtemp()
+with open(f"{tmpdirname}/tools.yaml", 'w') as ftools:
+    ftools.write('ecflow_variables:\n    MODULES_VERSION: "latest"\ntools:\n    modules:\n        python:\n            version: "${MODULES_VERSION:-default}"\n')
+with open(f"{tmpdirname}/config.yaml", 'w') as fconfig:
+    fconfig.write("host: localhost\necflow_server: \n    hostname: localhost\n    user: username\necflow_variables:\n    EXPVER: '001'\n")
+```
+
+We can see that the `ecflow_variables` key is defined in both files, but
+the final mapping of variables will be flat and ready to be passed to any `Node` `variables` attribute
+
+```python exec="true" id="ecflow_variables-merge-example" source="above" result="python" session="merged_variables"
+import wellies as wl
+import os; curdir=os.getcwd(); os.chdir(tmpdirname)  # markdown-exec: hide
+import pprint
+options = wl.parse_yaml_files(["config.yaml", "tools.yaml"])
+os.chdir(curdir)  # markdown-exec: hide
+pp = pprint.PrettyPrinter(indent=2, sort_dicts=False, width=40)  # markdown-exec: hide
+options = pp.pformat(options)  # markdown-exec: hide
+print(options)
+```
