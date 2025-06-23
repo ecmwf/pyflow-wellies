@@ -1,9 +1,12 @@
 import os
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
+from warnings import deprecated
 
 import pyflow as pf
 
-from wellies import mars, scripts
+from wellies import mars
+from wellies import scripts
 from wellies.config import parse_yaml_files
 
 
@@ -186,7 +189,14 @@ class MarsData(StaticData):
         super().__init__(data_dir, name, script, options)
 
 
+@deprecated(
+    "Use parse_data_item instead. This function will be removed in a future releases."  # noqa: E501
+)
 def parse_static_data_item(data_dir, name, options):
+    return parse_data_item(data_dir, name, options)
+
+
+def parse_data_item(data_dir, name, options):
     type = options["type"]
     if type == "rsync":
         data = RsyncData(data_dir, name, options)
@@ -224,7 +234,7 @@ class StaticDataStore:
         """
         self.static_data = {}
         for name, options in static_data_dict.items():
-            data = parse_static_data_item(data_dir, name, options)
+            data = parse_data_item(data_dir, name, options)
             self.static_data[name] = data
 
     def __getitem__(self, item):

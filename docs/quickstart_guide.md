@@ -389,7 +389,7 @@ class Config:
         self.end_date = dt.strptime(options['start_date'], "%Y-%m-%d")
 
         self.fc_retrievals = [
-            wl.data.parse_static_data_item("$OUTPUT_ROOT", entry['name'], entry)
+            wl.data.parse_data_item("$OUTPUT_ROOT", entry['name'], entry)
             for entry in options.get('forecasts', {})
     ]
 ```

@@ -1,10 +1,14 @@
 import os
 from os import path
-from typing import Dict, List, Optional, Union
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 import pyflow as pf
 
-from wellies import data, scripts
+from wellies import data
+from wellies import scripts
 
 module_use = """
 module use {{ MODULEFILES }}
@@ -75,7 +79,7 @@ def deploy_package_script(
     lib_dir: str
         directory where to install the package  (default: $LIB_DIR)
     """
-    data_installer = data.parse_static_data_item(
+    data_installer = data.parse_data_item(
         os.path.join(lib_dir, "build", "${ENV_NAME:-" "}"), package, options
     )
 
@@ -484,7 +488,7 @@ class FileCondaEnvTool(CondaEnvTool):
         env_root = path.join(lib_dir, name)
         build_dir = path.join(lib_dir, "build")
         fname = env_file.get("files", os.path.basename(env_file["source"]))
-        file_setup = data.parse_static_data_item(build_dir, name, env_file)
+        file_setup = data.parse_data_item(build_dir, name, env_file)
 
         env_file_path = path.join(build_dir, name, fname)
 
