@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from os.path import join as pjoin
 
 import pyflow as pf
 import pytest
 import yaml
 
 import wellies as wl
+from wellies.quickstart import main
 
 
 @dataclass
@@ -185,3 +187,38 @@ def slurmhost_config():
 def wlhost(slurmhost_config):
     host, defaults = wl.get_host(**slurmhost_config["host"])
     return WelliesTestHost(host, defaults)
+
+
+@pytest.fixture
+def quickstart(tmpdir):
+    suite_dir = pjoin(tmpdir, "my-suite-path")
+    deploy_dir = pjoin(tmpdir, "deploy")
+
+    main(
+        [
+            "my-suite",
+            "-p",
+            f"{suite_dir}",
+            "--deploy_root",
+            str(deploy_dir),
+            "--output_root",
+            "/my/output/root",
+        ]
+    )
+
+    return suite_dir, deploy_dir
+
+
+@pytest.fixture
+def quickstart_local_git(quickstart, request):
+
+    import git
+
+    suite_dir, deploy_dir = quickstart
+
+    repo = git.Repo.init(suite_dir)
+    repo.create_remote("origin", "ssh://git@git.test.repo")
+    repo.index.add("*")
+    repo.index.commit(f"Initial commit done for test {request.node.name}")
+
+    return suite_dir, deploy_dir

@@ -2,30 +2,6 @@
 import os
 import subprocess
 
-import pytest
-
-from wellies.quickstart import main
-
-
-@pytest.fixture
-def quickstart(tmpdir):
-    suite_dir = os.path.join(tmpdir, "my-suite-path")
-    deploy_dir = os.path.join(tmpdir, "deploy")
-
-    main(
-        [
-            "my-suite",
-            "-p",
-            f"{suite_dir}",
-            "--deploy_root",
-            str(deploy_dir),
-            "--output_root",
-            "/my/output/root",
-        ]
-    )
-
-    return suite_dir, deploy_dir
-
 
 def test_quickstart(quickstart):
     suite_dir, deploy_dir = quickstart
