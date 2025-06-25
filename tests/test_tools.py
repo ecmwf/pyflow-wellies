@@ -147,6 +147,19 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
+    def test_pure_venv(self, tools_config):
+        test_target = "anemoi_venv"
+        expected = {
+            "load": [f"source {self.lib_dir}/{test_target}/bin/activate"],
+            "unload": ["deactivate"],
+            "setup": [
+                f"rm -rf {self.lib_dir}/{test_target}",
+                f"python3 -m venv {self.lib_dir}/{test_target}",
+            ],
+        }
+
+        self._run(test_target, expected, tools_config)
+
     @pytest.mark.xfail(reason="pure venv not implemented")
     def test_rsync_venv(self, tools_config):
         test_target = "venv"

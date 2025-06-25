@@ -640,7 +640,16 @@ def parse_environment(
             options.get("setup", None),
         )
     elif type == "venv":
-        raise NotImplementedError("Pure virtual environment not implemented")
+        venv_options = options.get("venv_options", "")
+        extra_packages = options.get("extra_packages", [])
+        env = VirtualEnvTool(
+            name,
+            lib_dir,
+            venv_options=venv_options,
+            extra_packages=extra_packages,
+            depends=depends,
+            options=options,
+        )
     else:
         raise Exception("Environment type {} not supported".format(type))
     return env
