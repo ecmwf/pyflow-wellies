@@ -27,11 +27,13 @@ reference to custom installation script snippets or commands. They don't add
 `load` or `unload` scripts, so usually they are associated to an environment 
 where they can be made discoverable.
 - Python **virtual environment**: This is a shortcut to define python virtual 
-environments that will be built using `venv`. Currently, wellies only supports 
-the creation of environments that are based on system-wide, `type: system_venv`,
- python installation, meaning the creation option will contain the 
- `--system-site-packages` argument. Extra external packages can be installed 
- locally to the environment using the `extra_packages` option.
+    environments that will be built using `venv`. Wellies supports two types
+    - `type: system_venv`: Creates an environment that is based on the 
+    system-wide python installation, meaning the creation option will contain the 
+    `--system-site-packages` argument. Extra external packages can be installed 
+    locally to the environment using the `extra_packages` option.
+    - `type: venv`: Creates a file-based environment without the
+    `--system-site-packages` argument.
 - **Conda environment**: Wellies supports three types of conda environments using 
 different building strategies: from a specification file when `env_file` is 
 present, with a list of packages provided when `extra_packages` is present, or 
@@ -340,6 +342,8 @@ for tt in ['setup', 'load', 'unload']:
 
 ### Python virtual environment
 
+#### System environment
+
 The following config can be used to define a local python virtual environment 
 that extends a system wide installation:
 
@@ -392,6 +396,57 @@ within your configuration. For external packages use `extra_packages`
     type: warning
 If provided, `extra_packages` must always be a list, even of one element
 ///
+
+#### Build with custom packages
+
+The following config can be used to define a local python virtual environment 
+that does not use the system-wide site-packages.
+
+```yaml title="tools.yaml"
+tools:
+  environments:
+    datasets_env:
+      type: venv
+      packages: [anemoi_datasets]
+      depends: [python]
+```
+
+Considering there is `LIB_DIR` environment variable pointing to the 
+installation root directory, the wellies' generated snippets will be
+
+```python exec="true" id="systemvenv_env" result="shell"
+import os,sys
+sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
+import pyflow as pf
+from wellies.tools import parse_environment
+tool = parse_environment(
+    lib_dir="$LIB_DIR",
+    name="datasets_env",
+    options=dict(
+        type="venv",
+        packages=["anemoi_datasets"],
+        depends=["python"]
+    )
+)
+for tt in ['setup', 'load', 'unload']:
+    print(f"--------{tt} script-----------")
+    sc = tool.scripts[tt]
+    lines = [sc]
+    if isinstance(sc, pf.Script):
+        lines=sc.generate_stub()
+    elif isinstance(sc, list):
+        lines=pf.Script.generate_list_scripts(sc)
+
+    print('\n'.join(lines))
+    print()
+```
+
+/// admonition | Note
+    type: Note
+the reserved name `packages` always refers to other tools of this type specified 
+within your configuration. For external packages use `extra_packages`.
+///
+
 
 ### Conda environments
 

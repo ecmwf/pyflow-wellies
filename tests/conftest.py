@@ -94,6 +94,11 @@ def tools_config(custom_script_file):
                     "rsync_options": ["--chmod ug+rwx,o+r"],
                 },
             },
+            "anemoi_venv": {
+                "type": "venv",
+                "packages": ["anemoi_datasets"],
+                "depends": ["python"]
+            },
             "conda_exist": {
                 "type": "conda",
                 "environment": "/path/to/conda/env",
