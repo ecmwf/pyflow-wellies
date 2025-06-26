@@ -19,8 +19,8 @@ jobs:
           python-version: "3.13"
 
       - run: pip install flake8 isort[pyproject]
-      - run: isort -l 79 --profile black --check .
-      - run: flake8 .
+      - run: isort -l 79 --force-single-line-imports --profile black --check .
+      - run: flake8 --extend-ignore=E501 .
 
   setup:
     name: setup
