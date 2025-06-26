@@ -961,6 +961,7 @@ class DeployToolsFamily(pf.AnchorFamily):
         self,
         tools: ToolStore,
         submit_arguments: Optional[Dict[str, str]] = None,
+        name: str = "deploy_tools",
         **kwargs,
     ):
         """
@@ -974,7 +975,7 @@ class DeployToolsFamily(pf.AnchorFamily):
         submit_arguments : Dict[str, any], optional
             The execution context of the nodes, by default {}.
         """
-        super().__init__(name="deploy_tools", **kwargs)
+        super().__init__(name=name, **kwargs)
 
         if submit_arguments is None:
             submit_arguments = {}

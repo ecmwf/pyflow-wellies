@@ -267,6 +267,7 @@ class DeployDataFamily(pf.AnchorFamily):
         self,
         data_store: StaticDataStore,
         submit_arguments: Optional[Dict] = None,
+        name: str = "deploy_data",
         **kwargs,
     ):
         """Defines "static_data" family contaning all tasks needed to deploy
@@ -281,7 +282,7 @@ class DeployDataFamily(pf.AnchorFamily):
             An saubmit argument mapping to configure each task submit
             arguments, by default None
         """
-        super().__init__(name="deploy_data", **kwargs)
+        super().__init__(name=name, **kwargs)
 
         if submit_arguments is None:
             submit_arguments = {}
