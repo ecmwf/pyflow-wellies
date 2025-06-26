@@ -31,7 +31,7 @@ def test_deploy_message(quickstart_local_git):
 
     deployed_repo = git.Repo(pjoin(deploy_dir, "my_suite"))
     dev_repo = git.Repo(suite_dir)
-    head_mess = deployed_repo.heads.main.commit.message
+    head_mess = deployed_repo.heads[0].commit.message
 
     assert "Remote URL: origin:ssh://git@git.test.repo" in head_mess
     assert f"from directory {suite_dir}" in head_mess
@@ -39,7 +39,7 @@ def test_deploy_message(quickstart_local_git):
     assert commit_hash_in_message, "Commit hash not found in commit message"
     commit_hash = commit_hash_in_message.group(1)
     assert (
-        commit_hash == dev_repo.heads.main.commit.hexsha
+        commit_hash == dev_repo.heads[0].commit.hexsha
     ), "Local commit hash does not match the one in the deployed repository"
 
 
