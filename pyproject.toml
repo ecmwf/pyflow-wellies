@@ -32,7 +32,7 @@ dependencies = [
     "jinja2",
     "pyyaml",
     "pyflow-workflow-generator >= 3.4.1",
-    "tracksuite>0.4.1",
+    "tracksuite>=0.4.1",
 ]
 
 [project.urls]
