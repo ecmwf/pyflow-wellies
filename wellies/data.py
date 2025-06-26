@@ -140,6 +140,8 @@ class GitData(StaticData):
                     TARGET=files,
                     RSYNC_OPTIONS=options.get("rsync_options", "-avzpL"),
                 ),
+                "echo 'cleaning build directory'",
+                f"rm -rf {build_dir}/{name}",
             ]
 
         super().__init__(data_dir, name, script, options)

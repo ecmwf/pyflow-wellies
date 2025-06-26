@@ -159,6 +159,52 @@ def test_git_data():
     assert data.script.value == ref_script
 
 
+def test_git_data_files():
+    data_dir = os.path.join("path", "to", "data")
+    name = "git_data"
+    options = {
+        "type": "git",
+        "source": "git.example.com/repo.git",
+        "branch": "main",
+        "files": ["environment.yml", "requirements.txt", "static/logo.png"],
+    }
+
+    data = wl.GitData(data_dir, name, options)
+    build_dir = os.path.join(data_dir, "git", name)
+    file_paths = [os.path.join(build_dir, f) for f in options["files"]]
+
+    ref_script = dedent(
+        f"""\
+        # Main script for retrieving data
+        mkdir -p {data_dir}
+
+        dest_dir={build_dir}
+        rm -rf $dest_dir
+        giturl={options["source"]}
+        gitbranch={options["branch"]}
+        git clone $giturl --branch $gitbranch --single-branch --depth 1 $dest_dir
+        cd $dest_dir
+
+
+        dest_dir={data_dir}/{name}
+        rsync -avzpL {" ".join(file_paths)}  $dest_dir/
+        cd $dest_dir
+
+        echo 'cleaning build directory'
+        rm -rf {build_dir}"""
+    )
+
+    print("------------------")
+    print("output:")
+    print("------------------")
+    print(data.script.value)
+    print("------------------")
+    print("ref:")
+    print("------------------")
+    print(ref_script)
+    assert data.script.value == ref_script
+
+
 def test_git_data_post_script(tmp_path):
     data_dir = os.path.join("path", "to", "data")
     name = "git_data"
@@ -192,7 +238,7 @@ def test_git_data_post_script(tmp_path):
         gitbranch={options["branch"]}
         git clone $giturl --branch $gitbranch --single-branch --depth 1 $dest_dir
         cd $dest_dir
-        
+
         # Post-script
     """
     )
