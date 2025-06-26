@@ -28,6 +28,7 @@ class StaticData:
     def __init__(self, data_dir: str, name: str, script: str, options: dict):
         self.name = name
         self.options = options
+        self.dir = data_dir
         pre_script = process_file_or_string(options.get("pre_script", None))
         post_script = process_file_or_string(options.get("post_script", None))
 

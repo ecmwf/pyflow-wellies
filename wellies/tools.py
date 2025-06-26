@@ -747,6 +747,7 @@ class ToolStore:
         self.packages = options.get("packages", {})
         self.environments = options.get("environments", {})
         self.env_vars = options.get("env_variables", {})
+        self.dir = lib_dir
 
         # Build tools
         self.tools = {}
