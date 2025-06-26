@@ -23,7 +23,7 @@
   <a href="https://github.com/ecmwf/pyflow-wellies/releases">
     <img src="https://img.shields.io/github/v/release/ecmwf/pyflow-wellies?color=purple&label=Release" alt="Latest Release">
   </a>
-  <a href="https://pyflow-wellies.readthedocs.io/en/latest">
+  <a href="https://pyflow-wellies.readthedocs.io/latest">
     <img src="https://readthedocs.org/projects/pyflow-wellies/badge/?version=latest" alt="Documentation Status">
   </a>
 </p>
@@ -33,7 +33,7 @@
   <a href="#installation">Installation</a> •
   <a href="#contributing">Contributing</a> •
 <!--   <a href="#contributors">Contributors</a> • -->
-  <a href="https://pyflow_wellies.readthedocs.io/en/latest/">Documentation</a>
+  <a href="https://pyflow-wellies.readthedocs.io/latest/">Documentation</a>
 </p>
 
 
