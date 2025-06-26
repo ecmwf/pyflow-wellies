@@ -1,9 +1,18 @@
 # flake8: noqa
+import logging
+
+LOGGER = logging.getLogger("wellies")
+
+import warnings
+
+warnings.formatwarning = (
+    lambda mess, category, filename, lineno, *args: f"\033[93m[{category.__name__}] {filename}:{lineno}\n{mess}\n\033[0m"
+)
+warn = warnings.warn
 
 try:
     from warnings import deprecated
 except ImportError:
-    import warnings
     from functools import wraps
 
     def deprecated(msg):

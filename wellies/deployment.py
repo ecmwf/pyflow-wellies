@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import tempfile
@@ -9,8 +8,7 @@ import pyflow as pf
 import tracksuite as ts
 
 import wellies as wl
-
-logger = logging.getLogger(__name__)
+from wellies import LOGGER as logger
 
 
 def _generate_suite(suite, staging_dir, suite_name):

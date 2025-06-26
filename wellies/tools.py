@@ -429,7 +429,7 @@ class CondaEnvTool(Tool):
             A list of dependencies for the tool, by default [].
         conda_activate_cmd : str, optional
             The conda command to use to load the environment,
-            some login-nodes reuquire "source" instead of "conda"
+            some login-nodes require "source" instead of "conda"
             by default "conda".
         options : Dict[str, str], optional
             A dictionary of options for the tool, by default {}.

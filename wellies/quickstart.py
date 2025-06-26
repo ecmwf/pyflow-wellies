@@ -14,7 +14,7 @@ from typing import List
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
-import wellies as wl
+from wellies.show_versions import show_versions
 
 pw_user = getpwuid(os.getuid())
 
@@ -84,7 +84,8 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         "deploy_dir", path.join(options["deploy_root"], "{name}")
     )
     options["localhost"] = gethostname()
-    options["version"] = wl.__version__
+    options["versions"] = show_versions(as_dict=True)
+    options["version"] = options["versions"]["wellies"]
 
     # write main executable file and build
     suite_file = path.join(root_path, "deploy.py")
@@ -261,6 +262,7 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
     except SystemExit as err:
         return err.code
 
+    show_versions()
     options = vars(args)
     # delete None values
     options = {k: v for k, v in options.items() if v is not None}
