@@ -8,9 +8,11 @@ from argparse import ArgumentParser
 from os import path
 from pwd import getpwuid
 from socket import gethostname
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment
+from jinja2 import PackageLoader
 
 import wellies as wl
 
