@@ -1,10 +1,10 @@
 import os
 from typing import Dict
 from typing import Optional
-from warnings import deprecated
 
 import pyflow as pf
 
+from wellies import deprecated
 from wellies import mars
 from wellies import scripts
 from wellies.config import parse_yaml_files

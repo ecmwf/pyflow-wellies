@@ -1,5 +1,29 @@
 # flake8: noqa
 
+try:
+    from warnings import deprecated
+except ImportError:
+    import warnings
+    from functools import wraps
+
+    def deprecated(msg):
+        """Parametrized decorator to mark functions as deprecated with a custom message."""
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                warnings.warn(
+                    msg,
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+
 from .config import concatenate_yaml_files
 from .config import get_config_files
 from .config import get_parser
