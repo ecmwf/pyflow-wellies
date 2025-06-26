@@ -25,7 +25,8 @@ locations. The options are similar to the ones for the different
 [static data types](data_config.md) and the `post_script` option can be used to
 reference to custom installation script snippets or commands. They don't add
 `load` or `unload` scripts, so usually they are associated to an environment
-where they can be made discoverable.
+where they can be made discoverable. A custom `build_dir` can be provided and that will
+point the retrieval part of the setup script to that location.
 - Python **virtual environment**: This is a shortcut to define python virtual
     environments that will be built using `venv`. Wellies supports two types
     - `type: system_venv`: Creates an environment that is based on the
@@ -209,6 +210,7 @@ tools:
       type: "git"
         source: "git@github.com:ecmwf/earthkit-data.git"
         branch: "develop"
+        build_dir: "/tmp/git/files"
         post_script: [
           "pip uninstall earthkit",
           "pip install .",
@@ -234,6 +236,7 @@ tool = parse_package(
         type="git",
         source="git@github.com:ecmwf/earthkit-data.git",
         branch="develop",
+        build_dir="/tmp/git/files",
         post_script=["pip uninstall earthkit", "pip install .", "pip show src | grep Version > version.txt"]
     )
 )

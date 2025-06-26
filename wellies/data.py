@@ -113,16 +113,19 @@ class CopyData(StaticData):
 class GitData(StaticData):
     def __init__(self, data_dir, name, options):
         files = options.get("files")
+        build_dir = options.get("build_dir")
         if files is None:
+            target = data_dir if build_dir is None else build_dir
             script = pf.TemplateScript(
                 scripts.git_script,
-                DIR=data_dir,
+                DIR=target,
                 NAME=name,
                 URL=options["source"],
                 BRANCH=options.get("branch"),
             )
         else:
-            build_dir = os.path.join(data_dir, "git")
+            if build_dir is None:
+                build_dir = os.path.join(data_dir, "git")
             if not isinstance(files, list):
                 files = [files]
             files = [os.path.join(build_dir, name, f) for f in files]

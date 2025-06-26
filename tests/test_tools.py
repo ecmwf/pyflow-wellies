@@ -418,3 +418,29 @@ class TestPackageToolScripts(BaseToolScriptsTest):
         }
 
         self._run(test_target, expected, tools_config)
+
+    def test_git_custom_build_dir(self, tools_config, custom_script):
+        test_target = "earthkit"
+        pkg_src = tools_config["packages"][test_target]["source"]
+        branch = tools_config["packages"][test_target]["branch"]
+        build_dir = "/my/custom/build/dir"
+        tools_config["packages"][test_target]["build_dir"] = build_dir
+
+        expected = {
+            "load": None,
+            "unload": None,
+            "setup": [
+                f"mkdir -p {build_dir}",
+                f"dest_dir={build_dir}/{test_target}",
+                "rm -rf $dest_dir",
+                f"giturl={pkg_src}",
+                f"gitbranch={branch}",
+                "git clone $giturl --branch $gitbranch --single-branch --depth 1 $dest_dir",
+                "cd $dest_dir",
+                "# Post-script",
+                f"{custom_script}",
+                "ecflow_client --label=version $(if [[ -f version.txt ]]; then cat version.txt; else echo NA; fi)",
+            ],
+        }
+
+        self._run(test_target, expected, tools_config)

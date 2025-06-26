@@ -159,6 +159,48 @@ def test_git_data():
     assert data.script.value == ref_script
 
 
+def test_git_data_custom_build_dir():
+    data_dir = os.path.join("path", "to", "data")
+    build_dir = "/tmp/build"
+    name = "git_data"
+    options = {
+        "type": "git",
+        "source": "git.example.com/repo.git",
+        "branch": "main",
+        "build_dir": build_dir,
+        "post_script": "echo after git",
+    }
+
+    data = wl.GitData(data_dir, name, options)
+
+    ref_script = dedent(
+        f"""\
+        # Main script for retrieving data
+        mkdir -p {data_dir}
+
+        dest_dir={build_dir}/{name}
+        rm -rf $dest_dir
+        giturl={options["source"]}
+        gitbranch={options["branch"]}
+        git clone $giturl --branch $gitbranch --single-branch --depth 1 $dest_dir
+        cd $dest_dir
+
+        # Post-script
+        {options["post_script"]}
+    """
+    )
+
+    print("------------------")
+    print("output:")
+    print("------------------")
+    print(data.script.value)
+    print("------------------")
+    print("ref:")
+    print("------------------")
+    print(ref_script)
+    assert data.script.value == ref_script
+
+
 def test_git_data_files():
     data_dir = os.path.join("path", "to", "data")
     name = "git_data"

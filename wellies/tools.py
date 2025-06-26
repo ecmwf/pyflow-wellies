@@ -64,7 +64,10 @@ rm -rf {{ ENV_DIR }}
 
 
 def deploy_package_script(
-    package: str, options: Dict[str, any], lib_dir: str = "$LIB_DIR"
+    package: str,
+    options: Dict[str, any],
+    lib_dir: str = "$LIB_DIR",
+    build_dir: str = None,
 ):
     """
     Creates a script that deploys a package on the target machine.
@@ -79,9 +82,8 @@ def deploy_package_script(
     lib_dir: str
         directory where to install the package  (default: $LIB_DIR)
     """
-    data_installer = data.parse_data_item(
-        os.path.join(lib_dir, "build", "${ENV_NAME:-" "}"), package, options
-    )
+    build_dir = build_dir or os.path.join(lib_dir, "build", "${ENV_NAME:-" "}")
+    data_installer = data.parse_data_item(build_dir, package, options)
 
     script = [
         data_installer.script,
@@ -302,7 +304,8 @@ class PackageTool(Tool):
             dictionary of options for the tool.
         """
         depends = options.get("depends", [])
-        setup = deploy_package_script(name, options, lib_dir)
+        build_dir = options.get("build_dir")
+        setup = deploy_package_script(name, options, lib_dir, build_dir)
         super().__init__(name, depends, setup=setup, options=options)
 
 
@@ -486,7 +489,7 @@ class FileCondaEnvTool(CondaEnvTool):
             A dictionary of options for the tool, by default {}.
         """
         env_root = path.join(lib_dir, name)
-        build_dir = path.join(lib_dir, "build")
+        build_dir = options.get("build_dir", path.join(lib_dir, "build"))
         fname = env_file.get("files", os.path.basename(env_file["source"]))
         file_setup = data.parse_data_item(build_dir, name, env_file)
 
