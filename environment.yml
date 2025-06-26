@@ -8,4 +8,4 @@ dependencies:
   - pre-commit
   - pip:
     - pyflow-workflow-generator >= 3.4.1
-    - tracksuite
+    - tracksuite>=0.4.1
