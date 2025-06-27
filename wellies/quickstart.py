@@ -19,7 +19,7 @@ from wellies.show_versions import show_versions
 pw_user = getpwuid(os.getuid())
 
 DEFAULTS = {
-    "host": "localhost",
+    "host": "hpc",
     "user": "{USER}",
     "author": pw_user.pw_gecos,
     "output_root": "{HOME}/output",

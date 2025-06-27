@@ -208,6 +208,8 @@ def quickstart(tmpdir):
             str(deploy_dir),
             "--output_root",
             "/my/output/root",
+            "--host",
+            "localhost",
         ]
     )
 
