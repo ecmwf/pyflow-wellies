@@ -8,7 +8,7 @@ tools that a suite Task might need at execution time through the `load` and
 `unload` methods.
 
 Considering a full feature `tools` configuration as below, we can explore how
-the `ToolStore` make the set up of different execution environments easy.
+the `ToolStore` makes setting up different execution environments easy.
 
 ```yaml title="tools.yaml"
 tools:
@@ -107,7 +107,7 @@ print(tool_store.items())
 ```
 
 With the `ToolStore` object in place you can use it while defining execution
-environments on you pyflow Tasks scripts.
+environments on your pyflow task scripts.
 
 ```python exec="true" source="above" session="deploy_tools"
 import pyflow as pf
@@ -152,7 +152,7 @@ with Suite(name='suite1', files="."):
 print(node)
 ```
 
-Which on ecFlowUI will look like
+Which in ecFlowUI will look like
 
 ![DeployToolsFamily](../img/deploy_tools_family.png)
 

@@ -177,7 +177,7 @@ tools:
       depends: ["python_old"]
 ```
 
-After combined into a [wellies.ToolStore][] object, the dependecies can be
+After combined into a [wellies.ToolStore][] object, the dependencies can be
 resolved accordingly. Using the configuration above, the `pyflow` tool will
 contain the following snippets:
 
@@ -614,7 +614,7 @@ for tt in ['setup', 'load', 'unload']:
 
 ### Custom Environments
 
-Custom environment is a flexible alternative to generate any other type of environemnt. Supports
+Custom environment is a flexible alternative to generate any other type of environment. Supports
 definition of `load`, `unload` and `setup` scripts or commands from the configuration files.
 
 ```yaml title="tools.yaml"
