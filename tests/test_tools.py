@@ -147,6 +147,19 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
+    def test_pure_venv(self, tools_config):
+        test_target = "anemoi_venv"
+        expected = {
+            "load": [f"source {self.lib_dir}/{test_target}/bin/activate"],
+            "unload": ["deactivate"],
+            "setup": [
+                f"rm -rf {self.lib_dir}/{test_target}",
+                f"python3 -m venv {self.lib_dir}/{test_target}",
+            ],
+        }
+
+        self._run(test_target, expected, tools_config)
+
     @pytest.mark.xfail(reason="pure venv not implemented")
     def test_rsync_venv(self, tools_config):
         test_target = "venv"
@@ -277,6 +290,14 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
+    def test_custom_env(self, tools_config):
+        test_target = "customenv"
+        expected = {
+            "load": ["source /path/to/env/load.sh"],
+            "unload": ["unloadenv"],
+        }
+        self._run(test_target, expected, tools_config)
+
 
 class TestPackageToolScripts(BaseToolScriptsTest):
     section = "packages"
@@ -385,6 +406,32 @@ class TestPackageToolScripts(BaseToolScriptsTest):
                 f"dest_dir={self.lib_dir}"
                 + "/build/${ENV_NAME:-}"
                 + f"/{test_target}",
+                "rm -rf $dest_dir",
+                f"giturl={pkg_src}",
+                f"gitbranch={branch}",
+                "git clone $giturl --branch $gitbranch --single-branch --depth 1 $dest_dir",
+                "cd $dest_dir",
+                "# Post-script",
+                f"{custom_script}",
+                "ecflow_client --label=version $(if [[ -f version.txt ]]; then cat version.txt; else echo NA; fi)",
+            ],
+        }
+
+        self._run(test_target, expected, tools_config)
+
+    def test_git_custom_build_dir(self, tools_config, custom_script):
+        test_target = "earthkit"
+        pkg_src = tools_config["packages"][test_target]["source"]
+        branch = tools_config["packages"][test_target]["branch"]
+        build_dir = "/my/custom/build/dir"
+        tools_config["packages"][test_target]["build_dir"] = build_dir
+
+        expected = {
+            "load": None,
+            "unload": None,
+            "setup": [
+                f"mkdir -p {build_dir}",
+                f"dest_dir={build_dir}/{test_target}",
                 "rm -rf $dest_dir",
                 f"giturl={pkg_src}",
                 f"gitbranch={branch}",

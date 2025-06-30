@@ -1,20 +1,22 @@
 import os
 import shutil
 import tempfile
+import warnings
 
 import git
 import pyflow as pf
 import tracksuite as ts
 
 import wellies as wl
+from wellies import LOGGER as logger
 
 
 def _generate_suite(suite, staging_dir, suite_name):
     """
     Generate a suite in a staging directory.
     """
-    print("Generating suite:")
-    print(f"    -> Deploying suite scripts in {staging_dir}")
+    logger.info("Generating suite:")
+    logger.info(f"    -> Deploying suite scripts in {staging_dir}")
     if os.path.isdir(staging_dir):
         shutil.rmtree(staging_dir)
     suite.deploy_suite(path=staging_dir)
@@ -22,7 +24,7 @@ def _generate_suite(suite, staging_dir, suite_name):
     suite_def.check()
     def_file = os.path.join(staging_dir, f"{suite_name}.def")
     suite_def.save_as_defs(def_file)
-    print(f"    -> Definition file written in {def_file}")
+    logger.info(f"    -> Definition file written in {def_file}")
     return def_file
 
 
@@ -58,14 +60,26 @@ def git_commit_message(message_args):
     try:
         repo = git.Repo(".")
 
+        # local commit info
         commit_hash = repo.head.commit.hexsha
-        remote_url = next(repo.remote().urls)
+        # get local remote info
+        remotes = [rem.name for rem in repo.remotes]
+        base_remote = "origin" if "origin" in remotes else remotes[:1]
+        if base_remote:
+            remote_url = next(repo.remote(base_remote).urls)
+        else:
+            warnings.warn("No remotes found in deployment source git repo")
+            remote_url = "N/D"
+            base_remote = ""
+
+        # get local branch info
         if repo.head.is_detached:
             branch_name = "Detached HEAD"
         else:
             branch_name = repo.active_branch.name
+
         default_message += "\nGit info:\n"
-        default_message += f"  - Remote URL: {remote_url} \n"
+        default_message += f"  - Remote URL: {base_remote}:{remote_url} \n"
         default_message += f"  - Commit: {commit_hash}\n"
         default_message += f"  - Branch: {branch_name}\n"
         if repo.is_dirty():
@@ -74,8 +88,14 @@ def git_commit_message(message_args):
                 default_message += "  - Local changes:\n"
                 for file in modified_files:
                     default_message += f"    - {file}\n"
-    except (git.exc.NoSuchPathError, git.exc.InvalidGitRepositoryError):
-        print("Could not find local git repository, using default message")
+    except (
+        git.exc.NoSuchPathError,
+        git.exc.InvalidGitRepositoryError,
+        ValueError,
+    ):
+        logger.info(
+            "Could not find local git repository, using default message"
+        )
 
     if message_args is None:
         message = default_message
@@ -131,9 +151,9 @@ def deploy_suite(
     if build_dir is None:
         build_dir = tempfile.mkdtemp(prefix=f"build_{name}_")
 
-    print("------------------------------------------------------")
-    print(f"Staging suite to {build_dir}")
-    print("------------------------------------------------------")
+    logger.info("------------------------------------------------------")
+    logger.info(f"Staging suite to {build_dir}")
+    logger.info("------------------------------------------------------")
     build_dir = os.path.realpath(build_dir)
     staging_dir = os.path.join(build_dir, "staging")
     local_repo = os.path.join(build_dir, "local")
@@ -156,7 +176,7 @@ def deploy_suite(
                 "Remote repository does not seem to exist. Do you want to initialise it? (N/y)"  # noqa: E501
             )
             if check != "y":
-                print("Aborting deployment")
+                logger.error("Aborting deployment")
                 exit(1)
         ts.setup_remote(
             hostname, user, target_repo, remote=backup_deploy, force=True
@@ -173,25 +193,25 @@ def deploy_suite(
     deployer.diff_staging()
 
     if not no_deploy:
-        print("------------------------------------------------------")
-        print(f"Deploying suite to {target_repo}")
-        print("------------------------------------------------------")
+        logger.info("------------------------------------------------------")
+        logger.info(f"Deploying suite to {target_repo}")
+        logger.info("------------------------------------------------------")
         if files is not None:
-            print("Deploying only the following files:")
+            logger.info("Deploying only the following files:")
             for f in files:
-                print(f"    - {f}")
+                logger.info(f"    - {f}")
         if not no_prompt:
             check = input(
                 "You are about to push the staged suite to the target directory. Are you sure? (N/y)"  # noqa: E501
             )
             if check != "y":
-                print("Aborting deployment")
+                logger.info("Aborting deployment")
                 exit(1)
 
         message = git_commit_message(message)
 
         if deployer.deploy(message, files):
-            print(f"Suite deployed to {target_repo}")
-            print(f"Definition file: {target_repo}/{name}.def")
+            logger.info(f"Suite deployed to {target_repo}")
+            logger.info(f"Definition file: {target_repo}/{name}.def")
     else:
-        print("No deploy option activated. Deployment aborted")
+        logger.info("No deploy option activated. Deployment aborted")

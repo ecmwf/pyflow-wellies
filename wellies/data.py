@@ -1,40 +1,13 @@
 import os
+from typing import Dict
+from typing import Optional
 
 import pyflow as pf
 
-from wellies import mars, parse_yaml_files, scripts
-
-
-class DeployDataFamily(pf.AnchorFamily):
-    def __init__(self, data_store, exec_context={}, **kwargs):
-        """Defines "static_data" family contaning all tasks needed to deploy
-        all types of datasets defined on a [data.StaticDataStore].
-
-        Parameters
-        ----------
-        data_store : data.StaticDataStore
-            A static data store object, usually created from a dictionary-like
-            definition.
-        exec_context : dict, optional
-            An execution context mapping to configure each task submit
-            arguments, by default {}
-        """
-        super().__init__(name="deploy_data", **kwargs)
-
-        with self:
-            has_tasks = False
-            for dataset, data in data_store.items():
-                has_tasks = True
-                pf.Task(
-                    name=dataset,
-                    submit_arguments=data.options.get(
-                        "exec_context", exec_context
-                    ),
-                    script=data.script,
-                    labels={"version": "NA"},
-                )
-            if not has_tasks:
-                self.defstatus = pf.state.complete
+from wellies import deprecated
+from wellies import mars
+from wellies import scripts
+from wellies.config import parse_yaml_files
 
 
 def process_file_or_string(entry):
@@ -52,9 +25,10 @@ def process_file_or_string(entry):
 
 
 class StaticData:
-    def __init__(self, data_dir, name, script, options):
+    def __init__(self, data_dir: str, name: str, script: str, options: dict):
         self.name = name
         self.options = options
+        self.dir = data_dir
         pre_script = process_file_or_string(options.get("pre_script", None))
         post_script = process_file_or_string(options.get("post_script", None))
 
@@ -83,6 +57,7 @@ class StaticData:
                     "",
                 ]
             )
+
         self.script = pf.Script(script_list)
 
 
@@ -138,16 +113,19 @@ class CopyData(StaticData):
 class GitData(StaticData):
     def __init__(self, data_dir, name, options):
         files = options.get("files")
+        build_dir = options.get("build_dir")
         if files is None:
+            target = data_dir if build_dir is None else build_dir
             script = pf.TemplateScript(
                 scripts.git_script,
-                DIR=data_dir,
+                DIR=target,
                 NAME=name,
                 URL=options["source"],
                 BRANCH=options.get("branch"),
             )
         else:
-            build_dir = os.path.join(data_dir, "git")
+            if build_dir is None:
+                build_dir = os.path.join(data_dir, "git")
             if not isinstance(files, list):
                 files = [files]
             files = [os.path.join(build_dir, name, f) for f in files]
@@ -166,6 +144,8 @@ class GitData(StaticData):
                     TARGET=files,
                     RSYNC_OPTIONS=options.get("rsync_options", "-avzpL"),
                 ),
+                "echo 'cleaning build directory'",
+                f"rm -rf {build_dir}/{name}",
             ]
 
         super().__init__(data_dir, name, script, options)
@@ -215,7 +195,14 @@ class MarsData(StaticData):
         super().__init__(data_dir, name, script, options)
 
 
+@deprecated(
+    "Use parse_data_item instead. This function will be removed in a future releases."  # noqa: E501
+)
 def parse_static_data_item(data_dir, name, options):
+    return parse_data_item(data_dir, name, options)
+
+
+def parse_data_item(data_dir, name, options):
     type = options["type"]
     if type == "rsync":
         data = RsyncData(data_dir, name, options)
@@ -253,7 +240,7 @@ class StaticDataStore:
         """
         self.static_data = {}
         for name, options in static_data_dict.items():
-            data = parse_static_data_item(data_dir, name, options)
+            data = parse_data_item(data_dir, name, options)
             self.static_data[name] = data
 
     def __getitem__(self, item):
@@ -277,3 +264,44 @@ class StaticDataStore:
             else:
                 rootname = data_dir
         cls(rootname, options["static_data"])
+
+
+class DeployDataFamily(pf.AnchorFamily):
+    def __init__(
+        self,
+        data_store: StaticDataStore,
+        submit_arguments: Optional[Dict] = None,
+        name: str = "deploy_data",
+        **kwargs,
+    ):
+        """Defines "static_data" family contaning all tasks needed to deploy
+        all types of datasets defined on a [data.StaticDataStore].
+
+        Parameters
+        ----------
+        data_store : data.StaticDataStore
+            A static data store object, usually created from a dictionary-like
+            definition.
+        submit_arguments : dict, optional
+            An saubmit argument mapping to configure each task submit
+            arguments, by default None
+        """
+        super().__init__(name=name, **kwargs)
+
+        if submit_arguments is None:
+            submit_arguments = {}
+
+        with self:
+            has_tasks = False
+            for dataset, data in data_store.items():
+                has_tasks = True
+                pf.Task(
+                    name=dataset,
+                    submit_arguments=data.options.get(
+                        "submit_arguments", submit_arguments
+                    ),
+                    script=data.script,
+                    labels={"version": "NA"},
+                )
+            if not has_tasks:
+                self.defstatus = pf.state.complete

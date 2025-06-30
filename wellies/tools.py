@@ -1,10 +1,14 @@
 import os
 from os import path
-from typing import Dict, List, Union
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
 import pyflow as pf
 
-from wellies import data, scripts
+from wellies import data
+from wellies import scripts
 
 module_use = """
 module use {{ MODULEFILES }}
@@ -60,7 +64,10 @@ rm -rf {{ ENV_DIR }}
 
 
 def deploy_package_script(
-    package: str, options: Dict[str, any], lib_dir: str = "$LIB_DIR"
+    package: str,
+    options: Dict[str, any],
+    lib_dir: str = "$LIB_DIR",
+    build_dir: str = None,
 ):
     """
     Creates a script that deploys a package on the target machine.
@@ -75,9 +82,8 @@ def deploy_package_script(
     lib_dir: str
         directory where to install the package  (default: $LIB_DIR)
     """
-    data_installer = data.parse_static_data_item(
-        os.path.join(lib_dir, "build", "${ENV_NAME:-" "}"), package, options
-    )
+    build_dir = build_dir or os.path.join(lib_dir, "build", "${ENV_NAME:-" "}")
+    data_installer = data.parse_data_item(build_dir, package, options)
 
     script = [
         data_installer.script,
@@ -298,7 +304,8 @@ class PackageTool(Tool):
             dictionary of options for the tool.
         """
         depends = options.get("depends", [])
-        setup = deploy_package_script(name, options, lib_dir)
+        build_dir = options.get("build_dir")
+        setup = deploy_package_script(name, options, lib_dir, build_dir)
         super().__init__(name, depends, setup=setup, options=options)
 
 
@@ -422,7 +429,7 @@ class CondaEnvTool(Tool):
             A list of dependencies for the tool, by default [].
         conda_activate_cmd : str, optional
             The conda command to use to load the environment,
-            some login-nodes reuquire "source" instead of "conda"
+            some login-nodes require "source" instead of "conda"
             by default "conda".
         options : Dict[str, str], optional
             A dictionary of options for the tool, by default {}.
@@ -482,9 +489,9 @@ class FileCondaEnvTool(CondaEnvTool):
             A dictionary of options for the tool, by default {}.
         """
         env_root = path.join(lib_dir, name)
-        build_dir = path.join(lib_dir, "build")
+        build_dir = options.get("build_dir", path.join(lib_dir, "build"))
         fname = env_file.get("files", os.path.basename(env_file["source"]))
-        file_setup = data.parse_static_data_item(build_dir, name, env_file)
+        file_setup = data.parse_data_item(build_dir, name, env_file)
 
         env_file_path = path.join(build_dir, name, fname)
 
@@ -627,8 +634,25 @@ def parse_environment(
             conda_cmd=options.get("conda_cmd", "conda"),
             conda_activate_cmd=options.get("conda_activate_cmd", "conda"),
         )
+    elif type == "custom":
+        env = Tool(
+            name,
+            depends,
+            options.get("load", ""),
+            options.get("unload", ""),
+            options.get("setup", None),
+        )
     elif type == "venv":
-        raise NotImplementedError("Pure virtual environment not implemented")
+        venv_options = options.get("venv_options", "")
+        extra_packages = options.get("extra_packages", [])
+        env = VirtualEnvTool(
+            name,
+            lib_dir,
+            venv_options=venv_options,
+            extra_packages=extra_packages,
+            depends=depends,
+            options=options,
+        )
     else:
         raise Exception("Environment type {} not supported".format(type))
     return env
@@ -726,6 +750,7 @@ class ToolStore:
         self.packages = options.get("packages", {})
         self.environments = options.get("environments", {})
         self.env_vars = options.get("env_variables", {})
+        self.dir = lib_dir
 
         # Build tools
         self.tools = {}
@@ -892,7 +917,7 @@ class DeployPackagesFamily(pf.Family):
         tools: ToolStore,
         env_packages: List[str],
         env: str,
-        exec_context: Dict[str, any],
+        submit_arguments: Dict[str, str],
         **kwargs,
     ):
         super().__init__(name="packages", **kwargs)
@@ -908,7 +933,7 @@ class DeployPackagesFamily(pf.Family):
                 deploy_tasks[package] = pf.Task(
                     name=package,
                     submit_arguments=package_tool.options.get(
-                        "exec_context", exec_context
+                        "submit_arguments", submit_arguments
                     ),
                     script=tool_script,
                     labels={"version": "NA"},
@@ -937,7 +962,11 @@ class DeployToolsFamily(pf.AnchorFamily):
     """
 
     def __init__(
-        self, tools: ToolStore, exec_context: Dict[str, any] = {}, **kwargs
+        self,
+        tools: ToolStore,
+        submit_arguments: Optional[Dict[str, str]] = None,
+        name: str = "deploy_tools",
+        **kwargs,
     ):
         """
         Creates the DeployToolsFamily and pass the extra arguments to the
@@ -947,10 +976,13 @@ class DeployToolsFamily(pf.AnchorFamily):
         ----------
         tools : ToolStore
             The name of the tool.
-        exec_context : Dict[str, any], optional
+        submit_arguments : Dict[str, any], optional
             The execution context of the nodes, by default {}.
         """
-        super().__init__(name="deploy_tools", **kwargs)
+        super().__init__(name=name, **kwargs)
+
+        if submit_arguments is None:
+            submit_arguments = {}
 
         with self:
             has_tasks = False
@@ -965,14 +997,14 @@ class DeployToolsFamily(pf.AnchorFamily):
                         env_task = pf.Task(
                             name="setup",
                             submit_arguments=env_tool.options.get(
-                                "exec_context", exec_context
+                                "submit_arguments", submit_arguments
                             ),
                             script=tools.setup(env),
                         )
                         if "packages" in options:
                             env_packages = options["packages"]
                             package_family = DeployPackagesFamily(
-                                tools, env_packages, env, exec_context
+                                tools, env_packages, env, submit_arguments
                             )
                             package_family.triggers = env_task.complete
 

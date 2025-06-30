@@ -13,7 +13,7 @@ print(f"```\n{help_message}\n```")
 
 ::: wellies.tools.parse_environment
 
-::: wellies.config.parse_execution_contexts
+::: wellies.config.parse_submit_arguments
 
 ::: wellies.config.parse_yaml_files
 

@@ -8,7 +8,7 @@ will associate to the data reference a particular retrieval script. The options 
 - **rsync**: The associated script will rsync the source directory in the suite target directory. If `files` is specified, will only copy those. Extra options for the rsync command can be provided with `rsync_options`; the default is to use `"-avzpL"`.
 - **git**: The associated script will clone a repository `branch` on the suite target directory. If `files` is specified it will clone on to a temporary directory, `git`, then rsync everything in `files`, therefore it also accepts `rsync_options`.
 - **ecfs**: The associated script copies data from the `ECFS` remote archive in the suite directory. If `files` is specified it will only copy those.
-- **mars**: The associated script will be a `MARS` request. All the keys should be given in the `request` option. For more details, on the MARS request option check [here](../api/mars/request.md)
+- **mars**: The associated script will be a `MARS` request. All the keys should be given in the `request` option. For more details, on the MARS request option check [here](../api/data.md)
 - **custom**: This is a wildcard option that natively does nothing, but the user can specify a custom script to use using options `pre_script` or `post_script`.
 
 All scripts can be extended by using the options `pre_script` and `post_script`.
@@ -159,7 +159,7 @@ static_data:
 import os,sys
 sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.data import GitData
-ldata = GitData("$DATA_DIR", "git_data", {"source": "git.example.com/repo.git", "branch": "main", "files": ["static/dem.nc", "static/metadata_temlate.grb"]})
+ldata = GitData("$DATA_DIR", "git_data", {"source": "git.example.com/repo.git", "branch": "main", "files": ["static/dem.nc", "static/metadata_template.grb"]})
 script='\n'.join(ldata.script.generate_stub())
 print(f"```shell\n{script}\n```" )
 ```

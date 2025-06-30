@@ -2,10 +2,10 @@
 
 ## Static data store
 
-The [wellies.StaticDataStore][] is a collection class to instantiate a dict-like 
-configuration of multiples entries of static datasets.
+The [wellies.StaticDataStore][] is a collection class to instantiate a dict-like
+configuration of multiple entries of static datasets.
 
-With a `static_data` section in your yaml configuration file like the one below, 
+With a `static_data` section in your yaml configuration file like the one below,
 you can easily define and share different data preparation tasks for your workflow.
 
 ```yaml title="data.yaml"
@@ -58,14 +58,16 @@ with open(f"{tmpdirname}/data.yaml", 'w') as fdata:
   fdata.write(content)
 ```
 
-Then, the code to go from the configuration file to the [wellies.StaticDataStore][], 
+Then, the code to go from the configuration file to the [wellies.StaticDataStore][],
 including all the retrieval scripts, will look like:
 
 ```python exec="true" source="above" result="python" session="deploy_data"
 import os; curdir=os.getcwd(); os.chdir(tmpdirname)  # markdown-exec: hide
 
-from wellies import parse_yaml_files, StaticDataStore
-options = parse_yaml_files(["data.yaml"])
+import yaml
+from wellies import StaticDataStore
+with open("data.yaml", 'r') as fdata:
+    options = yaml.safe_load(fdata)
 os.chdir(curdir)  # markdown-exec: hide
 sdata_store = StaticDataStore("$DATA_DIR", options["static_data"])
 print(sdata_store)
@@ -73,8 +75,8 @@ print(sdata_store)
 
 ## Deploy data family
 
-An instance of a [wellies.StaticDataStore][] can be directly used with the 
-[wellies.DeployDataFamily][] to create a fully defined data retrieval Family on 
+An instance of a [wellies.StaticDataStore][] can be directly used with the
+[wellies.DeployDataFamily][] to create a fully defined data retrieval Family on
 a [pyflow.Suite][].
 
 ```python exec="true" source="above" session="deploy_data" result="shell"
@@ -87,7 +89,7 @@ with Suite(name='suite1', files="."):
 print(node)
 ```
 
-Which on ecFlowUI will look like
+Which in ecFlowUI will look like
 
 ![DeployDataFamily](../img/deploy_data_family.png)
 
@@ -99,5 +101,5 @@ script = '\n'.join(script)
 print(f"{script}")
 ```
 
-To know more about the scripts content and how to tune different options, please 
+To know more about the scripts content and how to tune different options, please
 check the [data config page](data_config.md)

@@ -2,10 +2,14 @@ import os
 import re
 from argparse import ArgumentParser
 from collections import abc
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from string import Formatter
+from typing import Optional
 
 import yaml
+
+from wellies.exceptions import WelliesConfigurationError
 
 
 def get_parser() -> ArgumentParser:
@@ -19,14 +23,20 @@ def get_parser() -> ArgumentParser:
         "\n" "Generate required files for a pyflow suite project." "\n"
     )
     parser = ArgumentParser(
-        usage="%(prog)s <CONFIG_FILE>",
+        usage="%(prog)s <PROFILE>",
         description=description,
     )
     parser.add_argument(
-        "config_files",
-        nargs="+",
-        metavar="CONFIG_FILES",
-        help="YAML configuration files path (order is important)",
+        "name",
+        metavar="PROFILE",
+        help="YAML configuration profile name",
+    )
+    parser.add_argument(
+        "-p",
+        "--profiles",
+        default="profiles.yaml",
+        metavar="CONFIG_NAME",
+        help="YAML configuration profiles ",
     )
     parser.add_argument(
         "-s",
@@ -67,21 +77,67 @@ def get_parser() -> ArgumentParser:
         help="Skip deployment",
         action="store_true",
     )
+    parser.add_argument(
+        "--log_level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level for the suite deployment",
+    )
     return parser
 
 
-def parse_yaml_files(config_files, set_variables=None, global_vars=None):
+def get_config_files(config_name: str, configs_file: str) -> list:
+    """
+    Get the list of configuration files to be used for the suite.
+
+    Parameters
+    ----------
+    config_name : str
+        The name of the configuration to be used.
+    configs_file : str
+        The path to the YAML file containing the configurations.
+
+    Returns
+    -------
+    list
+        A list of configuration files to be used.
+    """
+    with open(configs_file, "r") as file:
+        configs = yaml.load(file, Loader=yaml.SafeLoader)
+
+    if config_name not in configs:
+        raise KeyError(
+            f"Configuration '{config_name}' not found in {configs_file}"
+        )
+
+    return configs[config_name]
+
+
+def parse_profiles(
+    profiles_file: str, config_name: str, set_variables=None, global_vars=None
+) -> dict:
+    """
+    Selects the group of files to read, as defined in a main deployments
+    definition. Return the options from the concatenated files in the profiles.
+    This integrates well with wellies command line option `-s` to do
+    variable substitution.
+    """
+
+    # selects files to actually read
+    config_files = get_config_files(config_name, profiles_file)
+
+    # concatenate all yaml files into one dict
+    options = parse_yaml_files(config_files, set_variables, global_vars)
+
+    return options
+
+
+def parse_yaml_files(
+    config_files: list, set_variables=None, global_vars=None
+) -> dict:
     """
     Concatenates the config dictionaries and check for duplicates
     Override values in files with entries given on set_variables.
-    This integrates well with wellies command line option `-s` to do
-    variable substitution.
-
-    Example
-    -------
-
-    >>> deploy.py config.yml -s host=localhost
-
     """
 
     # concatenate all yaml files into one dict
@@ -92,6 +148,8 @@ def parse_yaml_files(config_files, set_variables=None, global_vars=None):
 
     # subsitute variables
     options = substitute_variables(options, global_vars)
+
+    validate_main_keys(options)
 
     return options
 
@@ -106,21 +164,32 @@ def overwrite_entries(options, set_values):
 
 def concatenate_yaml_files(yaml_files):
     options = {}
+    concat_options = {}
+    accepted_concatenation = ["ecflow_variables"]
     for yaml_path in yaml_files:
         with open(yaml_path, "r") as file:
             local_options = yaml.load(file, Loader=yaml.SafeLoader)
 
-            # check for duplicates
-            duplicated_keys = []
-            for key in local_options.keys():
-                if options.get(key) is not None:
-                    duplicated_keys.append(key)
-            if duplicated_keys:
-                raise KeyError(
-                    f"Following keys found in {yaml_path} already exist in config: {duplicated_keys}"  # noqa: E501
-                )
+        # concatenated first
+        for key in accepted_concatenation:
+            if key in local_options:
+                concat_options[key] = {
+                    **concat_options.get(key, {}),
+                    **local_options.pop(key),
+                }
 
-            options.update(local_options)
+        # check for duplicates
+        duplicated_keys = []
+        for key in local_options.keys():
+            if options.get(key) is not None:
+                duplicated_keys.append(key)
+        if duplicated_keys:
+            raise KeyError(
+                f"Following keys found in {yaml_path} already exist in config: {duplicated_keys}"  # noqa: E501
+            )
+
+        options.update(local_options)
+        options.update(concat_options)
     return options
 
 
@@ -188,7 +257,7 @@ class TemplateFormatter(Formatter):
                 yield literal_text, field_name, format_spec, conversion
 
 
-def check_environment_variables_substitution(value):
+def check_environment_variables_substitution(value: str) -> None:
     """Checks if environment variables are defined in the keys to format
     and make sure they exist in the environment.
 
@@ -210,19 +279,24 @@ def check_environment_variables_substitution(value):
                 raise ValueError(f"Environment variable {key} is not set")
 
 
-def substitute_variables(options, globals=None):
-    """parse base configuration file using the keys on that same file to
+def substitute_variables(
+    options: dict, globals: Optional[dict] = None
+) -> dict:
+    """Parse base configuration file using the keys on that same file to
     string format other values.
     Replaced variables will always be of type string.
 
     Parameters
     ----------
         options : dict
-            execution_contexts configuration dictionnary (from yaml file)
+            submit_arguments configuration dictionary (from yaml file)
         globals: dict, default=None
             A dictionary with globals key-value pairs to use on the string
             format substitution to be performed on the file content.
             New local assignments will take prevalence.
+    Returns
+    -------
+        dict: A dictionary with all variables substituted.
 
     :Attention: Does not support Lists
 
@@ -259,13 +333,12 @@ def substitute_variables(options, globals=None):
     global_subs = get_user_globals()
     if globals is not None:
         global_subs.update(globals)
+
     return update(options, global_subs)
 
 
-def parse_execution_contexts(options):
-    """parse execution context configuration file.
-    Expects a global `execution_contexts` mapping with other mappings
-    that define submit_arguments to be used on [pyflow.Task][]
+def parse_submit_arguments(options: dict) -> tuple:
+    """Parse submission arguments to be used on [pyflow.Task][]
     definitions.
 
     If a `defaults` mapping is defined it will be used as a default
@@ -276,12 +349,12 @@ def parse_execution_contexts(options):
     Parameters
     ----------
     options : dict
-        execution_contexts configuration dictionnary (from yaml file)
+        submit_arguments configuration dictionary (from yaml file)
 
     Returns
     -------
-    execution_contexts, submit_arguments_defaults : dict, dict
-        Return parsed options as two dictionaries. The base execution contexts
+    submit_arguments, submit_arguments_defaults : dict, dict
+        Return parsed options as two dictionaries. The base submit arguments
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
     """
@@ -310,3 +383,15 @@ def parse_execution_contexts(options):
         default_vars = {k.upper(): v for k, v in new.items()}
 
     return options, default_vars
+
+
+def validate_main_keys(options: dict) -> bool:
+
+    required = ["host", "ecflow_server"]
+
+    for entry in required:
+        if entry not in options:
+            raise WelliesConfigurationError(
+                f"Configs must include a '{entry}' entry. "
+                "Check the documentation for more information"
+            )

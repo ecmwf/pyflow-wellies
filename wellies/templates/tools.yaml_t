@@ -1,23 +1,21 @@
+# Put here configuration related to environment and tools
+# For a complete list of options, see:
+# https://pyflow-wellies.readthedocs.io/latest/config/tools_config/#tool-types
+ecflow_variables:
+  MODULES_VERSION: "new"
 
 tools:
 
   # ---------- System modules ---------------------------------------------------
-  # Examples:
-  #  conda:
-  #    version: default
   modules:
     python:
       name: python3
-      version: 3.10.10-01
+      version: $MODULES_VERSION
     ecmwf-toolbox:
-      version: 2023.10.0.0
+      version: $MODULES_VERSION
       depends: [python]
 
   # ---------- Extra installables -----------------------------------------------
-  # example of path from different sources:
-  #   [git] danu: "git+ssh://git.link/danu@master"
-  #   [remote] efas: "cade:/home/mo/mojp/src/efas"
-  #   [local] glofas: "/home/mo/mojp/projects/glofas_comfies"
   packages:
     earthkit:
       type: git
@@ -26,52 +24,8 @@ tools:
       post_script: "pip install . --no-deps"
 
   # --------Virtual envs --------------------------------------------------
-  # conda or venv virtual environments
-  # example of virtual environemnts:
-  # 1) System environments: (depends on module and packages above)
-  #   myenv1: 
-  #        type: system_venv
-  #        depends: [python, ecmwf-toolbox]
-  #        extra_packages: ["python==3.10", "pandas>2", "xarray"]
-  #        packages: [earthkit]
-  # 2) Pure virtual environments (venv): (standalone)
-  #   myenv2:
-  #        type: venv
-  #        packages: [earthkit]
-  #        spec: 
-  #           type: copy
-  #           source: /path/to/env/file
-  # 3) Existing system wide conda environment
-  #   myenv3:
-  #        type: conda
-  #        environment: env_name #(or path)
-  # 4) New conda environment to be built within the suite from a git based file
-  #   myenv4:
-  #        type: conda
-  #        packages: ["earthkit"]
-  #        depends: ["conda"]
-  #        env_file:
-  #            type: git
-  #            source: ssh://git.ecmwf.int/cefl/danu.git
-  #            branch: master
-  #            files: environment.yaml
-  #        
-  # 5) New conda env to be built within the suite from a packages list and using mamba as manager
-  #   myenv5:
-  #     type: conda
-  #     extra_packages: ["python==3.10", "pcraster>=4.3.0", "gdal"]
-  #     packages: [earthkit]
-  #     depends: [conda]
-  #     conda_cmd: "mamba -c conda-forge"
   environments:
       suite_env:
           type: system_venv
           depends: [python, ecmwf-toolbox]
           packages: [earthkit]
-
-  # --------Environment variables -----------------------------------------
-  # Typically PATH=/path/to/local/bin:${PATH}
-  # env_variables:
-  #   mypath:
-  #     variable: PATH
-  #     value: /path/to/local/bin

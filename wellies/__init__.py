@@ -1,20 +1,56 @@
 # flake8: noqa
+import logging
 
-from .config import (
-    concatenate_yaml_files,
-    get_parser,
-    get_user_globals,
-    overwrite_entries,
-    parse_execution_contexts,
-    parse_yaml_files,
-    substitute_variables,
+LOGGER = logging.getLogger("wellies")
+
+import warnings
+
+warnings.formatwarning = (
+    lambda mess, category, filename, lineno, *args: f"\033[93m[{category.__name__}] {filename}:{lineno}\n{mess}\n\033[0m"
 )
-from .data import DeployDataFamily, StaticDataStore
+warn = warnings.warn
+
+try:
+    from warnings import deprecated
+except ImportError:
+    from functools import wraps
+
+    def deprecated(msg):
+        """Parametrized decorator to mark functions as deprecated with a custom message."""
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                warnings.warn(
+                    msg,
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
+
+from .config import concatenate_yaml_files
+from .config import get_config_files
+from .config import get_parser
+from .config import get_user_globals
+from .config import overwrite_entries
+from .config import parse_profiles
+from .config import parse_submit_arguments
+from .config import parse_yaml_files
+from .config import substitute_variables
+from .data import DeployDataFamily
+from .data import StaticDataStore
 from .deployment import deploy_suite
+from .hosts import EcflowServer
 from .hosts import get_host
 from .log_archiving import ArchivedRepeatFamily
 from .tasks import EcfResourcesTask
-from .tools import DeployToolsFamily, ToolStore
+from .tools import DeployToolsFamily
+from .tools import ToolStore
 
 try:
     # NOTE: the `_version.py` file must not be present in the git repository
