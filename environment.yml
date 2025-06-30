@@ -2,10 +2,10 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - python=3.10
+  - python>=3.10
   - pip
   - ecflow
   - pre-commit
   - pip:
     - pyflow-workflow-generator >= 3.4.1
-    - tracksuite
+    - tracksuite>=0.4.1

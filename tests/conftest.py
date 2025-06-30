@@ -1,5 +1,18 @@
+from dataclasses import dataclass
+from os.path import join as pjoin
+
+import pyflow as pf
 import pytest
 import yaml
+
+import wellies as wl
+from wellies.quickstart import main
+
+
+@dataclass
+class WelliesTestHost:
+    host: pf.Host
+    defaults: dict
 
 
 @pytest.fixture
@@ -97,7 +110,7 @@ def tools_config(custom_script_file):
             "anemoi_venv": {
                 "type": "venv",
                 "packages": ["anemoi_datasets"],
-                "depends": ["python"]
+                "depends": ["python"],
             },
             "conda_exist": {
                 "type": "conda",
@@ -134,7 +147,7 @@ def tools_config(custom_script_file):
                 "type": "custom",
                 "load": "source /path/to/env/load.sh",
                 "unload": "unloadenv",
-            }
+            },
         },
     }
 
@@ -147,3 +160,72 @@ def tools_file(tmp_path, tools_config):
     with open(fpath, "w") as fout:
         fout.write(yaml.dump(tools_config))
     return fpath
+
+
+@pytest.fixture
+def slurmhost_config():
+    config_in = dict(
+        host=dict(
+            hostname="slurm",
+            user="beans",
+            ecflow_path="/usr/bin/ecflow_client",
+            submit_arguments=dict(
+                defaults=dict(
+                    job_name="%TASK%",
+                    account="project",
+                ),
+                serial=dict(
+                    queue="q1",
+                    total_tasks=1,
+                ),
+                parallel=dict(
+                    queue="qp",
+                ),
+            ),
+        )
+    )
+
+    return config_in
+
+
+@pytest.fixture
+def wlhost(slurmhost_config):
+    host, defaults = wl.get_host(**slurmhost_config["host"])
+    return WelliesTestHost(host, defaults)
+
+
+@pytest.fixture
+def quickstart(tmpdir):
+    suite_dir = pjoin(tmpdir, "my-suite-path")
+    deploy_dir = pjoin(tmpdir, "deploy")
+
+    main(
+        [
+            "my-suite",
+            "-p",
+            f"{suite_dir}",
+            "--deploy_root",
+            str(deploy_dir),
+            "--output_root",
+            "/my/output/root",
+            "--host",
+            "localhost",
+        ]
+    )
+
+    return suite_dir, deploy_dir
+
+
+@pytest.fixture
+def quickstart_local_git(quickstart, request):
+
+    import git
+
+    suite_dir, deploy_dir = quickstart
+
+    repo = git.Repo.init(suite_dir)
+    repo.create_remote("origin", "ssh://git@git.test.repo")
+    repo.index.add("*")
+    repo.index.commit(f"Initial commit done for test {request.node.name}")
+
+    return suite_dir, deploy_dir

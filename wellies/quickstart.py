@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import stat
 import sys
 from argparse import ArgumentParser
 from os import path
 from pwd import getpwuid
 from socket import gethostname
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment
+from jinja2 import PackageLoader
 
-import wellies as wl
+from wellies.show_versions import show_versions
 
 pw_user = getpwuid(os.getuid())
 
 DEFAULTS = {
-    "host": "localhost",
+    "host": "hpc",
     "user": "{USER}",
     "author": pw_user.pw_gecos,
-    "output_root": "{SCRATCH}",
-    "deploy_root": "{PERM}/pyflow",
-    "job_out": "%ECF_HOME%",
-    "workdir": "$TMPDIR",
+    "output_root": "{HOME}/output",
+    "deploy_root": "{HOME}/pyflow",
 }
 
 
@@ -50,7 +51,15 @@ class PyflowSuiteRenderer:
 
 
 def start_project(options: Dict, overwrite: bool = False) -> None:
-    """Generate project basic structure based on options."""
+    """Generate project basic structure based on options.
+
+    Args:
+        options (dict): project options
+        overwrite (bool, optional): overwrite existing files.
+        Defaults to False.
+    Returns:
+        None
+    """
 
     def write_file(fpath: str, content: str) -> None:
         if overwrite or not path.isfile(fpath):
@@ -63,52 +72,60 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     templatedir = options.get("templatedir")
     renderer = PyflowSuiteRenderer(templatedir)
 
-    project = options.get("project")
+    project = options["project"]
     root_path = path.abspath(options["path"])
-    options.setdefault("project_root", root_path)
     os.makedirs(root_path, exist_ok=True)
 
     out_root = options["output_root"]
-    out_root = path.join(out_root, project)
+    out_root = path.join(out_root, "{name}")
     options["output_root"] = out_root
 
-    options.setdefault("lib_dir", path.join("{output_root}", "local"))
-    options.setdefault("data_dir", path.join("{output_root}", "data"))
     options.setdefault(
-        "deploy_dir", path.join(options["deploy_root"], project)
+        "deploy_dir", path.join(options["deploy_root"], "{name}")
     )
     options["localhost"] = gethostname()
-    options["version"] = wl.__version__
+    options["versions"] = show_versions(as_dict=True)
+    options["version"] = options["versions"]["wellies"]
 
-    # write main executable file and Makefile
+    # write main executable file and build
     suite_file = path.join(root_path, "deploy.py")
-    write_file(suite_file, renderer.render("suite.py_t", options))
+    write_file(suite_file, renderer.render("deploy.py_t", options))
     st = os.stat(suite_file)
     os.chmod(suite_file, st.st_mode | stat.S_IEXEC)
+    build_file = path.join(root_path, "build.sh")
+    write_file(build_file, renderer.render("build.sh_t", options))
+    st = os.stat(build_file)
+    os.chmod(build_file, st.st_mode | stat.S_IEXEC)
+
+    # write file hosting the configuration setups
     write_file(
-        path.join(root_path, "Makefile"),
-        renderer.render("Makefile_t", options),
+        path.join(root_path, "profiles.yaml"),
+        renderer.render("profiles.yaml_t", options),
     )
 
-    # create suite folder containing nodes.py
-    suite_dir = path.join(root_path, "suite")
+    # create suite folder containing config.py and nodes.py
+    suite_dir = path.join(root_path, project)
     os.makedirs(suite_dir, exist_ok=True)
-
+    write_file(
+        path.join(suite_dir, "config.py"),
+        renderer.render("config.py_t", options),
+    )
     write_file(
         path.join(suite_dir, "nodes.py"),
         renderer.render("nodes.py_t", options),
     )
+    write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
 
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
     os.makedirs(config_dir, exist_ok=True)
     write_file(
-        path.join(config_dir, "config.yaml"),
-        renderer.render("config.yaml_t", options),
+        path.join(config_dir, "user.yaml"),
+        renderer.render("user.yaml_t", options),
     )
     write_file(
-        path.join(config_dir, "execution_contexts.yaml"),
-        renderer.render("execution_contexts.yaml_t", options),
+        path.join(config_dir, "host.yaml"),
+        renderer.render("host.yaml_t", options),
     )
     write_file(
         path.join(config_dir, "tools.yaml"),
@@ -117,6 +134,14 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     write_file(
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
+    )
+
+    # write test file
+    test_dir = path.join(root_path, "tests")
+    os.makedirs(test_dir, exist_ok=True)
+    write_file(
+        path.join(test_dir, "test_configs.py"),
+        renderer.render("test_configs.py_t", options),
     )
 
     return None
@@ -129,10 +154,13 @@ def valid_dir(d: Dict) -> bool:
     if not path.isdir(root):
         return False
 
+    # Replace all special characters in the project name with underscores
     reserved_names = [
         "configs",
-        "suite",
-        d["project"] + ".py",
+        "tests",
+        d["project"],
+        "deploy.py",
+        "build.sh",
     ]
     if set(reserved_names) & set(os.listdir(root)):
         return False
@@ -154,14 +182,12 @@ def get_parser() -> ArgumentParser:
         "definitions which can be deployed with pyflow.\n"
     )
     parser = ArgumentParser(
-        usage="%(prog)s [OPTIONS] <PROJECT_DIR>", description=description
+        usage="%(prog)s [OPTIONS] <PROJECT>", description=description
     )
     parser.add_argument(
-        "path",
-        metavar="PROJECT_DIR",
-        default=".",
-        nargs="?",
-        help="project root",
+        "project",
+        metavar="PROJECT",
+        help="project name",
     )
     parser.add_argument(
         "-i",
@@ -174,10 +200,10 @@ def get_parser() -> ArgumentParser:
     group = parser.add_argument_group("Project basic options")
     group.add_argument(
         "-p",
-        "--project",
-        metavar="PROJECT",
-        dest="project",
-        help="project name",
+        "--path",
+        metavar="PATH",
+        dest="path",
+        help="project path",
     )
     group.add_argument(
         "--author", metavar="AUTHOR", dest="author", help="project author"
@@ -236,13 +262,19 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
     except SystemExit as err:
         return err.code
 
+    show_versions()
     options = vars(args)
     # delete None values
     options = {k: v for k, v in options.items() if v is not None}
+    options.setdefault("path", path.join(os.getcwd(), options["project"]))
+    options["project"] = re.sub(
+        r"\W", "_", options["project"]
+    )  # can't have special characters in python module names
+    options["profiles"] = '"profiles.yaml"'  # default profiles file
     try:
         if "interactive" in options:
             ask_user(options)
-        elif {"project"}.issubset(options):
+        else:
             # quiet mode with all required params satisfied, use default
             d2 = DEFAULTS.copy()
             d2.update(options)
@@ -259,14 +291,9 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
                     " Please specify a new root path."
                 )
                 return 1
-            if options["project"] in ["suite", "installers"]:
+            if options["project"] in ["configs", "tests"]:
                 print("invalid project name. Please select another one.")
                 return 1
-        else:
-            print(
-                'non-interactive mode, but any of "project" is not specified.'
-            )
-            return 1
 
     except (KeyboardInterrupt, EOFError):
         print()

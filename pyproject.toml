@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyflow-wellies"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     {name = "Corentin Carton de Wiart", email = "corentin.carton@ecmwf.int"},
 ]
@@ -32,7 +32,7 @@ dependencies = [
     "jinja2",
     "pyyaml",
     "pyflow-workflow-generator >= 3.4.1",
-    "tracksuite",
+    "tracksuite>=0.4.1",
 ]
 
 [project.urls]
@@ -58,14 +58,14 @@ dependencies = [
     wellies-quickstart = "wellies.quickstart:main"
 
 # Code inspection
-[tool.black] 
+[tool.black]
 line-length = 79
 
 [tool.isort]
 profile="black"
 
 # Testing
-[tool.pytest]
+[tool.pytest.ini_options]
 addopts = "--pdbcls=IPython.terminal.debugger:Pdb"
 testpaths = [
     "tests",
@@ -83,11 +83,10 @@ where = ["."]
 exclude = ["tests"]
 
 [tool.setuptools_scm]
-write_to = "wellies/_version.py"
-write_to_template = '''
+version_file = "wellies/_version.py"
+version_file_template = '''
 # Do not change! Do not track in version control!
 __version__ = "{version}"
 '''
 parentdir_prefix_version='pyflow-wellies-'  # get version from GitHub-like tarballs
 fallback_version='0.7'
-

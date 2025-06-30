@@ -3,18 +3,20 @@
 When you create a suite using the [wellies-quickstart](quickstart_guide.md) utility, Wellies will create a *deploy.py* executable that can be used to deploy your suite. By default, the deploy script can be run as follow:
 
 ```
-usage: deploy.py <CONFIG_FILES>
+usage: deploy.py <CONFIG_NAME>
 
 Generate required files for a pyflow suite project.
 
 positional arguments:
-  CONFIG_FILES          YAML configuration files path (order is important)
+  CONFIG_NAME           YAML configuration profile name
 
 options:
   -h, --help            show this help message and exit
+  -p CONFIG_NAME, --profiles CONFIG_NAME
+                        YAML configuration profiles
   -s KEY=VALUE [KEY=VALUE ...], --set KEY=VALUE [KEY=VALUE ...]
-                        Set a number of key-value pairs (do not put spaces before or after the = sign). If a value contains spaces, you should define it with double quotes: foo="this is a sentence". Note that values are always
-                        treated as strings.
+                        Set a number of key-value pairs (do not put spaces before or after the = sign). If a value contains spaces, you should define it with double quotes: foo="this is a sentence". Note that values
+                        are always treated as strings.
   -m MESSAGE, --message MESSAGE
                         Deployment git commit message
   -b BUILD_DIR, --build_dir BUILD_DIR
@@ -27,41 +29,16 @@ options:
 
 Users can then update the script to add their own deployment options and deploy the suite from [configuration files](configurations.md).
 
-Wellies-quickstart also creates a *Makefile* at the root of the project, which follows the [Makefile](https://www.gnu.org/software/make/manual/make.html#Introduction) syntax. The Makefile is a shortcut to a specific deployment configuration. This also means the Makefile can be used to document the main deployment configurations of the suite. For instance, the following Makefile provides two sets of configuration:
-
-```Makefile
-SHELL:=/bin/bash
-WELLIES_VERSION = 0.7.0
-
-test:
-	module load wellies/0.7.0; \
-	module list; \
-	./deploy.py configs/config.yaml configs/data.yaml configs/execution_contexts.yaml configs/tools.yaml ${ARGS}
-
-oper:
-	module load wellies/0.7.0; \
-	module list; \
-	./deploy.py configs/config_oper.yaml configs/data.yaml configs/execution_contexts.yaml configs/tools.yaml ${ARGS}
-
-default: test
-```
-
-The two configurations are based on the same configuration files, except for the *config.yaml* which is replaced by the *config_oper.yaml* file for the operational configuration. Users can then deploy their suites using the make command. For the test configuration, it gives
+Wellies-quickstart also creates a *build.sh* shell script at the root of the project. This script allows you to load or build automatically the wellies environment that will allow you to deploy the suite. This also means the Makefile can be used to document the main deployment configurations of the suite. The script also contains a shortcut to run the tests using
 
 ```shell
-make test
+./build.sh tests
 ```
 
-and for the operational configuration, it gives
-
-```shell
-make oper
-```
-
-The Makefile can be extended to add more deployment configurations but also to create complex deployment mechanism with options depending on each other by using the Makefile language. Extra command line arguments can be provided to the *deploy.py* executable through the *ARGS* option. For instance:
+The script can be extended to add more deployment configurations but also to create complex deployment mechanism with options depending on each other. Extra command line arguments are directly propagated to the *deploy.py* executable. For instance:
 
 ```bash
-make test ARGS="-m New trigger added to the suite"
+./build.sh user -m "New trigger added to the suite"
 ```
 
 # Tracksuite: a suite tracking tool based on git
