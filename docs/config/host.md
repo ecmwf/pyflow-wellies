@@ -2,7 +2,7 @@
 
 **pyflow** defines a [Host][pyflow.Host] object to supply the necessary submission arguments
 for task level execution within ecflow suites. It defines different extensible
-[host types](https://pyflow-workflow-generator.readthedocs.io/en/latest/content/introductory-course/host-management.html#Existing-Host-Classes). Specially for executions within a
+[host types](https://pyflow-workflow-generator.readthedocs.io/en/latest/content/introductory-course/host-management.html#Existing-Host-Classes). Especially for executions within a
 queueing system, there are many options on how to submit jobs. **pyflow**
 chooses to delegate all properties that determine the execution process to the
 `Host`, but those are also features and requirements of each particular `Task`.
@@ -27,7 +27,7 @@ A `host` entry is defined by the following parameters:
 Optionally, a `host` entry can define the following parameters:
 - `ecflow_path`: The path to the ecflow_client executable on `hostname`. If None, try to get from the current `PATH` where the `ecflow_client` must be present. Defaults to None.
 - `server_ecfvars`: Whether to use **server-side** ECF_ variables. This will make pyflow to not define the variables: `ECF_JOB_CMD`, `ECF_CHECK_CMD`, `ECF_KILL_CMD` and `ECF_STATUS_CMD`. Defaults to `False`.
-- `extra_variables`: Mapping of dditional ecflow variables to set on the host.
+- `extra_variables`: Mapping of additional ecflow variables to set on the host.
 - `submit_arguments`: a dictionary with the submission arguments to be used by the `Host` when submitting tasks.
   This is an extensible mapping that can be used to define different sets of
   submission options for different tasks that can run on a particular `host`.
@@ -36,9 +36,9 @@ Optionally, a `host` entry can define the following parameters:
 
 The configuration can also provide any valid option for a [pyflow.Host](https://pyflow-workflow-generator.readthedocs.io/en/latest/content/introductory-course/host-management.html#Host-Arguments) object, the most common ones are:
 - `log_directory`: the path, in `hostname` where job output files will be stored. Must be accessible by the user
-  defined in `user`. It will define a the top-level `ECF_OUT` variable. It can point to a custom or generated ecFlow variable.
+  defined in `user`. It will define the top-level `ECF_OUT` variable. It can point to a custom or generated ecFlow variable.
 - `workdir`: the path, in `hostname` where the tasks will primarily run. Usually, `pyflow` will add commands
-  to create and change the directory to this path at the premble of every task script. It can point to an ecFlow variable.
+  to create and change the directory to this path at the preamble of every task script. It can point to an ecFlow variable.
 
 
 In the following examples, we will focus on valid options for a [pyflow.SLURMHost][] that uses the `Slurm` submission system.
@@ -165,7 +165,7 @@ host:
             tmpdir_size: 20Gb
 ```
 
-Will result the following parsed options dictionary:
+Will result in the following parsed options dictionary:
 
 ```python exec="true" session="submit_args_defaults" result="python" id="submit_args_defaults"
 import pyflow as pf
@@ -183,7 +183,7 @@ host, submit_variables = wl.get_host(
 print(host.submit_arguments)
 ```
 
-## Submission arguments as Eclow variables
+## Submission arguments as Ecflow variables
 
 /// admonition | Hint
     type: hint
@@ -245,7 +245,7 @@ print(mysuite)
 1. We simply pass `submit_variables` dictionary as a `variables` parameter. This can be
 done on any node. Where to define it, is a design decision.
 2. Using the `submit_arguments` configuration entry does not change. Everything
-happens in the tast initialiser.
+happens in the task initialiser.
 
 Task *t2* `Slurm` headers will be modified to receive values from Ecflow
 variables. Following Ecflow framework, these will be replaced just before

@@ -1,6 +1,6 @@
 # Introduction
 
-One the main features that wellies provides is the ability to configure many
+One of the main features that wellies provides is the ability to configure many
 aspects of suite definition through *YAML* files. We recommend splitting the full
 configuration in 4 different files, each containing independent components and following the general convention:
 
@@ -15,7 +15,7 @@ and execution environments that any of the tasks in the workflow can refer to.
 for the submission system that tasks can refer to. If using a direct execution
 host like [pyflow.SSHHost][] or [pyflow.LocalHost][] this becomes irrelevant.
 4. **Static data** configuration: Here we can define different external data sources that
-need to be set up before the workflow starts. They are usually refered to as
+need to be set up before the workflow starts. They are usually referred to as
 `static data` as they are retrieved on setup time and used in read-only mode
 throughout the suite. This is optional and depending on each use-case other setups can be more meaningful.
 

@@ -3,7 +3,7 @@
 ## Static data store
 
 The [wellies.StaticDataStore][] is a collection class to instantiate a dict-like
-configuration of multiples entries of static datasets.
+configuration of multiple entries of static datasets.
 
 With a `static_data` section in your yaml configuration file like the one below,
 you can easily define and share different data preparation tasks for your workflow.
@@ -89,7 +89,7 @@ with Suite(name='suite1', files="."):
 print(node)
 ```
 
-Which on ecFlowUI will look like
+Which in ecFlowUI will look like
 
 ![DeployDataFamily](../img/deploy_data_family.png)
 

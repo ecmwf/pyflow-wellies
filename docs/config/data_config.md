@@ -159,7 +159,7 @@ static_data:
 import os,sys
 sys.path.insert(0, os.environ['MKDOCS_CONFIG_DIR'])
 from wellies.data import GitData
-ldata = GitData("$DATA_DIR", "git_data", {"source": "git.example.com/repo.git", "branch": "main", "files": ["static/dem.nc", "static/metadata_temlate.grb"]})
+ldata = GitData("$DATA_DIR", "git_data", {"source": "git.example.com/repo.git", "branch": "main", "files": ["static/dem.nc", "static/metadata_template.grb"]})
 script='\n'.join(ldata.script.generate_stub())
 print(f"```shell\n{script}\n```" )
 ```

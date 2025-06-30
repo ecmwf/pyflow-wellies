@@ -3,7 +3,7 @@
 Wellies provides extra features to help you build consistent and configurable
 pyflow suites. This guide assumes a good level of familiarity with
 [ecflow](https://ecflow.readthedocs.io) suites and using [pyflow](http://pyflow-workflow-generator.readthedocs.io) for its design and generation.
-Please refer to these projects' documentantion if some point about  them is not clear.
+Please refer to these projects' documentation if some point about  them is not clear.
 
 ## Main features
 
@@ -11,7 +11,7 @@ Please refer to these projects' documentantion if some point about  them is not 
 patterns to help configuring your suite, making them more flexible and suitable for
 different use cases and environments.
 - Simple template to start your **suite design from scratch**: Don't get blocked
-by a blanck page; with `wellies-quickstart` starting to code a new workflow is
+by a blank page; with `wellies-quickstart` starting to code a new workflow is
 one command away.
 - **Git-tracked suite deployment** from [tracksuite](https://github.com/ecmwf/tracksuite): Wellies comes fully integrated with tracksuite providing git-based
 changes control for multi-users and remote deployment environments.
