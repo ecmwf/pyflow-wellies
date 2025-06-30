@@ -33,7 +33,7 @@ jobs:
           troika_user: ${{ secrets.HPC_CI_SSH_USER }}
           template: |
             set -eux
-            
+
             MODULE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
             MODULE_TAG=${{ github.event_name == 'workflow_dispatch' && inputs.module-tag || 'default'}}
             WELLIES_BRANCH=${{ github.ref_name }}
@@ -49,7 +49,7 @@ jobs:
             PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow.git@$PYFLOW_BRANCH
             PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/tracksuite.git@$TRACKSUITE_BRANCH
             PYTHONUSERBASE=$PREFIX pip3 install --user git+https://github.com/ecmwf/pyflow-wellies.git@$WELLIES_BRANCH
-            
+
             module unload python3
 
             # cat > $PREFIX/README.txt << EOF
@@ -58,14 +58,14 @@ jobs:
             # -- [tracksuite] ($TRACKSUITE_BRANCH) [$TRACKSUITE_BRANCH]
             # EOF
 
-            software-sync -s local -p wellies
+            software-sync -s local -p wellies -t aa,ab,ac,ad
             module load modulemgr
-            modulemgr -v -f -m all sync wellies
+            modulemgr -v -f -m aa,ab,ac,ad sync wellies
             if [ $MODULE_TAG != 'UNDEFINED' ]
             then
-                modulemgr -f -m all tag -o wellies $MODULE_VERSION $MODULE_TAG
+                modulemgr -f -m aa,ab,ac,ad tag -o wellies $MODULE_VERSION $MODULE_TAG
             fi
           sbatch_options: |
             #SBATCH --job-name=build_wellies_module
             #SBATCH --time=00:10:00
-            #SBATCH --qos=deploy       
+            #SBATCH --qos=deploy
