@@ -37,7 +37,7 @@ jobs:
             MODULE_VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.module-name || github.ref_name }}
             MODULE_TAG=${{ github.event_name == 'workflow_dispatch' && inputs.module-tag || 'default'}}
             WELLIES_BRANCH=${{ github.ref_name }}
-            PYFLOW_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || 'master' }}
+            PYFLOW_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.pyflow-version || 'main' }}
             TRACKSUITE_BRANCH=${{ github.event_name == 'workflow_dispatch' && inputs.tracksuite-version || 'main' }}
 
             PREFIX=${{ secrets.HPC_APPS_DIR }}/wellies/$MODULE_VERSION
