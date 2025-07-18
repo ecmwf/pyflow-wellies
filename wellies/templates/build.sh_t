@@ -1,36 +1,59 @@
 #!/bin/bash
 
 # Creates a local virtual environment
-# setup() {
-#     python3 -m venv .venv --system-site-packages
-#     python3 -m pip install .
-# }
+setup() {
+    module load uv/new > /dev/null 2>&1
+    uv sync
+}
+
+# Extracts hostname, port, and suite name from configs/user.yaml
+extract_config_values() {
+    local config_file="configs/user.yaml"
+    # Use yq to extract values safely, install it if needed
+    SUITE_NAME=$(yq -r '.name' "$config_file")
+    HOSTNAME=$(yq -r '.ecflow_server.hostname' "$config_file" | sed "s/{USER}/$USER/g")
+    HOSTNAME=$(echo "$HOSTNAME" | sed "s/{USER}/$USER/g")
+    PORT=$(yq -r '.ecflow_server.port' "$config_file")
+    echo "Suite Name: $SUITE_NAME"
+    echo "Hostname: $HOSTNAME"
+    echo "Port: $PORT"
+    echo
+}
 
 # Main function to parse arguments
 main() {
     case "$1" in
-        # setup)
-        #     rm -rf .venv
-        #     setup
-        #     ;;
+        setup)
+            rm -rf .venv
+            setup
+            ;;
         tests)
             python3 -m pytest tests/ -v "${@:2}"
             ;;
+        replace)
+            ./deploy.py "$@"
+            # automatically replace the suite completely with tracksuite-replace
+            extract_config_values
+            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" "${SUITE_NAME}"
+            ;;
         *)
             ./deploy.py "$@"
+            # automatically replace the suite conservatively with tracksuite-replace
+            extract_config_values
+            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
             ;;
     esac
 }
 
-module load wellies/${WELLIES_VERSION:-1.1.0}
-module list
-
-# # if local environment doesn't exist create it
-# if [ ! -d .venv ]; then
-#     setup
-# fi
+# if local environment doesn't exist create it
+if ! command -v yq &> /dev/null || [ ! -d ".venv" ] || [ ! -f ".venv/bin/activate" ]; then
+    setup
+fi
 # Activate the virtual environment
-# source .venv/bin/activate
+source ".venv/bin/activate" > /dev/null 2>&1
+
+module load wellies/${WELLIES_VERSION:-1.2.0} > /dev/null 2>&1
+module list
 
 # Run the main function with arguments
 main "$@"
