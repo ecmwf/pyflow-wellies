@@ -34,13 +34,13 @@ main() {
             ./deploy.py "$@"
             # automatically replace the suite completely with tracksuite-replace
             extract_config_values
-            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" "${SUITE_NAME}"
+            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
             ;;
         *)
             ./deploy.py "$@"
             # automatically replace the suite conservatively with tracksuite-replace
             extract_config_values
-            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
+            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
             ;;
     esac
 }
