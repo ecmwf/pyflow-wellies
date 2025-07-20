@@ -3,8 +3,7 @@ import wellies as wl
 
 
 class WelliesTask(pf.Task):
-    def __init__(self, name, **kwargs):
-        config = kwargs.get('config', None)
+    def __init__(self, config, **kwargs):
         submit_arguments = kwargs.get('submit_arguments', 'sequential')
         if kwargs.get('script', None) is None:
             kwargs['script'] = []
@@ -242,50 +241,25 @@ class MainFamily(pf.AnchorFamily):
                     ]
             )
             t_dummy_generic = WelliesTask(
-                config, 
-                name="dummy_generic", 
-                variables=preci_task_variables, 
-                submit_arguments=execution_context, 
-                # inlimits=custom_inlimits, 
-                # script_variables = custom_script_variables,
-                # script_variables = script_variables,
+                config,
+                name="dummy_wellies", 
                 modules=['python3', 'ecmwf-toolbox']
             )
             t_dummy_generic = GenericTask1(
-                config, 
-                name="dummy_generic", 
-                variables=preci_task_variables, 
-                submit_arguments=execution_context, 
-                # inlimits=custom_inlimits, 
-                # script_variables = custom_script_variables,
-                # script_variables = script_variables,
+                name="dummy_generic1", 
                 modules=['python3', 'ecmwf-toolbox']
             )
             t_dummy_generic = GenericTask2(
-                config, 
-                name="dummy_generic", 
-                variables=preci_task_variables, 
-                submit_arguments=execution_context, 
-                # inlimits=custom_inlimits, 
-                # script_variables = custom_script_variables,
-                # script_variables = script_variables,
+                name="dummy_generic2", 
                 modules=['python3', 'ecmwf-toolbox']
             )
             t_dummy_generic = GenericTask3(
-                config, 
-                name="dummy_generic", 
-                variables=preci_task_variables, 
-                submit_arguments=execution_context, 
-                # inlimits=custom_inlimits, 
-                # script_variables = custom_script_variables,
-                # script_variables = script_variables,
+                name="dummy_generic3", 
                 modules=['python3', 'ecmwf-toolbox']
             )
             t_dummy_generic = GenericTask4(
-                config, 
-                name="dummy_generic", 
-                variables=preci_task_variables, 
-                submit_arguments=execution_context, 
+                config=config, 
+                name="dummy_generic",
                 # inlimits=custom_inlimits, 
                 # script_variables = custom_script_variables,
                 # script_variables = script_variables,

@@ -1,0 +1,9 @@
+src:
+  dummy:
+    type: git
+    source: git@github.com:vandome/pyflow-wellies.git
+    branch: feature/automatic_replace
+    files:
+      - wellies/templates/dummy.py_t
+    postscript: |
+      rsync -av dummy.py_t ${{dest_dir}}/src/dummy.py

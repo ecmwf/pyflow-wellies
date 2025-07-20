@@ -102,6 +102,18 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(root_path, "profiles.yaml"),
         renderer.render("profiles.yaml_t", options),
     )
+    write_file(
+        path.join(root_path, "pyproject.toml"),
+        renderer.render("pyproject.toml_t", options),
+    )
+    
+    #create launch.json for VSCode
+    vscode_dir = path.join(root_path, ".vscode")
+    os.makedirs(vscode_dir, exist_ok=True)
+    write_file(
+        path.join(vscode_dir, "launch.json"),
+        renderer.render("launch.json_t", options),
+    )
 
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)

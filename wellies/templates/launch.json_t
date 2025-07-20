@@ -1,0 +1,72 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "deploy.py setup",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["setup"]
+        },
+        {
+            "name": "deploy.py tests",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["tests"]
+        },
+        {
+            "name": "deploy.py scripts",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["scripts"]
+        },
+        {
+            "name": "deploy.py update",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["update"]
+        },
+        {
+            "name": "deploy.py replace",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["replace"]
+        },
+        {
+            "name": "deploy.py user",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["user"]
+        },
+        {
+            "name": "deploy.py <profile>",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["${input:profileArg}"]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "profileArg",
+            "type": "promptString",
+            "description": "Enter argument for source build.sh *",
+            "default": "user"
+        }
+    ]
+}

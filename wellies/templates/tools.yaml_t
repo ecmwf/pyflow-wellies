@@ -37,4 +37,6 @@ tools:
   env_variables:
     ps4:
       variable: PS4
-      value: '"[ \D{{%Y-%m-%dT%H:%M:%S}} | L\$LINENO ] --> "'
+      {% raw %}
+      value: '"[ \D{{%Y-%m-%dT%H:%M:%S}} | L$LINENO ] --> "'
+      {% endraw %}
