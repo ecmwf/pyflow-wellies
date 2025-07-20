@@ -116,6 +116,26 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     )
     write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
 
+    # create snippets folder containing ecf stubs
+    snippets_dir = path.join(root_path, "snippets")
+    os.makedirs(snippets_dir, exist_ok=True)
+    write_file(
+        path.join(snippets_dir, "dummy"),
+        renderer.render("dummy_t", options),
+    )
+    write_file(
+        path.join(snippets_dir, "clean_init"),
+        renderer.render("clean_init_t", options),
+    )
+    
+    # create src folder containing source files called in ecf scritps
+    src_dir = path.join(root_path, "src")
+    os.makedirs(src_dir, exist_ok=True)
+    write_file(
+        path.join(src_dir, "dummy.py"),
+        renderer.render("dummy.py_t", options),
+    )
+
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
     os.makedirs(config_dir, exist_ok=True)
@@ -134,6 +154,10 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     write_file(
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
+    )
+    write_file(
+        path.join(config_dir, "src.yaml"),
+        renderer.render("src.yaml_t", options),
     )
 
     # write test file
