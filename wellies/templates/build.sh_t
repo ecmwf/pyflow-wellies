@@ -10,13 +10,14 @@ setup() {
 extract_config_values() {
     local config_file="configs/user.yaml"
     # Use yq to extract values safely, install it if needed
-    SUITE_NAME=$(yq -r '.name' "$config_file")
-    HOSTNAME=$(yq -r '.ecflow_server.hostname' "$config_file" | sed "s/{USER}/$USER/g")
-    HOSTNAME=$(echo "$HOSTNAME" | sed "s/{USER}/$USER/g")
-    PORT=$(yq -r '.ecflow_server.port' "$config_file")
-    echo "Suite Name: $SUITE_NAME"
-    echo "Hostname: $HOSTNAME"
-    echo "Port: $PORT"
+    SUITE_NAME=$(yq -r '.name' "${config_file}")
+    HOSTNAME=$(yq -r '.ecflow_server.hostname' "${config_file}" | sed "s/{USER}/${USER}/g")
+    HOSTNAME=$(echo "${HOSTNAME}" | sed "s/{USER}/${USER}/g")
+    PORT=$(yq -r '.ecflow_server.port' "${config_file}")
+    echo
+    echo "Suite Name: ${SUITE_NAME}"
+    echo "Hostname: ${HOSTNAME}"
+    echo "Port: ${PORT}"
     echo
 }
 
@@ -30,17 +31,23 @@ main() {
         tests)
             python3 -m pytest tests/ -v "${@:2}"
             ;;
+        scripts)
+            ./deploy.py "user"
+            ;;
+        update)
+            ./deploy.py "user"
+            # automatically replace the suite conservatively with tracksuite-replace
+            extract_config_values
+            tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
+            ;;
         replace)
-            ./deploy.py "$@"
+            ./deploy.py "user"
             # automatically replace the suite completely with tracksuite-replace
             extract_config_values
-            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
+            tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
             ;;
         *)
             ./deploy.py "$@"
-            # automatically replace the suite conservatively with tracksuite-replace
-            extract_config_values
-            tracksuite-replace --def-file "$HOME/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
             ;;
     esac
 }

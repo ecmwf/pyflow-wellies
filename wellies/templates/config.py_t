@@ -35,11 +35,14 @@ class Config:
 
         # Tools
         tools = options.get("tools", {})
-        self.tools = wl.ToolStore("$LIB_DIR", tools)
+        self.tools = wl.ToolStore("${LIB_DIR}", tools)
 
         # Static data
         static_data = options.get("static_data", {})
-        self.static_data = wl.StaticDataStore("$DATA_DIR", static_data)
+        self.static_data = wl.StaticDataStore("${DATA_DIR}", static_data)
+
+        # Src
+        self.src = wl.StaticDataStore("${SRC_DIR}", options.get("src", {}))
 
         # Suite variables
         self.suite_variables = {

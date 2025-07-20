@@ -2,30 +2,294 @@ import pyflow as pf
 import wellies as wl
 
 
+class WelliesTask(pf.Task):
+    def __init__(self, name, **kwargs):
+        config = kwargs.get('config', None)
+        submit_arguments = kwargs.get('submit_arguments', 'sequential')
+        if kwargs.get('script', None) is None:
+            kwargs['script'] = []
+        kwargs['script'] += [config.tools.load('suite_env')]
+        kwargs['script'] += [config.tools.load('ps4')]
+        variables = {"DEBUG": 0, "VERBOSE": 0}
+        kwargs.update({'name': name})
+        kwargs.update({'variables': variables})
+        kwargs.pop('config', None)
+        super().__init__(**kwargs)
+
+
+class GenericTask1(pf.Task):
+    def __init__(self, config, **kwargs):
+        name = f"{kwargs['name']}"
+        variables = kwargs['variables']
+        execution_context = config.exec_contexts['sequential']
+        execution_context['job_name'] = name
+        script = kwargs['script']
+        super().__init__(
+            name = name,
+            variables=variables,
+            submit_arguments=execution_context,
+            script=script
+        )
+
+
+class GenericTask2(pf.Task):
+    def __init__(self, config, **kwargs):
+        name = f"{kwargs['name']}"
+        variables = kwargs['variables']
+        variables['ENV'] = kwargs['env']
+        execution_context = config.exec_contexts['sequential']
+        execution_context['job_name'] = name
+        if not 'script' in kwargs.keys():
+            script=[
+                config.tools.load(kwargs['env']),
+                pf.FileScript(os.path.join(config.global_vars['projectDir'], 'snippets', name))
+            ]
+        else:
+            script = [config.tools.load(kwargs['env'])] + kwargs['script']
+        super().__init__(
+            name = name,
+            variables=variables,
+            submit_arguments=execution_context,
+            script=script
+        )
+
+
+class GenericTask3(wl.EcfResourcesTask):
+# class GenericTask(pf.Task):
+    def __init__(self, config, **kwargs):
+        name = f"{kwargs['name']}"
+        config = kwargs.get('config', None)
+        print(f"   Usage of GenericTask (EcfResoursesTask). Name of Task: {name}")
+        if name == 'run':
+            execution_context = config.exec_contexts['parallel']
+        else:
+            execution_context = config.exec_contexts['sequential']        
+        execution_context['job_name'] = name
+        info_label = pf.Label('info', ' ')
+        if 'variables' in kwargs.keys() and kwargs['variables']:
+            variables = kwargs['variables']
+        else:
+            variables = {}
+        if 'event' in kwargs.keys():
+            # event = pf.Event("notok")
+            event_name = kwargs['event']
+            event = pf.Event("notok")
+        else:
+            event = []
+        if 'script_name' in kwargs.keys():
+            script_name = kwargs['script_name']
+        else:
+            script_name = name
+        if 'script_variables' in kwargs.keys():
+            script_variables = kwargs['script_variables']
+        else:
+            script_variables = {}
+        modules = ['ecmwf-toolbox/new', 'ecbuild', 'eclib'] 
+        if 'modules' in kwargs.keys():
+            modules = modules + kwargs['modules']
+        if os.path.isfile(os.path.join(config.input_dir, 'snippets', script_name)):
+            script = [            
+                pf.TemplateFileScript(os.path.join(config.input_dir, 'snippets', script_name), **script_variables)
+            ]
+        else:
+            script = []
+        # print(script_variables)
+        # print(script)
+        # if name == 'ecpds_schedule':
+        #     exit()
+        if os.path.isfile(os.path.join(config.input_dir, 'snippets', name+'.man')):
+            manual = "\n".join(pf.TemplateFileScript(os.path.join(config.input_dir, 'snippets', name+'.man')).generate())
+        else:
+            print(f"   No manual for task '{name}'")
+            manual = "Manual to be added"
+        if 'inlimits' in kwargs.keys():
+            inlimits = kwargs['inlimits']
+        else:
+            inlimits = []   
+        # extra_preamble = ["prgenvswitchto gnu", "module unload emos", "module unload eccodes", "module load pgen/%PGEN_VERSION%", ]    
+        print(f"   Specific variables for the task: {variables}")
+        super().__init__(
+            name = name,
+            variables=variables,
+            submit_arguments=execution_context,
+            script=script,
+            #meters=meter,
+            events=event,
+            labels=info_label,
+            manual=manual,
+            modules=modules,
+            inlimits = inlimits,
+        )
+        print(f"   GenericTask with name: '{name}' constructed fine.")
+        print('------------------------------------------------------')
+ 
+ 
+# class GenericTask3(wl.EcfResourcesTask):
+class GenericTask4(pf.Task):
+    def __init__(self, config, **kwargs):
+        name = f"{kwargs['name']}"
+        config = kwargs.get('config', None)
+        print(f"   Usage of GenericTask (EcfResoursesTask). Name of Task: {name}")
+        if name == 'run':
+            execution_context = config.exec_contexts['parallel']
+        else:
+            execution_context = config.exec_contexts['sequential']        
+        execution_context['job_name'] = name
+        info_label = pf.Label('info', ' ')
+        if 'variables' in kwargs.keys() and kwargs['variables']:
+            variables = kwargs['variables']
+        else:
+            variables = {}
+        if 'event' in kwargs.keys():
+            # event = pf.Event("notok")
+            event_name = kwargs['event']
+            event = pf.Event("notok")
+        else:
+            event = []
+        if 'script_name' in kwargs.keys():
+            script_name = kwargs['script_name']
+        else:
+            script_name = name
+        if 'script_variables' in kwargs.keys():
+            script_variables = kwargs['script_variables']
+        else:
+            script_variables = {}
+        modules = ['ecmwf-toolbox/new', 'ecbuild', 'eclib'] 
+        if 'modules' in kwargs.keys():
+            modules = modules + kwargs['modules']
+        if os.path.isfile(os.path.join(config.input_dir, 'snippets', script_name)):
+            script = [            
+                pf.TemplateFileScript(os.path.join(config.input_dir, 'snippets', script_name), **script_variables)
+            ]
+        else:
+            script = []
+        # print(script_variables)
+        # print(script)
+        # if name == 'ecpds_schedule':
+        #     exit()
+        if os.path.isfile(os.path.join(config.input_dir, 'snippets', name+'.man')):
+            manual = "\n".join(pf.TemplateFileScript(os.path.join(config.input_dir, 'snippets', name+'.man')).generate())
+        else:
+            print(f"   No manual for task '{name}'")
+            manual = "Manual to be added"
+        if 'inlimits' in kwargs.keys():
+            inlimits = kwargs['inlimits']
+        else:
+            inlimits = []   
+        # extra_preamble = ["prgenvswitchto gnu", "module unload emos", "module unload eccodes", "module load pgen/%PGEN_VERSION%", ]    
+        print(f"   Specific variables for the task: {variables}")
+        super().__init__(
+            name = name,
+            variables=variables,
+            submit_arguments=execution_context,
+            script=script,
+            #meters=meter,
+            events=event,
+            labels=info_label,
+            manual=manual,
+            modules=modules,
+            inlimits = inlimits,
+        )
+        print(f"   GenericTask with name: '{name}' constructed fine.")
+        print('------------------------------------------------------')
+ 
+ 
+
 class InitFamily(pf.AnchorFamily):
     def __init__(self, config, **kwargs):
         super().__init__(name='init', **kwargs)
         with self:
             # install environments and packages
-            wl.DeployToolsFamily(
+            tools_family = wl.DeployToolsFamily(
                 config.tools,
                 submit_arguments="sequential",
             )
 
             # setup static data (remote/local copy/link)
-            wl.DeployDataFamily(
+            data_family = wl.DeployDataFamily(
                 config.static_data,
                 submit_arguments="sequential",
             )
+            
+            # set up static source code used in the suite tasks
+            src_family = wl.DeployDataFamily(
+                config.src,
+                name='deploy_src',
+                submit_arguments="sequential"
+            )
+            
+            # clean task
+            clean_task = wl.EcfResourcesTask(
+                'clean_init',
+                submit_arguments="sequential",
+                script=pf.TemplateFileScript("snippets/clean_init"))
+            
+            # set triggers
+            tools_family >> data_family >> src_family >> clean_task
 
 
 class MainFamily(pf.AnchorFamily):
     def __init__(self, config, **kwargs):
         super().__init__(name='main', **kwargs)
         with self:
-            pf.Task(
-                name='dummy',
+            t_dummy_plain = pf.Task(
+                name='dummy_plain',
                 submit_arguments="sequential",
+                    script=[
+                        config.tools.load('suite_env'),
+                        config.tools.load('ps4'),
+                        pf.TemplateFileScript("snippets/dummy")
+                    ]
+            )
+            t_dummy_generic = WelliesTask(
+                config, 
+                name="dummy_generic", 
+                variables=preci_task_variables, 
+                submit_arguments=execution_context, 
+                # inlimits=custom_inlimits, 
+                # script_variables = custom_script_variables,
+                # script_variables = script_variables,
+                modules=['python3', 'ecmwf-toolbox']
+            )
+            t_dummy_generic = GenericTask1(
+                config, 
+                name="dummy_generic", 
+                variables=preci_task_variables, 
+                submit_arguments=execution_context, 
+                # inlimits=custom_inlimits, 
+                # script_variables = custom_script_variables,
+                # script_variables = script_variables,
+                modules=['python3', 'ecmwf-toolbox']
+            )
+            t_dummy_generic = GenericTask2(
+                config, 
+                name="dummy_generic", 
+                variables=preci_task_variables, 
+                submit_arguments=execution_context, 
+                # inlimits=custom_inlimits, 
+                # script_variables = custom_script_variables,
+                # script_variables = script_variables,
+                modules=['python3', 'ecmwf-toolbox']
+            )
+            t_dummy_generic = GenericTask3(
+                config, 
+                name="dummy_generic", 
+                variables=preci_task_variables, 
+                submit_arguments=execution_context, 
+                # inlimits=custom_inlimits, 
+                # script_variables = custom_script_variables,
+                # script_variables = script_variables,
+                modules=['python3', 'ecmwf-toolbox']
+            )
+            t_dummy_generic = GenericTask4(
+                config, 
+                name="dummy_generic", 
+                variables=preci_task_variables, 
+                submit_arguments=execution_context, 
+                # inlimits=custom_inlimits, 
+                # script_variables = custom_script_variables,
+                # script_variables = script_variables,
+                modules=['python3', 'ecmwf-toolbox']
             )
 
 

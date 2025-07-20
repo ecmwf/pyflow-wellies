@@ -31,6 +31,7 @@ ecflow_variables:
   OUTPUT_ROOT: "{{ output_root }}"
   LIB_DIR: "%OUTPUT_ROOT%/local"
   DATA_DIR: "%OUTPUT_ROOT%/data"
+  SRC_DIR: "%OUTPUT_ROOT%/src"
 
 # ---------- Specific optionals -----------------------------------------------
 # add your project's specific variables and options here
