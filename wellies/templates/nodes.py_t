@@ -18,11 +18,12 @@ class GenericTask(pf.Task): #(wl.EcfResourcesTask):
         # add default script decoration
         script = kwargs.pop('script', [])
         script_args = kwargs.pop('script_args', {})
-        script += [config.tools.load(env)]
-        script += [config.tools.load('ps4')]
-        snippet = Path(__file__).parent.parent / 'snippets' / f"{name}"
-        script += [pf.FileScript(str(snippet))]
-        script += [pf.TemplateFileScript(str(snippet), **script_args)]
+        if len(script) == 0:
+            script += [config.tools.load(env)]
+            script += [config.tools.load('ps4')]
+            snippet = Path(__file__).parent.parent / 'snippets' / f"{name}"
+            script += [pf.FileScript(str(snippet))]
+            script += [pf.TemplateFileScript(str(snippet), **script_args)]
         # add default variables
         variables = kwargs.pop('variables', {})
         variables.update(
@@ -85,7 +86,8 @@ class InitFamily(pf.AnchorFamily):
             clean_task = wl.EcfResourcesTask(
                 'clean_init',
                 submit_arguments="sequential",
-                script=pf.TemplateFileScript("snippets/clean_init"))
+                script=[pf.TemplateFileScript("snippets/clean_init")]
+            )
             
             # set triggers
             tools_family >> data_family >> src_family >> clean_task
@@ -108,7 +110,7 @@ class MainFamily(pf.AnchorFamily):
             t_dummy_wellies = wl.EcfResourcesTask(
                 name='dummy_wellies',
                 submit_arguments="sequential",
-                script=pf.TemplateFileScript("snippets/dummy")
+                script=[pf.TemplateFileScript("snippets/dummy")]
             )
             
             t_dummy_generic = GenericTask(
@@ -119,7 +121,7 @@ class MainFamily(pf.AnchorFamily):
             t_dummy_generic_other_man = GenericTask(
                 config=config,
                 name="dummy_other_man",
-                script=pf.TemplateFileScript("snippets/dummy")
+                script=[pf.TemplateFileScript("snippets/dummy")]
             )
 
             t_dummy_pyflow >> t_dummy_wellies >> t_dummy_generic >> t_dummy_generic_other_man
