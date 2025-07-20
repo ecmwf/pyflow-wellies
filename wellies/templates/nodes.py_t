@@ -1,54 +1,61 @@
 import os
 import pyflow as pf
 import wellies as wl
+from jinja2 import Template
+from pathlib import Path
+        
 
-
-class WelliesTask(pf.Task): #(wl.EcfResourcesTask):
+class GenericTask(pf.Task): #(wl.EcfResourcesTask):
     def __init__(self, **kwargs):
-        name = kwargs.get('name')
-        config = kwargs.get('config', None)
+        name = kwargs.pop('name')
+        config = kwargs.pop('config')
         # adapt default submit_arguments
-        submit_arguments = kwargs.get('submit_arguments', 'sequential')
-        submit_arguments['job_name'] = name
+        submit_arguments = kwargs.pop('submit_arguments', 'sequential')
+        config.host.submit_arguments[submit_arguments]['job_name'] = name
         # add default preamble
-        env = kwargs.get('env', 'suite_env')
-        modules = kwargs.get('modules', ['python3', 'ecmwf-toolbox'])
+        env = kwargs.pop('env', 'suite_env')
+        modules = kwargs.pop('modules', ['python3', 'ecmwf-toolbox'])
         # add default script decoration
-        script = kwargs.get('script', [])
-        script_args = kwargs.get('script_args', {})
-        kwargs['script'] += [config.tools.load(env)]
-        kwargs['script'] += [config.tools.load('ps4')]
-        # kwargs['script'] += pf.FileScript(os.path.join(config.global_vars['projectDir'], 'snippets', name))
-        kwargs['script'] += pf.TemplateFileScript(os.path.join(config.global_vars['projectDir'], 'snippets', name), **script_args)
-        # add default variables        
-        variables = kwargs.get('variables', {})
+        script = kwargs.pop('script', [])
+        script_args = kwargs.pop('script_args', {})
+        script += [config.tools.load(env)]
+        script += [config.tools.load('ps4')]
+        snippet = Path(__file__).parent.parent / 'snippets' / f"{name}"
+        script += [pf.FileScript(str(snippet))]
+        script += [pf.TemplateFileScript(str(snippet), **script_args)]
+        # add default variables
+        variables = kwargs.pop('variables', {})
         variables.update(
             {
                 "DEBUG": 0,
                 "VERBOSE": 0
             }
         )
+        # generate man page
+        manual = kwargs.pop('manual', 'template')
+        manual_template = Path(__file__).parent.parent / 'manuals' / f"{manual}.man"
+        template = Template(manual_template.read_text())
+        task_manual = Path(__file__).parent.parent / 'manuals' / f"{name}.man"
+        content = template.render(suite=config.name, task=name)
+        task_manual.write_text(content)
+        man_page = "\n".join(pf.TemplateFileScript(str(task_manual)).generate())
         # add default attributes
-        label = kwargs.get('label', pf.Label('info', 'This is a wellies task'))
-        event = kwargs.get('event', pf.Event("set_event"))
-        manual = kwargs.get('manual', "\n".join(pf.TemplateFileScript(os.path.join(config.input_dir, 'manuals', name+'.man')).generate()))
-        inlimits = kwargs.get('inlimits', [])
+        label = kwargs.pop('label', pf.Label('info', 'This is a generic task'))
+        event = kwargs.pop('event', pf.Event("set_event"))    
+        inlimits = kwargs.pop('inlimits', [])
         # init the pf.Task object
         super().__init__(
             name = name,
             variables=variables,
             submit_arguments=submit_arguments,
             script=script,
-            #meters=meter,
             events=event,
             labels=label,
-            manual=manual,
+            manual=man_page,
             modules=modules,
             inlimits = inlimits,
-            kwargs=kwargs
+            **kwargs
         )
-        print(f"   Built WelliesTask '{name}'.")
-        print('-----------------------------------')
  
 
 class InitFamily(pf.AnchorFamily):
@@ -89,18 +96,27 @@ class MainFamily(pf.AnchorFamily):
         super().__init__(name='main', **kwargs)
         with self:
             t_dummy_pyflow = pf.Task(
-                name='dummy_plain',
+                name='dummy_pyflow',
                 submit_arguments="sequential",
-                    script=[
-                        config.tools.load('suite_env'),
-                        config.tools.load('ps4'),
-                        pf.TemplateFileScript("snippets/dummy")
-                    ]
+                script=[
+                    config.tools.load('suite_env'),
+                    config.tools.load('ps4'),
+                    pf.TemplateFileScript("snippets/dummy")
+                ]
             )
-            t_dummy_wellies = WelliesTask(
+            
+            t_dummy_wellies = wl.EcfResourcesTask(
+                name='dummy_wellies',
+                submit_arguments="sequential",
+                script=pf.TemplateFileScript("snippets/dummy")
+            )
+            
+            t_dummy_generic = GenericTask(
                 config=config,
-                name="dummy_wellies", 
+                name="dummy" 
             )
+            
+            t_dummy_pyflow >> t_dummy_wellies >> t_dummy_generic
 
 
 class Suite(pf.Suite):

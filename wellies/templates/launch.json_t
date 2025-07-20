@@ -5,47 +5,47 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "deploy.py setup",
+            "name": "build setup",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/deploy.py",
+            "program": "${workspaceFolder}/welly/__init__.py",
             "console": "integratedTerminal",
-            "args": ["setup"]
+            "preLaunchTask": "build setup"
         },
         {
-            "name": "deploy.py tests",
+            "name": "build tests",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/deploy.py",
+            "program": "${workspaceFolder}/welly/__init__.py",
             "console": "integratedTerminal",
-            "args": ["tests"]
+            "postDebugTask": "build tests"
         },
         {
-            "name": "deploy.py scripts",
+            "name": "build scripts",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/deploy.py",
+            "program": "${workspaceFolder}/welly/__init__.py",
             "console": "integratedTerminal",
-            "args": ["scripts"]
+            "postDebugTask": "build scripts"
         },
         {
-            "name": "deploy.py update",
+            "name": "build update",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/deploy.py",
+            "program": "${workspaceFolder}/welly/__init__.py",
             "console": "integratedTerminal",
-            "args": ["update"]
+            "postDebugTask": "build update"
         },
         {
-            "name": "deploy.py replace",
+            "name": "build replace",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/deploy.py",
+            "program": "${workspaceFolder}/welly/__init__.py",
             "console": "integratedTerminal",
-            "args": ["replace"]
+            "postDebugTask": "build replace"
         },
         {
-            "name": "deploy.py user",
+            "name": "debug deploy user",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/deploy.py",
@@ -53,11 +53,11 @@
             "args": ["user"]
         },
         {
-            "name": "deploy.py <profile>",
+            "name": "debug deploy <profile>",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/deploy.py",
-            "console": "integratedTerminal",
+            "console": "externalTerminal",
             "args": ["${input:profileArg}"]
         }
     ],

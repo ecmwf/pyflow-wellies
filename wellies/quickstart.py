@@ -114,6 +114,10 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(vscode_dir, "launch.json"),
         renderer.render("launch.json_t", options),
     )
+    write_file(
+        path.join(vscode_dir, "tasks.json"),
+        renderer.render("tasks.json_t", options),
+    )
 
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)
@@ -146,6 +150,14 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     write_file(
         path.join(src_dir, "dummy.py"),
         renderer.render("dummy.py_t", options),
+    )
+
+    # create manuals folder containing the suite manual
+    manuals_dir = path.join(root_path, "manuals")
+    os.makedirs(manuals_dir, exist_ok=True)
+    write_file(
+        path.join(manuals_dir, "template.man"),
+        renderer.render("template.man_t", options),
     )
 
     # create config folder containing yaml files

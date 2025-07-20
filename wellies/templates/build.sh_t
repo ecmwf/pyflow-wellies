@@ -10,10 +10,10 @@ setup() {
 extract_config_values() {
     local config_file="configs/user.yaml"
     # Use yq to extract values safely, install it if needed
-    SUITE_NAME=$(yq -r '.name' "${config_file}")
-    HOSTNAME=$(yq -r '.ecflow_server.hostname' "${config_file}" | sed "s/{USER}/${USER}/g")
+    SUITE_NAME=$(.venv/bin/python -m yq -r '.name' "${config_file}")
+    HOSTNAME=$(.venv/bin/python -m yq -r '.ecflow_server.hostname' "${config_file}" | sed "s/{USER}/${USER}/g")
     HOSTNAME=$(echo "${HOSTNAME}" | sed "s/{USER}/${USER}/g")
-    PORT=$(yq -r '.ecflow_server.port' "${config_file}")
+    PORT=$(.venv/bin/python -m yq -r '.ecflow_server.port' "${config_file}")
     echo
     echo "Suite Name: ${SUITE_NAME}"
     echo "Hostname: ${HOSTNAME}"
@@ -36,12 +36,20 @@ main() {
             ;;
         update)
             ./deploy.py "user"
+            if [[ $? -eq 1 ]]; then
+                echo "Suite not deployed with profile 'user'. Exiting."
+                exit 1
+            fi
             # automatically replace the suite conservatively with tracksuite-replace
             extract_config_values
             tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
             ;;
         replace)
             ./deploy.py "user"
+            if [[ $? -eq 1 ]]; then
+                echo "Suite not deployed with profile 'user'. Exiting."
+                exit 1
+            fi
             # automatically replace the suite completely with tracksuite-replace
             extract_config_values
             tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
