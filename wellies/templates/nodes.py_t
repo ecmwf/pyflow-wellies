@@ -118,7 +118,8 @@ class MainFamily(pf.AnchorFamily):
             
             t_dummy_generic_other_man = GenericTask(
                 config=config,
-                name="dummy_other_man" 
+                name="dummy_other_man",
+                script=pf.TemplateFileScript("snippets/dummy")
             )
 
             t_dummy_pyflow >> t_dummy_wellies >> t_dummy_generic >> t_dummy_generic_other_man
