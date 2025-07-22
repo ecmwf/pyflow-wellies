@@ -50,7 +50,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/deploy.py",
             "console": "integratedTerminal",
-            "args": ["user"]
+            "args": ["user"],
+            "justMyCode": false
         },
         {
             "name": "debug deploy <profile>",
@@ -58,16 +59,28 @@
             "request": "launch",
             "program": "${workspaceFolder}/deploy.py",
             "console": "externalTerminal",
-            "args": ["${input:profileArg}"]
+            "args": ["${input:profileArg}"],
+            "justMyCode": false
         },
         {
             "name": "dummy.py args",
             "type": "debugpy",
             "request": "launch",
-            "program": "{{ output_root }}/src/dummy.py",
+            "program": "src/dummy.py",
             "console": "integratedTerminal",
-            "args": ["${input:args}"]
+            "args": ["${input:args}"],
+            "justMyCode": false
         },
+        {
+            "name": "dummy.py args with suite_env",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "{{ lib_dir }}/{{ suite_env }}/bin/python",
+            "program": "{{ src_dir }}/{{ project }}/dummy.py",
+            "console": "integratedTerminal",
+            "args": ["${input:args}"],
+            "justMyCode": false
+        }
     ],
     "inputs": [
         {
