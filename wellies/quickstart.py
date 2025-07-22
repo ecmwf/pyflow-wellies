@@ -106,6 +106,10 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(root_path, "pyproject.toml"),
         renderer.render("pyproject.toml_t", options),
     )
+    write_file(
+        path.join(root_path, ".gitignore"),
+        renderer.render(".gitignore_t", options),
+    )
     
     #create launch.json for VSCode
     vscode_dir = path.join(root_path, ".vscode")
@@ -143,7 +147,11 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(snippets_dir, "clean_init"),
         renderer.render("clean_init_t", options),
     )
-    
+    write_file(
+        path.join(snippets_dir, "self_destruct"),
+        renderer.render("self_destruct_t", options),
+    )
+
     # create src folder containing source files called in ecf scritps
     src_dir = path.join(root_path, "src")
     os.makedirs(src_dir, exist_ok=True)
@@ -156,8 +164,8 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     manuals_dir = path.join(root_path, "manuals")
     os.makedirs(manuals_dir, exist_ok=True)
     write_file(
-        path.join(manuals_dir, "template.man"),
-        renderer.render("template.man_t", options),
+        path.join(manuals_dir, "generic.man_t"),
+        renderer.render("generic.man_t_t", options),
     )
 
     # create config folder containing yaml files

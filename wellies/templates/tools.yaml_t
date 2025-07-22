@@ -14,6 +14,8 @@ tools:
     ecmwf-toolbox:
       version: $MODULES_VERSION
       depends: [python]
+    ecflow:
+      version: $MODULES_VERSION
 
   # ---------- Extra installables -----------------------------------------------
   packages:

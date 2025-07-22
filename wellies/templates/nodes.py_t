@@ -22,7 +22,7 @@ class GenericTask(pf.Task): #(wl.EcfResourcesTask):
             script += [config.tools.load(env)]
             script += [config.tools.load('ps4')]
             snippet = Path(__file__).parent.parent / 'snippets' / f"{name}"
-            script += [pf.FileScript(str(snippet))]
+            # script += [pf.FileScript(str(snippet))]
             script += [pf.TemplateFileScript(str(snippet), **script_args)]
         # add default variables
         variables = kwargs.pop('variables', {})
@@ -33,31 +33,33 @@ class GenericTask(pf.Task): #(wl.EcfResourcesTask):
             }
         )
         # generate man page
-        manual = kwargs.pop('manual', 'template')
-        manual_template = Path(__file__).parent.parent / 'manuals' / f"{manual}.man"
+        manual = kwargs.pop('manual', 'generic')
+        manual_template = Path(__file__).parent.parent / 'manuals' / f"{manual}.man_t"
         template = Template(manual_template.read_text())
         task_manual = Path(__file__).parent.parent / 'manuals' / f"{name}.man"
         content = template.render(suite=config.name, task=name)
         task_manual.write_text(content)
         man_page = "\n".join(pf.TemplateFileScript(str(task_manual)).generate())
-        # add default attributes
-        label = kwargs.pop('label', pf.Label('info', 'This is a generic task'))
-        event = kwargs.pop('event', pf.Event("set_event"))    
+        # pop default attributes
+        label = kwargs.pop('label', 'This is a generic task')
+        event = kwargs.pop('event', 'set')
         inlimits = kwargs.pop('inlimits', [])
+        defstatus = kwargs.pop('defstatus', 'queued')
         # init the pf.Task object
         super().__init__(
             name = name,
             variables=variables,
             submit_arguments=submit_arguments,
             script=script,
-            events=event,
-            labels=label,
             manual=man_page,
             modules=modules,
-            inlimits = inlimits,
+            labels=pf.Label('info', label),
+            events=pf.Event(event),
+            inlimits=inlimits,
+            defstatus=getattr(pf.state, defstatus),
             **kwargs
         )
- 
+
 
 class InitFamily(pf.AnchorFamily):
     def __init__(self, config, **kwargs):
@@ -66,31 +68,43 @@ class InitFamily(pf.AnchorFamily):
             # install environments and packages
             tools_family = wl.DeployToolsFamily(
                 config.tools,
-                submit_arguments="sequential",
+                submit_arguments='sequential',
             )
 
             # setup static data (remote/local copy/link)
             data_family = wl.DeployDataFamily(
                 config.static_data,
-                submit_arguments="sequential",
+                submit_arguments='sequential',
             )
             
             # set up static source code used in the suite tasks
             src_family = wl.DeployDataFamily(
                 config.src,
                 name='deploy_src',
-                submit_arguments="sequential"
+                submit_arguments='sequential'
             )
             
-            # clean task
-            clean_task = wl.EcfResourcesTask(
-                'clean_init',
-                submit_arguments="sequential",
-                script=[pf.TemplateFileScript("snippets/clean_init")]
-            )
-            
+            with pf.Family(name='clean'):
+                # clean task
+                clean_task = GenericTask(
+                    config=config,
+                    name='clean_init'
+                )
+                
+                # self destruct task
+                self_destruct = GenericTask(
+                    config=config,
+                    name='self_destruct',
+                    label='Set the self_destruct_toggle and execute this task to obliterate this suite and all its files.',
+                    event='self_destruct_toggle',
+                    defstatus='complete',
+                    modules=['ecflow'],
+                    env=[]
+                )
+
             # set triggers
-            tools_family >> data_family >> src_family >> clean_task
+            tools_family >> data_family >> src_family >> clean_task >> self_destruct
+            self_destruct.triggers &= self_destruct.events
 
 
 class MainFamily(pf.AnchorFamily):

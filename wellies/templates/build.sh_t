@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -TEexuva -o pipefail +vx
+
 # Creates a local virtual environment
 setup() {
     module load uv/new > /dev/null 2>&1
@@ -11,10 +13,12 @@ extract_config_values() {
     local config_file="configs/user.yaml"
     # Use yq to extract values safely, install it if needed
     SUITE_NAME=$(.venv/bin/python -m yq -r '.name' "${config_file}")
-    HOSTNAME=$(.venv/bin/python -m yq -r '.ecflow_server.hostname' "${config_file}" | sed "s/{USER}/${USER}/g")
-    HOSTNAME=$(echo "${HOSTNAME}" | sed "s/{USER}/${USER}/g")
+    DEPLOY_DIR=$(.venv/bin/python -m yq -r '.deploy_host.deploy_dir' "${config_file}" | sed -e "s#{HOME}#${HOME}#g;s#{PERM}#${PERM}#g;s#{name}#${SUITE_NAME}#g")
+    HOSTNAME=$(.venv/bin/python -m yq -r '.ecflow_server.hostname' "${config_file}" | sed -e "s#{USER}#${USER}#g")
+    HOSTNAME=$(echo "${HOSTNAME}" | sed -e "s#{USER}#${USER}#g")
     PORT=$(.venv/bin/python -m yq -r '.ecflow_server.port' "${config_file}")
     echo
+    echo "Deployment Directory: ${DEPLOY_DIR}"
     echo "Suite Name: ${SUITE_NAME}"
     echo "Hostname: ${HOSTNAME}"
     echo "Port: ${PORT}"
@@ -42,7 +46,7 @@ main() {
             fi
             # automatically replace the suite conservatively with tracksuite-replace
             extract_config_values
-            tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
+            tracksuite-replace --def-file "${DEPLOY_DIR}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --skip-status --skip-attributes --skip-repeat "${SUITE_NAME}"
             ;;
         replace)
             ./deploy.py "user"
@@ -52,7 +56,7 @@ main() {
             fi
             # automatically replace the suite completely with tracksuite-replace
             extract_config_values
-            tracksuite-replace --def-file "${HOME}/pyflow/${SUITE_NAME}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
+            tracksuite-replace --def-file "${DEPLOY_DIR}/${SUITE_NAME}.def" --host "${HOSTNAME}" --port "${PORT}" --sync-variables "${SUITE_NAME}"
             ;;
         *)
             ./deploy.py "$@"

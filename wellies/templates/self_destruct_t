@@ -1,0 +1,15 @@
+
+set -TEexuva -o pipefail +v
+
+%end
+export ECF_HOME=%ECF_HOME%
+export ECF_HOST=%ECF_HOST%
+export ECF_PORT=%ECF_PORT%
+%nopp
+
+toggle_status=$(ecflow_client --host ${ECF_HOST} --port ${ECF_PORT} --query event /${SUITE}/init/clean/self_destruct:self_destruct_toggle)
+if [[ "${toggle_status}" == "set" ]]; then
+    sbatch --mem=4G --ntasks=1 --ntasks-per-node=1 --output=/dev/null --error=/dev/null --wrap="sleep 15; ecflow_client --host ${ECF_HOST} --port ${ECF_PORT} --delete=force yes /${SUITE}; rm -rf ${OUTPUT_ROOT} ${ECF_HOME}/${SUITE} ${DEPLOY_DIR}"
+else
+    echo "Self-destruct toggle is not set. Exiting without action."
+fi

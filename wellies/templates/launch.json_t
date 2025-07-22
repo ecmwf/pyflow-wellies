@@ -8,7 +8,7 @@
             "name": "build setup",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/welly/__init__.py",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
             "console": "integratedTerminal",
             "preLaunchTask": "build setup"
         },
@@ -16,7 +16,7 @@
             "name": "build tests",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/welly/__init__.py",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
             "console": "integratedTerminal",
             "postDebugTask": "build tests"
         },
@@ -24,7 +24,7 @@
             "name": "build scripts",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/welly/__init__.py",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
             "console": "integratedTerminal",
             "postDebugTask": "build scripts"
         },
@@ -32,7 +32,7 @@
             "name": "build update",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/welly/__init__.py",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
             "console": "integratedTerminal",
             "postDebugTask": "build update"
         },
@@ -40,7 +40,7 @@
             "name": "build replace",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/welly/__init__.py",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
             "console": "integratedTerminal",
             "postDebugTask": "build replace"
         },
@@ -59,7 +59,15 @@
             "program": "${workspaceFolder}/deploy.py",
             "console": "externalTerminal",
             "args": ["${input:profileArg}"]
-        }
+        },
+        {
+            "name": "dummy.py args",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "{{ output_root }}/src/dummy.py",
+            "console": "integratedTerminal",
+            "args": ["${input:args}"]
+        },
     ],
     "inputs": [
         {
@@ -67,6 +75,12 @@
             "type": "promptString",
             "description": "Enter argument for source build.sh *",
             "default": "user"
+        },
+        {
+            "id": "args",
+            "type": "promptString",
+            "description": "Enter argument for dummy.py",
+            "default": ""
         }
     ]
 }
