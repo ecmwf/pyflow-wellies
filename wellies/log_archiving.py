@@ -105,6 +105,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             JOBDIR=$(dirname $ECF_JOBOUT)
             dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             dir_tar=$(dirname $dir)
+            archive_dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_ARCHIVE:)
+            archive_dir=$(dirname $archive_dir)
 
             if [[ -d $dir_tar ]]; then
                 cd $dir_tar
@@ -115,7 +117,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
                         TAR_FILE=${{FAMILY1}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
                         chmod 644 $TAR_FILE
-                        ecp -p $TAR_FILE ${{LOGS_ARCHIVE}}/$TAR_FILE
+                        ecp -p $TAR_FILE ${{archive_dir}}/$TAR_FILE
 
                         rm -rf $log
                         rm -rf $TAR_FILE
