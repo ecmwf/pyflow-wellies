@@ -85,8 +85,10 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             return
         script = textwrap.dedent(
             f"""
-            JOB=$(echo $JOB | sed -e "s:$ECF_HOME:$ECF_OUT:")
-            JOBDIR=$(echo ${{JOBOUT%%/*}})
+            ECF_HOME=%ECF_HOME%
+            
+            JOB=$(echo $ECF_JOBOUT | sed -e "s:$ECF_HOME:$ECF_OUT:")
+            JOBDIR=$(echo ${{ECF_JOBOUT%%/*}})
             dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             dir_old=${{dir}}.${self.repeat_attr.name}
             [[ -d $dir ]] && mv $dir $dir_old
@@ -103,8 +105,10 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             return
         script = textwrap.dedent(
             f"""
-            JOB=$(echo $JOB | sed -e "s:$ECF_HOME:$ECF_OUT:")
-            JOBDIR=$(echo ${{JOBOUT%%/*}})
+            ECF_HOME=%ECF_HOME%
+
+            JOB=$(echo $ECF_JOBOUT | sed -e "s:$ECF_HOME:$ECF_OUT:")
+            JOBDIR=$(echo ${{ECF_JOBOUT%%/*}})
             dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             dir_tar=$(dirname $dir)
 
