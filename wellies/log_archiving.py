@@ -98,7 +98,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         )
 
     def _archive_task(self):
-        if not self.logs_backup:
+        if not self.logs_backup or not self.logs_archive:
             return
         script = textwrap.dedent(
             f"""
