@@ -85,7 +85,8 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             return
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP/$SUITE/$FAMILY
+            JOBDIR=$(dirname $ECF_JOBOUT)
+            dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             dir_old=${{dir}}.${self.repeat_attr.name}
             [[ -d $dir ]] && mv $dir $dir_old
             """
@@ -97,23 +98,26 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
         )
 
     def _archive_task(self):
-        if not self.logs_backup:
+        if not self.logs_archive:
             return
         script = textwrap.dedent(
             f"""
-            dir=$LOGS_BACKUP/$SUITE/$FAMILY
-            dir_tar=$LOGS_BACKUP/$SUITE
+            JOBDIR=$(dirname $ECF_JOBOUT)
+            dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
+            dir_tar=$(dirname $dir)
+            archive_dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_ARCHIVE:)
+            archive_dir=$(dirname $archive_dir)
 
             if [[ -d $dir_tar ]]; then
                 cd $dir_tar
 
-                for log in $(ls -d ${{FAMILY}}.*); do
+                for log in $(ls -d ${{FAMILY1}}.*); do
                     REPEAT_TO_TAR=$(echo $log | awk -F'.' '{{print $NF}}')
                     if [[ $REPEAT_TO_TAR -lt ${self.repeat_attr.name} ]]; then
-                        TAR_FILE=${{FAMILY}}_${{REPEAT_TO_TAR}}.tar.gz
+                        TAR_FILE=${{FAMILY1}}_${{REPEAT_TO_TAR}}.tar.gz
                         tar -czvf $TAR_FILE $log
                         chmod 644 $TAR_FILE
-                        ecp -p $TAR_FILE ${{LOGS_ARCHIVE}}/$TAR_FILE
+                        ecp -p $TAR_FILE ${{archive_dir}}/$TAR_FILE
 
                         rm -rf $log
                         rm -rf $TAR_FILE
