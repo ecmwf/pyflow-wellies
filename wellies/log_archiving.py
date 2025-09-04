@@ -105,7 +105,7 @@ class ArchivedRepeatFamily(pf.AnchorFamily):
             JOBDIR=$(dirname $ECF_JOBOUT)
             dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_BACKUP:)
             dir_tar=$(dirname $dir)
-            archive_dir=$(echo $JOBDIR | sed -e s:$ECF_OUT:$LOGS_ARCHIVE:)
+            archive_dir=$(echo $JOBDIR | sed -e s!$ECF_OUT!$LOGS_ARCHIVE!)
             archive_dir=$(dirname $archive_dir)
 
             if [[ -d $dir_tar ]]; then
