@@ -24,8 +24,7 @@ class EcflowServer:
 class DeployHost:
     hostname: str
     user: str
-    port: str
-
+    port: str = None
 
 def get_host(
     hostname: str,
