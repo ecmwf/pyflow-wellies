@@ -15,7 +15,7 @@ class EcflowServer:
 
     hostname: str
     user: str
-    port: str
+    port: str = "3141"
     deploy_dir: str
     group: str = None  # Optional suites group for the ecflow server
 
@@ -24,7 +24,8 @@ class EcflowServer:
 class DeployHost:
     hostname: str
     user: str
-    port: str = None
+    port: str = "22"
+
 
 def get_host(
     hostname: str,
