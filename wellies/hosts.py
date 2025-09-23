@@ -15,8 +15,8 @@ class EcflowServer:
 
     hostname: str
     user: str
-    port: str = "3141"
     deploy_dir: str
+    port: str = "3141"
     group: str = None  # Optional suites group for the ecflow server
 
 
