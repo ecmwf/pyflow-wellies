@@ -46,6 +46,7 @@ from .data import DeployDataFamily
 from .data import StaticDataStore
 from .deployment import deploy_suite
 from .hosts import EcflowServer
+from .hosts import DeployHost
 from .hosts import get_host
 from .log_archiving import ArchivedRepeatFamily
 from .tasks import EcfResourcesTask
