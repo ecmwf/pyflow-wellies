@@ -15,8 +15,16 @@ class EcflowServer:
 
     hostname: str
     user: str
+    port: str
     deploy_dir: str
     group: str = None  # Optional suites group for the ecflow server
+
+
+@dataclass
+class DeployHost:
+    hostname: str
+    user: str
+    port: str
 
 
 def get_host(
