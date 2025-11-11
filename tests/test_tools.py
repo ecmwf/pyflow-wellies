@@ -138,7 +138,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        extra_pkgs = " ".join([f"'{pkg}'" for pkg in extra_pkgs])
 
         expected = {
             "load": [f"source {self.lib_dir}/{test_target}/bin/activate"],
@@ -277,7 +277,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        extra_pkgs = " ".join([f"'{pkg}'" for pkg in extra_pkgs])
         conda_cmd = tools_config["environments"][test_target]["conda_cmd"]
 
         expected = {
