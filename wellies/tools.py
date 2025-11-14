@@ -746,11 +746,13 @@ class ToolStore:
         """
         if options is None:
             options = {}
+        store_options = options.pop("options", {})
         self.modules = options.get("modules", {})
         self.packages = options.get("packages", {})
         self.environments = options.get("environments", {})
         self.env_vars = options.get("env_variables", {})
         self.dir = lib_dir
+        self.list_modules = store_options.get("list_modules", True)
 
         # Build tools
         self.tools = {}
@@ -830,7 +832,10 @@ class ToolStore:
         script["head"] = "# load tools and activate environment"
         for item in tools:
             script.update(self.tool_script("load", item))
-        return list(script.values())
+        load_scripts = list(script.values())
+        if self.list_modules:
+            load_scripts.append("module list")
+        return load_scripts
 
     def unload(self, tools: Union[List[str], str]):
         """
