@@ -42,6 +42,12 @@ def test_tool_store(custom_script_file):
                 "packages": ["mypackage1", "mypackage2"],
                 "depends": "python3",
             },
+            "myenv3": {
+                "type": "venv",
+                "packages": ["mypackage1", "mypackage2"],
+                "depends": "python3",
+                "options": {"use_squashfs": True},
+            },
         },
         "env_variables": {
             "bin": {
@@ -61,6 +67,7 @@ def test_tool_store(custom_script_file):
         "mypackage2": tools.PackageTool,
         "myenv1": tools.CondaEnvTool,
         "myenv2": tools.SystemEnvTool,
+        "myenv3": tools.VirtualEnvTool,
         "bin": tools.EnvVarTool,
     }
 
@@ -69,9 +76,11 @@ def test_tool_store(custom_script_file):
 
     assert toolstore.depends("bin") == ["private", "python3"]
     assert toolstore.depends("myenv2") == ["python3"]
+    assert "module list" in toolstore.load("myenv3")
     assert "module list" in toolstore.load("myenv2")
     assert "module list" in toolstore.load("myenv1")
     toolstore.list_modules = False
+    assert "module list" not in toolstore.load("myenv3")
     assert "module list" not in toolstore.load("myenv2")
 
 
@@ -160,6 +169,23 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
                 f"python3 -m venv {self.lib_dir}/{test_target}",
+            ],
+        }
+
+        self._run(test_target, expected, tools_config)
+
+    def test_squashfs_venv(self, tools_config):
+        test_target = "myenv3"
+        expected = {
+            "load": [
+                f"squashfs-mount {self.lib_dir}/{test_target}.sqsh:{self.lib_dir}/{test_target} -- bash -l",
+                f"source {self.lib_dir}/{test_target}/bin/activate",
+            ],
+            "unload": ["deactivate"],
+            "setup": [
+                f"rm -rf {self.lib_dir}/{test_target}",
+                f"python3 -m venv {self.lib_dir}/{test_target}",
+                f"mksquashfs {self.lib_dir}/{test_target} {self.lib_dir}/{test_target}.sqsh",
             ],
         }
 

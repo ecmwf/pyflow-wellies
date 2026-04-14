@@ -1,4 +1,5 @@
 import os
+import shutil
 from os import path
 from typing import Dict
 from typing import List
@@ -318,6 +319,7 @@ class VirtualEnvTool(Tool):
         extra_packages: Union[str, List[str]] = [],
         depends: List[str] = [],
         options: Dict[str, any] = {},
+        use_squashfs: bool = False,
     ):
         """
         A tool that creates a python virtual environment and sets the right
@@ -336,6 +338,12 @@ class VirtualEnvTool(Tool):
             A list of dependencies for the tool, by default [].
         options : Dict[str], optional
             A dictionary of options for the tool, by default {}.
+        use_squashfs : Bool, optional
+            If true, the virtual env will be squashed into a single squashFS file after venv creation.
+            When loading the env, the squashFS will first be mounted over the original env location.
+            This will speed up inital venv load times since only 1 file has to be loaded.
+            *Note* the 'squashfs-mount' tool is used to mount the squash-fs.
+            If this tool is not found on the path and 'use_squashfs=True' an error will be thrown.
         """
         env_root = path.join(lib_dir, name)
         load = [
@@ -356,6 +364,25 @@ class VirtualEnvTool(Tool):
             setup.extend(load)
             pkgs = " ".join(extra_packages)
             setup.append(f"pip install {pkgs}")
+
+        if use_squashfs:
+            # Ensure 'mksquashfs' and 'squashfs-mount' are on the path
+            has_required_deps = shutil.which("mksquashfs") and shutil.which(
+                "squashfs-mount"
+            )
+            if not has_required_deps:
+                raise ValueError(
+                    '"use_squashfs" option requested but required dependancies not found: "mksquashfs" and/or "squashfs-mount".'
+                )
+
+            # final setup step, create the squash image
+            setup.append(f"mksquashfs {env_root} {env_root}.sqsh")
+
+            # first load step, mount the squash image
+            load.insert(
+                0, f"squashfs-mount {env_root}.sqsh:{env_root} -- bash -l"
+            )
+
         super().__init__(name, depends, load, unload, setup, options=options)
 
 
@@ -645,6 +672,7 @@ def parse_environment(
     elif type == "venv":
         venv_options = options.get("venv_options", "")
         extra_packages = options.get("extra_packages", [])
+        use_squashfs = options.get("options", {}).get("use_squashfs", False)
         env = VirtualEnvTool(
             name,
             lib_dir,
@@ -652,6 +680,7 @@ def parse_environment(
             extra_packages=extra_packages,
             depends=depends,
             options=options,
+            use_squashfs=use_squashfs,
         )
     else:
         raise Exception("Environment type {} not supported".format(type))
