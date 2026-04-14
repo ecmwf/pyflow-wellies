@@ -97,7 +97,7 @@ def tools_config(custom_script_file):
                 "packages": ["earthkit"],
                 "extra_packages": ["python==3.10", "pandas>2", "xarray"],
             },
-            "myenv3": {
+            "squashfs_env": {
                 "type": "venv",
                 "packages": ["anemoi_datasets"],
                 "depends": "python3",
