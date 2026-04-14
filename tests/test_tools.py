@@ -166,11 +166,13 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
-    @pytest.mark.skipif(
-        not (shutil.which("mksquashfs") and shutil.which("squashfs-mount")),
-        reason="Required binaries to use squashfs option not found on path",
-    )
-    def test_squashfs_venv(self, tools_config):
+    def test_squashfs_venv(self, tools_config, monkeypatch):
+        def _which(binary):
+            if binary in {"mksquashfs", "squashfs-mount"}:
+                return f"/usr/bin/{binary}"
+            return None
+
+        monkeypatch.setattr(shutil, "which", _which)
         test_target = "squashfs_env"
         expected = {
             "load": [

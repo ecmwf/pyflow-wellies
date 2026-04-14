@@ -378,10 +378,9 @@ class VirtualEnvTool(Tool):
             # final setup step, create the squash image
             setup.append(f"mksquashfs {env_root} {env_root}.sqsh")
 
-            # first load step, mount the squash image
-            load.insert(
-                0, f"squashfs-mount {env_root}.sqsh:{env_root} -- bash -l"
-            )
+            # first load step, mount the squash image without starting a
+            # subshell so the remaining load commands can run normally.
+            load.insert(0, f"squashfs-mount {env_root}.sqsh:{env_root}")
 
         super().__init__(name, depends, load, unload, setup, options=options)
 
@@ -672,7 +671,7 @@ def parse_environment(
     elif type == "venv":
         venv_options = options.get("venv_options", "")
         extra_packages = options.get("extra_packages", [])
-        use_squashfs = options.get("options", {}).get("use_squashfs", False)
+        use_squashfs = options.get("use_squashfs", False)
         env = VirtualEnvTool(
             name,
             lib_dir,

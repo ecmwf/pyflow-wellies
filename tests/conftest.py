@@ -101,7 +101,7 @@ def tools_config(custom_script_file):
                 "type": "venv",
                 "packages": ["anemoi_datasets"],
                 "depends": "python3",
-                "options": {"use_squashfs": True},
+                "use_squashfs": True,
             },
             "venv": {
                 "type": "venv",
