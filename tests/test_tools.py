@@ -138,7 +138,15 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        pkgs_str = ""
+        ws = ""
+        for pkg in extra_pkgs:
+            pkgs_str += (
+                f"{ws}'{pkg}'"
+                if set(pkg).intersection(set("><"))
+                else f"{ws}{pkg}"
+            )
+            ws = " "
 
         expected = {
             "load": [f"source {self.lib_dir}/{test_target}/bin/activate"],
@@ -146,7 +154,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
                 f"python3 -m venv {self.lib_dir}/{test_target}  --system-site-packages",
-                f"pip install {extra_pkgs}",
+                f"pip install {pkgs_str}",
             ],
         }
 
@@ -277,7 +285,15 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        pkgs_str = ""
+        ws = ""
+        for pkg in extra_pkgs:
+            pkgs_str += (
+                f"{ws}'{pkg}'"
+                if set(pkg).intersection(set("><"))
+                else f"{ws}{pkg}"
+            )
+            ws = " "
         conda_cmd = tools_config["environments"][test_target]["conda_cmd"]
 
         expected = {
@@ -289,7 +305,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "unload": ["conda deactivate"],
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
-                f"{conda_cmd} create -p {self.lib_dir}/{test_target} {extra_pkgs}",
+                f"{conda_cmd} create -p {self.lib_dir}/{test_target} {pkgs_str}",
             ],
         }
 

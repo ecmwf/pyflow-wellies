@@ -1,4 +1,5 @@
 import os
+import shlex
 from os import path
 from typing import Dict
 from typing import List
@@ -354,7 +355,7 @@ class VirtualEnvTool(Tool):
         ]
         if extra_packages:
             setup.extend(load)
-            pkgs = " ".join(extra_packages)
+            pkgs = " ".join([shlex.quote(pkg) for pkg in extra_packages])
             setup.append(f"pip install {pkgs}")
         super().__init__(name, depends, load, unload, setup, options=options)
 
@@ -544,7 +545,7 @@ class SimpleCondaEnvTool(CondaEnvTool):
             A dictionary of options for the tool, by default {}.
         """
         env_root = path.join(lib_dir, name)
-        packages_str = " ".join(packages)
+        packages_str = " ".join([shlex.quote(pkg) for pkg in packages])
         setup = pf.TemplateScript(
             conda_create,
             ENV_DIR=env_root,
