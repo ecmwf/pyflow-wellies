@@ -8,6 +8,10 @@ from wellies.config import parse_submit_arguments
 
 local_host = ["localhost"]
 
+HOST_DEFAULTS = {
+    "troika": {"troika_config": "%TROIKA_CONFIG%"},
+}
+
 
 @dataclass
 class EcflowServer:
@@ -58,27 +62,29 @@ def get_host(
 
     options = submit_arguments or {}
     submit_arguments, variables = parse_submit_arguments(options)
-    if hostname in local_host:
-        host = pf.LocalHost(
-            hostname,
-            user=user,
-            ecflow_path=ecflow_path,
-            submit_arguments=submit_arguments,
-            **kwargs,
-        )
-        print("Running on host: " + str(hostname))
-    else:
-        extra_variables = extra_variables or {}
-        extra_variables["HOST"] = f"%SCHOST:{hostname}%"
-        host = pf.TroikaHost(
-            "%HOST%",
-            user=user,
-            extra_variables=extra_variables,
-            server_ecfvars=server_ecfvars,
-            ecflow_path=ecflow_path,
-            submit_arguments=submit_arguments,
-            **kwargs,
-        )
-        print("Submitting jobs using troika on host: " + str(hostname))
+
+    host_type = "localhost" if hostname in local_host else "troika"
+    if ":" in hostname:
+        try:
+            host_type, hostname = hostname.split(":")
+        except ValueError:
+            pass
+
+    extra_variables = extra_variables or {}
+    extra_variables["HOST"] = f"%SCHOST:{hostname}%"
+
+    defaults = HOST_DEFAULTS.get(host_type, {})
+    kwargs = {**defaults, **kwargs}
+
+    host = pf.host.host_factory(
+        host_type,
+        name="%HOST%",
+        user=user,
+        extra_variables=extra_variables,
+        ecflow_path=ecflow_path,
+        submit_arguments=submit_arguments,
+        **kwargs,
+    )
+    print(f"Submitting jobs using {host_type} on host: {hostname}")
 
     return host, variables
