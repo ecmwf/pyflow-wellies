@@ -14,6 +14,7 @@ from typing import List
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
+from wellies.config import get_user_globals
 from wellies.show_versions import show_versions
 
 pw_user = getpwuid(os.getuid())
@@ -23,7 +24,7 @@ DEFAULTS = {
     "user": "{USER}",
     "author": pw_user.pw_gecos,
     "output_root": "{HOME}/output",
-    "deploy_root": "{HOME}/pyflow"
+    "deploy_root": "{HOME}/pyflow",
 }
 
 
@@ -50,6 +51,64 @@ class PyflowSuiteRenderer:
         pass
 
 
+def write_file(fpath: str, content: str, overwrite: bool = False) -> None:
+    if overwrite or not path.isfile(fpath):
+        print(f"Creating file {fpath}.")
+        with open(fpath, "wt", encoding="utf-8") as f:
+            f.write(content)
+    else:
+        print(f"File {fpath} already exists, skipping.")
+
+
+def _deploy_vscode_templates(
+    root_path: str, renderer: PyflowSuiteRenderer, options: Dict
+) -> None:
+    """Deploy VSCode configuration templates."""
+
+    def _transform_to_vscode_env(value: str, var_name: str) -> str:
+        """Replace {VAR} with ${env:VAR} for VSCode environment variable syntax."""
+        return value.replace(f"{{{var_name}}}", f"${{env:{var_name}}}")
+
+    vscode_dir = path.join(root_path, ".vscode")
+    os.makedirs(vscode_dir, exist_ok=True)
+    user_env = get_user_globals()
+
+    # Build VSCode-specific options with env var substitution
+    vscode_options = dict(options)
+
+    # Replace {VAR} patterns with ${env:VAR} in path-like options for VSCode
+    path_keys = ["output_root", "deploy_dir", "lib_dir", "src_dir"]
+    for key in path_keys:
+        if key in vscode_options:
+            val = vscode_options[key]
+            for var_name in user_env:
+                val = _transform_to_vscode_env(val, var_name)
+            vscode_options[key] = val
+
+    # Set default for lib_dir using ${env:VAR} syntax for VSCode config
+    lib_root = options["output_root"].replace("{name}", options["project"])
+    for var_name in user_env:
+        lib_root = _transform_to_vscode_env(lib_root, var_name)
+    vscode_options.setdefault("lib_dir", f"{lib_root}/local")
+
+    # For src_dir in VSCode config, use ${env:VAR} syntax
+    src_root = options["output_root"].replace("{name}", options["project"])
+    for var_name in user_env:
+        src_root = _transform_to_vscode_env(src_root, var_name)
+    vscode_options.setdefault("src_dir", f"{src_root}/src")
+
+    vscode_options.setdefault("suite_env", "suite_env")
+
+    write_file(
+        path.join(vscode_dir, "launch.json"),
+        renderer.render("launch.json_t", vscode_options),
+    )
+    write_file(
+        path.join(vscode_dir, "tasks.json"),
+        renderer.render("tasks.json_t", vscode_options),
+    )
+
+
 def start_project(options: Dict, overwrite: bool = False) -> None:
     """Generate project basic structure based on options.
 
@@ -60,14 +119,6 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     Returns:
         None
     """
-
-    def write_file(fpath: str, content: str) -> None:
-        if overwrite or not path.isfile(fpath):
-            print(f"Creating file {fpath}.")
-            with open(fpath, "wt", encoding="utf-8") as f:
-                f.write(content)
-        else:
-            print(f"File {fpath} already exists, skipping.")
 
     templatedir = options.get("templatedir")
     renderer = PyflowSuiteRenderer(templatedir)
@@ -102,30 +153,18 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(root_path, "profiles.yaml"),
         renderer.render("profiles.yaml_t", options),
     )
-    write_file(
-        path.join(root_path, "pyproject.toml"),
-        renderer.render("pyproject.toml_t", options),
-    )
-    write_file(
-        path.join(root_path, ".gitignore"),
-        renderer.render(".gitignore_t", options),
-    )
-    
-    #create launch.json for VSCode
-    vscode_dir = path.join(root_path, ".vscode")
-    os.makedirs(vscode_dir, exist_ok=True)
-    options['lib_dir'] = options.get('lib_dir', f"{out_root.replace('{name}', project).replace('{HOME}', os.environ['HOME']).replace('{PERM}', os.environ['PERM']).replace('{HPCPERM}', os.environ['HPCPERM'])}/local")
-    options['src_dir'] = options.get('src_dir', f"{out_root.replace('{name}', project).replace('{HOME}', '${env:HOME}').replace('{PERM}', '${env:PERM}').replace('{HPCPERM}', '${env:HPCPERM}')}/src")
-    options['suite_env'] = options.get('suite_env', 'suite_env')
-    write_file(
-        path.join(vscode_dir, "launch.json"),
-        renderer.render("launch.json_t", options),
-    )
-    write_file(
-        path.join(vscode_dir, "tasks.json"),
-        renderer.render("tasks.json_t", options),
-    )
+    if options.get("with_extras") or options.get("full"):
+        write_file(
+            path.join(root_path, "pyproject.toml"),
+            renderer.render("pyproject.toml_t", options),
+        )
+        write_file(
+            path.join(root_path, ".gitignore"),
+            renderer.render(".gitignore_t", options),
+        )
 
+    if options.get("vscode", False):
+        _deploy_vscode_templates(root_path, renderer, options)
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)
     os.makedirs(suite_dir, exist_ok=True)
@@ -139,37 +178,40 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     )
     write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
 
-    # create snippets folder containing ecf stubs
-    snippets_dir = path.join(root_path, "snippets")
-    os.makedirs(snippets_dir, exist_ok=True)
-    write_file(
-        path.join(snippets_dir, "dummy"),
-        renderer.render("dummy_t", options),
-    )
-    write_file(
-        path.join(snippets_dir, "clean_init"),
-        renderer.render("clean_init_t", options),
-    )
-    write_file(
-        path.join(snippets_dir, "self_destruct"),
-        renderer.render("self_destruct_t", options),
-    )
+    if options.get("with_snippets") or options.get("full"):
+        # create snippets folder containing ecf stubs
+        snippets_dir = path.join(root_path, "snippets")
+        os.makedirs(snippets_dir, exist_ok=True)
+        write_file(
+            path.join(snippets_dir, "dummy"),
+            renderer.render("dummy_t", options),
+        )
+        write_file(
+            path.join(snippets_dir, "clean_init"),
+            renderer.render("clean_init_t", options),
+        )
+        write_file(
+            path.join(snippets_dir, "self_destruct"),
+            renderer.render("self_destruct_t", options),
+        )
 
-    # create src folder containing source files called in ecf scritps
-    src_dir = path.join(root_path, "src")
-    os.makedirs(src_dir, exist_ok=True)
-    write_file(
-        path.join(src_dir, "dummy.py"),
-        renderer.render("dummy.py_t", options),
-    )
+    if options.get("with_src") or options.get("full"):
+        # create src folder containing source files called in ecf scritps
+        src_dir = path.join(root_path, "src")
+        os.makedirs(src_dir, exist_ok=True)
+        write_file(
+            path.join(src_dir, "dummy.py"),
+            renderer.render("dummy.py_t", options),
+        )
 
-    # create manuals folder containing the suite manual
-    manuals_dir = path.join(root_path, "manuals")
-    os.makedirs(manuals_dir, exist_ok=True)
-    write_file(
-        path.join(manuals_dir, "generic.man_t"),
-        renderer.render("generic.man_t_t", options),
-    )
+    if options.get("with_manuals") or options.get("full"):
+        # create manuals folder containing the suite manual
+        manuals_dir = path.join(root_path, "manuals")
+        os.makedirs(manuals_dir, exist_ok=True)
+        write_file(
+            path.join(manuals_dir, "generic.man_t"),
+            renderer.render("generic.man_t_t", options),
+        )
 
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
@@ -190,10 +232,11 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
     )
-    write_file(
-        path.join(config_dir, "src.yaml"),
-        renderer.render("src.yaml_t", options),
-    )
+    if options.get("with_extras") or options.get("full"):
+        write_file(
+            path.join(config_dir, "src.yaml"),
+            renderer.render("src.yaml_t", options),
+        )
 
     # write test file
     test_dir = path.join(root_path, "tests")
@@ -294,6 +337,43 @@ def get_parser() -> ArgumentParser:
         dest="deploy_root",
         help="Suite deployment root path",
     )
+    group = parser.add_argument_group("Optional components")
+    group.add_argument(
+        "--vscode",
+        action="store_true",
+        dest="vscode",
+        help="Generate VSCode debug configuration",
+    )
+    group.add_argument(
+        "--with-snippets",
+        action="store_true",
+        dest="with_snippets",
+        help="Generate snippets/ folder",
+    )
+    group.add_argument(
+        "--with-src",
+        action="store_true",
+        dest="with_src",
+        help="Generate src/ folder",
+    )
+    group.add_argument(
+        "--with-manuals",
+        action="store_true",
+        dest="with_manuals",
+        help="Generate manuals/ folder",
+    )
+    group.add_argument(
+        "--with-extras",
+        action="store_true",
+        dest="with_extras",
+        help="Generate .gitignore, pyproject.toml, configs/src.yaml",
+    )
+    group.add_argument(
+        "--full",
+        action="store_true",
+        dest="full",
+        help="Enable all optional components",
+    )
     group = parser.add_argument_group("Project templating")
     group.add_argument(
         "-t",
@@ -330,7 +410,7 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
         r"\W", "_", options["project"]
     )  # can't have special characters in python module names
     options["profiles"] = '"profiles.yaml"'  # default profiles file
-    
+
     try:
         if "interactive" in options:
             ask_user(options)

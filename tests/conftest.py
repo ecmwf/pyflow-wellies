@@ -217,6 +217,52 @@ def quickstart(tmpdir):
 
 
 @pytest.fixture
+def quickstart_vscode(tmpdir):
+    suite_dir = pjoin(tmpdir, "my-suite-path")
+    deploy_dir = pjoin(tmpdir, "deploy")
+
+    main(
+        [
+            "my-suite",
+            "-p",
+            f"{suite_dir}",
+            "--deploy_root",
+            str(deploy_dir),
+            "--output_root",
+            "/my/output/root",
+            "--host",
+            "localhost",
+            "--vscode",
+        ]
+    )
+
+    return suite_dir, deploy_dir
+
+
+@pytest.fixture
+def quickstart_full(tmpdir):
+    suite_dir = pjoin(tmpdir, "my-suite-path")
+    deploy_dir = pjoin(tmpdir, "deploy")
+
+    main(
+        [
+            "my-suite",
+            "-p",
+            f"{suite_dir}",
+            "--deploy_root",
+            str(deploy_dir),
+            "--output_root",
+            "/my/output/root",
+            "--host",
+            "localhost",
+            "--full",
+        ]
+    )
+
+    return suite_dir, deploy_dir
+
+
+@pytest.fixture
 def quickstart_local_git(quickstart, request):
 
     import git
