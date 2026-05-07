@@ -13,6 +13,7 @@ from wellies import tools
 def test_tool_store(custom_script_file):
     lib_dir = os.path.join("path", "to", "lib")
     tools_dict = {
+        "options": {"list_modules": True},
         "modules": {
             "python3": {"version": 3.8},
             "private": {
@@ -68,6 +69,10 @@ def test_tool_store(custom_script_file):
 
     assert toolstore.depends("bin") == ["private", "python3"]
     assert toolstore.depends("myenv2") == ["python3"]
+    assert "module list" in toolstore.load("myenv2")
+    assert "module list" in toolstore.load("myenv1")
+    toolstore.list_modules = False
+    assert "module list" not in toolstore.load("myenv2")
 
 
 class BaseToolScriptsTest:
@@ -133,7 +138,15 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        pkgs_str = ""
+        ws = ""
+        for pkg in extra_pkgs:
+            pkgs_str += (
+                f"{ws}'{pkg}'"
+                if set(pkg).intersection(set("><"))
+                else f"{ws}{pkg}"
+            )
+            ws = " "
 
         expected = {
             "load": [f"source {self.lib_dir}/{test_target}/bin/activate"],
@@ -141,7 +154,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
                 f"python3 -m venv {self.lib_dir}/{test_target}  --system-site-packages",
-                f"pip install {extra_pkgs}",
+                f"pip install {pkgs_str}",
             ],
         }
 
@@ -272,7 +285,15 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
         extra_pkgs = tools_config["environments"][test_target][
             "extra_packages"
         ]
-        extra_pkgs = " ".join(extra_pkgs)
+        pkgs_str = ""
+        ws = ""
+        for pkg in extra_pkgs:
+            pkgs_str += (
+                f"{ws}'{pkg}'"
+                if set(pkg).intersection(set("><"))
+                else f"{ws}{pkg}"
+            )
+            ws = " "
         conda_cmd = tools_config["environments"][test_target]["conda_cmd"]
 
         expected = {
@@ -284,7 +305,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
             "unload": ["conda deactivate"],
             "setup": [
                 f"rm -rf {self.lib_dir}/{test_target}",
-                f"{conda_cmd} create -p {self.lib_dir}/{test_target} {extra_pkgs}",
+                f"{conda_cmd} create -p {self.lib_dir}/{test_target} {pkgs_str}",
             ],
         }
 
@@ -441,6 +462,31 @@ class TestPackageToolScripts(BaseToolScriptsTest):
                 f"{custom_script}",
                 "ecflow_client --label=version $(if [[ -f version.txt ]]; then cat version.txt; else echo NA; fi)",
             ],
+        }
+
+        self._run(test_target, expected, tools_config)
+
+
+class TestModulesToolsScripts(BaseToolScriptsTest):
+    section = "modules"
+
+    def test_modules(self, tools_config):
+        test_target = "netcdf4"
+        tconfig = tools_config["modules"][test_target]
+        tversion = tconfig.get("version", "default")
+        target_label = f"{test_target}/{tversion}"
+
+        expected = {
+            "load": [
+                "set +ux",
+                f"module unload {test_target} || true",
+                f"module load {target_label}",
+                "set -ux",
+            ],
+            "unload": [
+                f"module unload {test_target}",
+            ],
+            "setup": [],
         }
 
         self._run(test_target, expected, tools_config)

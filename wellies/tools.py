@@ -1,4 +1,5 @@
 import os
+import shlex
 from os import path
 from typing import Dict
 from typing import List
@@ -354,7 +355,7 @@ class VirtualEnvTool(Tool):
         ]
         if extra_packages:
             setup.extend(load)
-            pkgs = " ".join(extra_packages)
+            pkgs = " ".join([shlex.quote(pkg) for pkg in extra_packages])
             setup.append(f"pip install {pkgs}")
         super().__init__(name, depends, load, unload, setup, options=options)
 
@@ -544,7 +545,7 @@ class SimpleCondaEnvTool(CondaEnvTool):
             A dictionary of options for the tool, by default {}.
         """
         env_root = path.join(lib_dir, name)
-        packages_str = " ".join(packages)
+        packages_str = " ".join([shlex.quote(pkg) for pkg in packages])
         setup = pf.TemplateScript(
             conda_create,
             ENV_DIR=env_root,
@@ -746,11 +747,13 @@ class ToolStore:
         """
         if options is None:
             options = {}
+        store_options = options.pop("options", {})
         self.modules = options.get("modules", {})
         self.packages = options.get("packages", {})
         self.environments = options.get("environments", {})
         self.env_vars = options.get("env_variables", {})
         self.dir = lib_dir
+        self.list_modules = store_options.get("list_modules", True)
 
         # Build tools
         self.tools = {}
@@ -830,7 +833,10 @@ class ToolStore:
         script["head"] = "# load tools and activate environment"
         for item in tools:
             script.update(self.tool_script("load", item))
-        return list(script.values())
+        load_scripts = list(script.values())
+        if self.list_modules:
+            load_scripts.append("module list")
+        return load_scripts
 
     def unload(self, tools: Union[List[str], str]):
         """
