@@ -24,6 +24,9 @@ A `host` entry is defined by the following parameters:
 - `user`: the user name to use when dealing with the host. If remote the user must have access to the host
   by `hostname` via any protocol it is defined to use, e.g `ssh`.
 
+Different `Host` types can be configured using the syntax `host_type: host_type_name` and the corresponding options for that type. If no `host_type` is defined, it will default to `TroikaHost` for backwards compatibility. Alternatively, another special case is the key `localhost` which will point to
+`LocalHost`.
+
 Optionally, a `host` entry can define the following parameters:
 - `ecflow_path`: The path to the ecflow_client executable on `hostname`. If None, try to get from the current `PATH` where the `ecflow_client` must be present. Defaults to None.
 - `server_ecfvars`: Whether to use **server-side** ECF_ variables. This will make pyflow to not define the variables: `ECF_JOB_CMD`, `ECF_CHECK_CMD`, `ECF_KILL_CMD` and `ECF_STATUS_CMD`. Defaults to `False`.
@@ -47,7 +50,7 @@ groups of submission options to be use for different tasks that can run on a par
 
 ```yaml title="host.yaml"
 host:
-    hostname: "my.slurm.cluster"
+    hostname: "slurm:my.slurm.cluster"
     user: "a_username"
     log_directory: "%ECF_HOME%"
     workdir: "$TMPDIR"
