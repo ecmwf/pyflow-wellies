@@ -81,6 +81,7 @@ def get_host(
         name="%HOST%",
         user=user,
         extra_variables=extra_variables,
+        server_ecfvars=server_ecfvars,
         ecflow_path=ecflow_path,
         submit_arguments=submit_arguments,
         **kwargs,
