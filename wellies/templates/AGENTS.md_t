@@ -1,0 +1,187 @@
+# {{ project }} — Agent Notes
+
+## Repository Purpose and structure
+
+{{ project }} defines ecflow suites built on top of [pyflow](https://github.com/ecmwf/pyflow) and
+[wellies](https://github.com/ecmwf/pyflow-wellies). Deployment uses
+[tracksuite](https://github.com/ecmwf/tracksuite). It was initially created by `wellies quickstart` command.
+
+{{ description | default("") }}
+```tree
+configs/
+  user.yaml          # main configuration, including suite name, ecflow server and other deployment and execution options.
+  host.yaml          # execution host configuration / resource manager settings.
+  tools.yaml         # installables tools and task runtime context configuration. Installation on the execution host is handled by the suite's `init` family.
+  data.yaml          # installables data definitions. Fetching/instantiation of data is handled by the suite's `init` family.
+deploy.py            # main python entry point; parses config files and builds the ecFlow suite.
+build.sh             # convenience wrapper with different use cases and configuration selections. Main launching point for deployment.
+profiles.yaml        # named set of configuration options. Used by `build.sh` to select different deployments.
+{{ project }}/
+  nodes.py           # main `pyflow`-based suite definition, built by `deploy.py`
+  config.py          # Configuration data model definition. Built by `deploy.py` from the YAML files in `configs/`
+tests/               # suite-level unit tests.
+    test_configs.py  # Basic configration and deployment tests. Uses `pytest`.
+scripts/             # Not in initial template, but a good standard to follow
+  compute_a.py       # Add any extra snippets or executables that will be used in the suite. Treat them either as templates for pyflow or installables tools.
+```
+
+## Co-development
+
+If the user asks for your help and you see the state of the project looking like the base template, take your time and ask questions
+about how the project should work. Cover all aspects, including the ecflow server and execution host real paths. You should
+assume there is an existing server for you to work with, but always test. If something is missing, stop and ask.
+
+Be mindful of local paths being broadcasted to remote machines, and the opposite. DO NOT TRY to find out remote locations by
+yourself, present the issue and ask.
+
+## Vocabulary
+
+- **Suite/Node/Family/Task replace**: means structural changes to the ecflow definition, changes status
+and current values of already started workflows
+- **deploy(ment)**: means regenerating scripts and definition file. Those changes are picked up automatically by
+the ecflow_server as soon as deployment is complete.
+
+## How to Deploy
+
+Prioritise using the `build.sh` script as the main entry point for deployment. There may be different set-up steps
+depending on the machine you are running on, inpect `build.sh` to check compatibility. **STOP AND ASK** when things go wrong.
+
+```shell
+# On ECMWF HPC
+./build.sh user  # or: module load wellies/1.1.0 && ./deploy.py configs/config.yaml configs/host.yaml configs/tools_data.yaml
+```
+
+whilst running, `tracksuite` will show a diff-like list of modified files. It will also ask for confirmation (input `y`).
+
+If users requests a summary of changes, do your own diff in the same directories that the `tracksuite` CLI is
+doing, inspects the changes across all files and summarise. Some changes can be broadcasted to many files (like changing
+the ecflow version will change every single script), but those can be summarised as one change. YOU MUST DO YOUR DIFF **BEFORE**
+accepting tracksuite's input, otherwise deployment will go forward and staging/local will be synced. Start a new terminal if needed.
+
+USE TRACKSUITE'S diff when you want to double-check your changes in scripts are as expected or to confirm some behaviour in script generation.
+
+## Configuration
+
+Configuration is constructed by stacking multiple YAML files in `configs/` directory.
+The `Config` class in `deploy.py` merges these via `wellies.parse_yaml_files`.
+Duplicated entries are overridden by the last file in the stack, so the order matters, except
+for the block `ecflow_variables` which is merged across all files.
+
+Values can be overriden at runtime by passing them to `deploy.py` as CLI arguments, for example:
+```shell
+./build.sh user -s suite_name=my_new_suite
+```
+
+This can only **change** existing keys, not create new ones.
+
+`wellies` provides a simple templating system for configuration entries,
+so values can reference other values in the configuration. For example:
+
+```yaml
+suite_name: my_suite
+suite_dir: /path/to/suites/\{suite_name\}
+```
+
+It also provides some global template variables like `{ HOME }` or `{ USER }`. **ATTENTION**: This will always resolve to
+local values during deployment, which may be invalid if the project is deployed remotely from the ecflow-server or execution host.
+Always check the resolved values in the deployment summary and ask if you are not sure.
+
+## Split of Contexts
+
+There are three different contexts that a suite will interact with:
+- **Deployment**: the environment where `deploy.py` is run, which needs to have access to the repository and its
+files, and all the dependencies required by `deploy.py` and `wellies` for deployment. Deployment may include sending generated files to
+a remote machine.
+- **ecflow-server**: the environment where the ecflow-server is running, which needs to have access to the generated suite
+definition file and all the files referenced by it, including scripts, headers and manual files. This may be a local machine,
+a remote machine in a shared or isolated filesystem. The deployment tools are able to take care of it, provided the correct configuration is set.
+- **Task execution**: the environment where the tasks are executed, which needs to have access to job files, executables and data.
+The ecflow-server is responsible to communicate with the execution host. Some level of configuration is available to specify what, where and how
+this communication happens and enable certain tools are available at runtime.
+
+**IMPORTANT**: DO NOT MIX THESE CONTEXTS OR ASSUME HAVING DIRECT ACCESS TO DEPLOYED FILES IS A VALID SHORTCUT.
+
+### Deployment context
+
+Always inspect the `build.sh` script the current accepted deployment setup.
+If you require to build a local, be sure you are using the same versions.
+
+- `ecflow` (HPC module or conda package from `conda-forge`)
+- `wellies` (HPC module or pip installable from indexed package `pyflow-wellies`)
+- `pyflow` (comes with `wellies` HPC module or pip installable from indexed package `pyflow-workflow-generator`)
+
+> IMPORTANT: **NEVER** use `defaults` channel for conda packages, **only** `conda-forge`. If you can't find a package in conda-forge, stop.
+
+### ecflow-server context
+
+The `ecflow_server` configuration block provides all options you may want to check or change regarding the ecflow-server context.
+The most important ones are:
+
+- **hostname**: the machine where the server is running.
+- *deploy_dir*: The target directory, in **hostname**, where generated files are sent by deployment.
+- **user**: the user that runs the server and executes the deployment, which needs to have access to all generated files and target directories on *host*.
+
+### Task runtime context
+
+Each node can specify a execution host and runtime context configuration. For the host, it is defined in `host.yaml` and the most
+important options are:
+
+- **hostname**: the machine where the task is executed. This is directly associated with the underlying `pyflow.Host` class.
+- **user**: the user that executes the task.
+- **log_directory**: the directory where task job outputs are stored.
+- **submit_arguments**: the arguments passed to the underlying `pyflow.Host` submit method,
+  which is responsible to send the task to the execution host. This is where you can specify resource manager
+  options, for example, the number of cores, memory or walltime.
+
+This sets how a job will be submitted and the queing system config level. For internal tasks runtime context, you need
+to work with `wellies`'s tools configuration. In the task script you can then use `config.tools.load("tool_name")` to
+create a loading snippet for that tool. Tools can be grouped in environments and have a dependency tree. Check wellies documentation
+for more examples.
+
+## Development environment
+
+If building a local development environment or running outside of ECMWF's HPC system, create a minimal conda environment with `ecflow`
+
+```shell
+conda env create -c conda-forge python=3.11 ecflow -n {{ project }}-env
+```
+
+then install other packages using `pip`.
+
+> Note: If using conda on ECMWF's HPC system, you must first load it module with: `module load conda`. This disables any other module currently loaded and the ability to load any other module other than conda.
+
+## More notes for Agents
+
+- For more details about any of the comments below, check the appropriate documentation or source code. All are open-source projects.
+- `ecflow` is a client-server system, but also a scripting language for job-like tasks.
+- `pyflow` provides a more Pythonic way to define suites and tasks, and acts as a compiler that generates the `ecflow` scripts and suite definition file.
+- `wellies` provides a configuration framework and interface to `tracksuite` deployment tool.
+- Treat deployed/generated files as READ-ONLY. Always go through the deployment process to change them.
+- ALWAYS go through the ecflow_client commands to interact with the server, run tasks or change nodes.
+- `deploy.py` uses `tracksuite` under the hood (via wellies) for git-tracked suite deployment with `git commit` on the deploy directory.
+- When running any command that requires a task runtime context or environment, inspect the task jobfile to find out how to reproduce such environment. You
+  can ignore everything that is related to `ecflow` like exporting `EC_*`
+  variables or loading the `ecflow` module.
+- `pyflow` enforces certain structure for generated scripts, specially with variables. At deploy time, the in-memory
+  script body is inspected for used bash variables, all that are also ecflow variables are automatically exported in the script header.
+  This means that if you want to use a variable in the script body, you need to make sure it is defined as an ecflow variable.
+- USE `ecflow_client requeue --aborted` whenever possible, this requeues all aborted tasks under a node.
+- A node with a repeat will be requeued as a whole as soon as all nodes in it are complete. Without guardrail the cycle run freely.
+  You can still access older logs even if the node is queued, just make sure the logs you are reading are the ones you want to read.
+- When you `execute` or `rerun` a node, the ecflow_server increments the ECF_TRYNO variable. This create new log files and can be use to compare different runs.
+  When a task is requeued, the ECF_TRYNO is reset to 0, until it is submitted again.
+- If you replace a node with a `Repeat`, this will reset the cycle to the start. Replacing children nodes under it, does have have the same effect.
+  If restarting the cycle is not the intent and you still want to replace the whole node, follow:
+  1. suspend
+  2. get current step value
+  3. replace
+  4. change repeat variable value to original value
+  5. resume.
+
+## References
+
+- `ecflow` documentation: https://ecflow.readthedocs.io/en/latest/ ; project: https://github.com/ecmwf/ecflow
+- `pyflow` documentation: https://pyflow-workflow-generator.readthedocs.io ; project: https://github.com/ecmwf/pyflow
+- `wellies` documentation: https://pyflow-wellies.readthedocs.io/en/latest/ ; project: https://github.com/ecmwf/pyflow-wellies
+- `tracksuite` documentation: https://pyflow-wellies.readthedocs.io/latest/tracksuite_guide/ ; project: https://github.com/ecmwf/tracksuite
+- `suite design standards`: https://sites.ecmwf.int/docs/ifs-arpege-coding-standards/suites/index.html
