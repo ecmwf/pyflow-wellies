@@ -2,10 +2,9 @@ from importlib.resources import files
 import pyflow
 
 class ScriptLoader:
-    """Simple class to load sample scripts and snippets from the wellies/scripts directory as 
-    package resources.
+    """Load scripts/snippets from package resources (default: ``wellies/scripts``).
 
-    The main method `.load` takes a script name and returns the contents of the script as a list of lines.
+    The main method :meth:`load` takes a script name and returns a :class:`pyflow.Script`.
     """
 
     def __init__(self, subdir: str = "scripts"):
