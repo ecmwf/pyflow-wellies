@@ -226,7 +226,7 @@ def str_to_bool(value):
 
 def nested_set(dic, keys, value):
     """
-    Set the values from a nested dictionnary using a list of keys.
+    Set the values from a nested dictionary using a list of keys.
 
     The command line value is always a string. When a value already exists for
     the target key, the string is coerced to that value's type so that, for
