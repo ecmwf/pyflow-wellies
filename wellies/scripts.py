@@ -1,3 +1,32 @@
+from importlib.resources import files
+
+
+class ScriptLoader:
+    """Simple class to load sample scripts and snippets from the wellies/scripts directory as 
+    package resources.
+
+    The main method `.load` takes a script name and returns the contents of the script as a list of lines.
+    """
+
+    def __init__(self, subdir: str = "scripts"):
+        self.subdir = subdir
+
+    def load(self, script_name: str) -> list[str]:
+        """Load a script from the wellies/scripts directory.
+
+        Args:
+        -----
+            script_name (str): The name of the script to load.
+        Returns:
+        --------
+            list[str]: The contents of the script as a list of lines.
+        """
+        resource = files("wellies")
+        for part in self.subdir.split("/"):
+            resource = resource.joinpath(part)
+        return resource.joinpath(script_name).read_text().splitlines()
+
+
 # flake8: noqa
 def update_label(label, value):
     return "ecflow_client --label={} {}".format(label, value)
