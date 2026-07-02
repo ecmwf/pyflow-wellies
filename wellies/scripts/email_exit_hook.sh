@@ -10,7 +10,7 @@ local TO=%MAIL_USER:%
 local EXIT_STATUS="${EXIT_RC:-0}"
 
 # Decode exit status to determine context and build appropriate message
-ELAPSED=$((SLURM_JOB_END_TIME - SLURM_JOB_START_TIME))
+ELAPSED=$(( ${SLURM_JOB_END_TIME:-0} - ${SLURM_JOB_START_TIME:-0} ))
 EMAIL_BODY="Running on $HOSTNAME as ${USER} after ${ELAPSED} seconds\\n"
 
 if [[ ${EXIT_STATUS} -eq 0 ]]; then
