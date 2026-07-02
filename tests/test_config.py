@@ -5,8 +5,10 @@ import pytest
 import yaml
 
 from wellies.config import concatenate_yaml_files
+from wellies.config import nested_set
 from wellies.config import overwrite_entries
 from wellies.config import substitute_variables
+from wellies.exceptions import WelliesConfigurationError
 
 
 class TestYamlParser:
@@ -293,3 +295,120 @@ class TestYamlParser:
 
         with pytest.raises(ValueError):
             self._run(config_in, expected=None)
+
+
+class TestOverwriteEntries:
+    """Tests for the ``-s KEY=VALUE`` command line override mechanism.
+
+    The override is applied by ``overwrite_entries`` which delegates the
+    per-key assignment to ``nested_set``. ``nested_set`` coerces the (always
+    string) command line value to the type of the value already present in the
+    configuration.
+    """
+
+    def test_overwrite_falsy_bool(self):
+        # A ``False`` value in the config used to be interpreted as "no value"
+        # because of a truthiness check, raising a TypeError.
+        options = {"flag": False}
+        result = overwrite_entries(options, ["flag=true"])
+        assert result == {"flag": True}
+        assert result["flag"] is True
+
+    def test_overwrite_true_with_false(self):
+        # bool("false") is True, so a naive coercion would keep the value True.
+        options = {"flag": True}
+        result = overwrite_entries(options, ["flag=false"])
+        assert result == {"flag": False}
+        assert result["flag"] is False
+
+    def test_overwrite_falsy_int(self):
+        options = {"count": 0}
+        result = overwrite_entries(options, ["count=5"])
+        assert result == {"count": 5}
+        assert isinstance(result["count"], int)
+
+    def test_overwrite_falsy_float(self):
+        options = {"ratio": 0.0}
+        result = overwrite_entries(options, ["ratio=1.5"])
+        assert result == {"ratio": 1.5}
+        assert isinstance(result["ratio"], float)
+
+    def test_overwrite_empty_string(self):
+        options = {"name": ""}
+        result = overwrite_entries(options, ["name=hello"])
+        assert result == {"name": "hello"}
+
+    def test_overwrite_none_value(self):
+        # A null value in yaml gives no type information, the override should
+        # be kept as a plain string rather than crashing.
+        options = {"name": None}
+        result = overwrite_entries(options, ["name=hello"])
+        assert result == {"name": "hello"}
+
+    def test_overwrite_preserves_int_type(self):
+        options = {"count": 10}
+        result = overwrite_entries(options, ["count=20"])
+        assert result == {"count": 20}
+        assert isinstance(result["count"], int)
+
+    def test_overwrite_preserves_float_type(self):
+        options = {"ratio": 1.0}
+        result = overwrite_entries(options, ["ratio=2.5"])
+        assert result == {"ratio": 2.5}
+        assert isinstance(result["ratio"], float)
+
+    def test_overwrite_falsy_nested(self):
+        options = {"data": {"flag": False, "other": "keep"}}
+        result = overwrite_entries(options, ["data.flag=true"])
+        assert result == {"data": {"flag": True, "other": "keep"}}
+
+    @pytest.mark.parametrize(
+        "raw, expected",
+        [
+            ("true", True),
+            ("True", True),
+            ("TRUE", True),
+            ("1", True),
+            ("yes", True),
+            ("on", True),
+            ("false", False),
+            ("False", False),
+            ("FALSE", False),
+            ("0", False),
+            ("no", False),
+            ("off", False),
+        ],
+    )
+    def test_overwrite_bool_representations(self, raw, expected):
+        options = {"flag": True}
+        result = overwrite_entries(options, [f"flag={raw}"])
+        assert result["flag"] is expected
+
+    def test_overwrite_invalid_bool_raises(self):
+        options = {"flag": False}
+        with pytest.raises(WelliesConfigurationError):
+            overwrite_entries(options, ["flag=maybe"])
+
+    def test_overwrite_multiple_values(self):
+        options = {"flag": False, "count": 0, "name": "old"}
+        result = overwrite_entries(
+            options, ["flag=true", "count=3", "name=new"]
+        )
+        assert result == {"flag": True, "count": 3, "name": "new"}
+
+    def test_overwrite_none_values_noop(self):
+        options = {"flag": False}
+        result = overwrite_entries(options, None)
+        assert result == {"flag": False}
+
+    def test_overwrite_new_key_kept_as_string(self):
+        # Setting a key that does not exist yet has no type information, so the
+        # value is kept as a plain string.
+        options = {"existing": "value"}
+        result = overwrite_entries(options, ["brand_new=42"])
+        assert result == {"existing": "value", "brand_new": "42"}
+
+    def test_nested_set_falsy_bool_directly(self):
+        dic = {"flag": False}
+        nested_set(dic, ["flag"], "true")
+        assert dic["flag"] is True
