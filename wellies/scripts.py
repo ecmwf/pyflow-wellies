@@ -1,5 +1,5 @@
 from importlib.resources import files
-
+import pyflow
 
 class ScriptLoader:
     """Simple class to load sample scripts and snippets from the wellies/scripts directory as 
@@ -11,7 +11,7 @@ class ScriptLoader:
     def __init__(self, subdir: str = "scripts"):
         self.subdir = subdir
 
-    def load(self, script_name: str) -> list[str]:
+    def load(self, script_name: str) -> pyflow.Script:
         """Load a script from the wellies/scripts directory.
 
         Args:
@@ -19,12 +19,12 @@ class ScriptLoader:
             script_name (str): The name of the script to load.
         Returns:
         --------
-            list[str]: The contents of the script as a list of lines.
+            pyflow.Script: The contents of the script as a pyflow.Script object.
         """
         resource = files("wellies")
         for part in self.subdir.split("/"):
             resource = resource.joinpath(part)
-        return resource.joinpath(script_name).read_text().splitlines()
+        return pyflow.Script(resource.joinpath(script_name).read_text().splitlines())
 
 
 # flake8: noqa
