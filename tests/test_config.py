@@ -121,7 +121,9 @@ class TestYamlParser:
         }
         self._run(config_in, expected=expected)
 
-    @pytest.mark.xfail(reason="Substution inside lists not supported")
+    @pytest.mark.xfail(
+        reason="Substution inside lists not supported", strict=True
+    )
     def test_replace_inside_list(self):
         config_in = """
         user: dummy
