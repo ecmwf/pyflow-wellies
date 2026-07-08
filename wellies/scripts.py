@@ -1,6 +1,7 @@
-# flake8: noqa
 from importlib.resources import files
+
 import pyflow
+
 
 class ScriptLoader:
     """Load scripts/snippets from package resources (default: ``wellies/scripts``).
@@ -24,7 +25,9 @@ class ScriptLoader:
         resource = files("wellies")
         for part in self.subdir.split("/"):
             resource = resource.joinpath(part)
-        return pyflow.Script(resource.joinpath(script_name).read_text().splitlines())
+        return pyflow.Script(
+            resource.joinpath(script_name).read_text().splitlines()
+        )
 
 
 # flake8: noqa
