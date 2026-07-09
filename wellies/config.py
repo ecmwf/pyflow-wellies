@@ -200,15 +200,49 @@ def parse_vars(items):
     return dict(map(lambda s: s.split("="), items))
 
 
+_TRUE_STRINGS = {"true", "1", "yes", "on"}
+_FALSE_STRINGS = {"false", "0", "no", "off"}
+
+
+def str_to_bool(value):
+    """
+    Convert a string command line value to a boolean.
+
+    Using the ``bool`` built-in directly is not suitable here because any
+    non-empty string (including ``"false"`` or ``"0"``) evaluates to ``True``.
+    """
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in _TRUE_STRINGS:
+        return True
+    if normalized in _FALSE_STRINGS:
+        return False
+    raise WelliesConfigurationError(
+        f"Cannot interpret '{value}' as a boolean value. "
+        f"Use one of {sorted(_TRUE_STRINGS | _FALSE_STRINGS)}."
+    )
+
+
 def nested_set(dic, keys, value):
     """
-    Set the values from a nested dictionnary using a list of keys
+    Set the values from a nested dictionary using a list of keys.
+
+    The command line value is always a string. When a value already exists for
+    the target key, the string is coerced to that value's type so that, for
+    example, integers stay integers. Booleans are handled explicitly because a
+    direct ``bool(value)`` cast would treat any non-empty string as ``True``.
     """
     for key in keys[:-1]:
         dic = dic[key]
     val_in_dic = dic.get(keys[-1], None)
-    val_type = type(val_in_dic) if val_in_dic else None
-    dic[keys[-1]] = val_type(value)
+    val_type = type(val_in_dic) if val_in_dic is not None else None
+    if val_type is bool:
+        dic[keys[-1]] = str_to_bool(value)
+    elif val_type is None:
+        dic[keys[-1]] = value
+    else:
+        dic[keys[-1]] = val_type(value)
 
 
 _ENV_VARS = [
