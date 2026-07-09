@@ -1,5 +1,9 @@
+from pathlib import Path
+
 import pyflow as pf
 import wellies as wl
+
+from .config import SCRIPTS_DIR
 
 
 class InitFamily(pf.AnchorFamily):
@@ -24,8 +28,13 @@ class MainFamily(pf.AnchorFamily):
         super().__init__(name='main', **kwargs)
         with self:
             pf.Task(
-                name='dummy',
+                name='hello_world',
                 submit_arguments="sequential",
+                script=[
+                    pf.FileScript(Path(SCRIPTS_DIR) / "greet.sh"),  # suite script snippet
+                    "python3 -m hello_world",                       # locally defined executable module
+                    "grib_ls -m $DATA_DIR/mars_sample/t.grb",       # `grib_ls` is provided by ecmwf-toolbox module. `t.grb` is acquired as static data.
+                ]
             )
 
 

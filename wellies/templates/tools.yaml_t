@@ -17,15 +17,25 @@ tools:
 
   # ---------- Extra installables -----------------------------------------------
   packages:
-    earthkit:
+    earthkit_data:
       type: git
       source: git@github.com:ecmwf/earthkit-data.git
       branch: develop
       post_script: "pip install . --no-deps"
+    scripts:
+      type: copy
+      source: "{ROOT}/bin"
+      files: ["hello_world.py"]
+      post_script: "cp *.py $LIB_DIR/${ENV_NAME:-}/bin"
+
+  env_variables:
+    USE_FINDLIBS:
+      variable: "ECCODES_PYTHON_USE_FINDLIBS"
+      value: "1"
 
   # --------Virtual envs --------------------------------------------------
   environments:
       suite_env:
           type: system_venv
-          depends: [python, ecmwf-toolbox]
-          packages: [earthkit]
+          depends: [python, ecmwf-toolbox, USE_FINDLIBS]
+          packages: [earthkit_data, scripts]
