@@ -173,7 +173,7 @@ class TestEnvToolsScripts(BaseToolScriptsTest):
 
         self._run(test_target, expected, tools_config)
 
-    @pytest.mark.xfail(reason="pure venv not implemented")
+    @pytest.mark.xfail(reason="pure venv not implemented", strict=True)
     def test_rsync_venv(self, tools_config):
         test_target = "venv"
         src_dst = tools_config["environments"][test_target]["env_file"][

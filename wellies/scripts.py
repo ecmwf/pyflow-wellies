@@ -1,3 +1,35 @@
+from importlib.resources import files
+
+import pyflow
+
+
+class ScriptLoader:
+    """Load scripts/snippets from package resources (default: ``wellies/scripts``).
+
+    The main method :meth:`load` takes a script name and returns a :class:`pyflow.Script`.
+    """
+
+    def __init__(self, subdir: str = "scripts"):
+        self.subdir = subdir
+
+    def load(self, script_name: str) -> pyflow.Script:
+        """Load a script from the wellies/scripts directory.
+
+        Args:
+        -----
+            script_name (str): The name of the script to load.
+        Returns:
+        --------
+            pyflow.Script: The contents of the script as a pyflow.Script object.
+        """
+        resource = files("wellies")
+        for part in self.subdir.split("/"):
+            resource = resource.joinpath(part)
+        return pyflow.Script(
+            resource.joinpath(script_name).read_text().splitlines()
+        )
+
+
 # flake8: noqa
 def update_label(label, value):
     return "ecflow_client --label={} {}".format(label, value)
