@@ -22,7 +22,7 @@ else
     EXIT_REASON="failed with exit code ${EXIT_STATUS}"
     EMAIL_SUBJECT="[ABORT] Job ${TASK_PATH} failed in attempt "%ECF_TRYNO%
     EMAIL_BODY="<html><body style=\"margin:0; padding:0;\"><p style=\"margin:0 0 12px 0;\">Running on ${HOSTNAME} as ${USER} after ${ELAPSED} seconds</p><p style=\"margin:0 0 12px 0;\">Job ${HOST}:${TASK_PATH} was terminated with exit status: ${EXIT_STATUS}<br/>job file: %ECF_JOB%<br/>log file: %ECF_JOBOUT%</p>"
-    traceback=$(grep -m 1 -A 20 -B 5 -n ERROR %ECF_JOBOUT%)
+    traceback=$(grep -m 1 -A 5 -B 20 -n ERROR %ECF_JOBOUT%)
     traceback_escaped=$(printf '%%s' "${traceback}" | sed -e 's/&/\\&amp;/g' -e 's/</\\&lt;/g' -e 's/>/\\&gt;/g')
     EMAIL_BODY=$EMAIL_BODY"<table border=\"0\" cellpadding=\"10\" cellspacing=\"0\" width=\"600\" bgcolor=\"#f5f5f5\" style=\"background-color:#f5f5f5; border:1px solid #dddddd; border-collapse:collapse; width:600px;\"><tr><td bgcolor=\"#f5f5f5\" style=\"background-color:#f5f5f5;\"><pre style=\"margin:0; font-family:Consolas,'Courier New',monospace; font-size:12px; color:#333333; white-space:pre-wrap;\">${traceback_escaped}</pre></td></tr></table></body></html>"
     EMAIL_IS_HTML=1
