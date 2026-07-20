@@ -210,7 +210,7 @@ ecflow_variables:
 To deploy the updated suite we do
 
 ```shell
-$ ./deploy.py configs/*.yaml
+$ ./build.sh user
 Running on host: localhost
 ------------------------------------------------------
 Staging suite to /tmp/build_efas_report_k52s_1ra
@@ -276,8 +276,8 @@ model runs. In our example we can add configuration options accordingly:
 
 ```yaml title="config.yaml"
 n_cycles: 2
-start_date: 2024-01-01
-end_date: 2024-01-07
+start_date: "20240101"
+end_date: "20240107"
 ```
 
 Next we use wellies to configure a MARS request. We give each request a name, a type, here `mars` and a request body.
@@ -346,6 +346,7 @@ class Config:
             args.profiles,
             config_name=args.name,
             set_variables=args.set,
+            global_vars=self.global_vars,
         )
 
         # put everything from the yaml into class variables
@@ -376,6 +377,7 @@ class Config:
             args.profiles,
             config_name=args.name,
             set_variables=args.set,
+            global_vars=self.global_vars,
         )
 
         # put everything from the yaml into class variables
@@ -385,8 +387,8 @@ class Config:
         self.ecflow_server = wl.EcflowServer(**options["ecflow_server"])
 
         self.cycles = range(0, 24, 24 // options.get('n_cycles', 1))
-        self.start_date = dt.strptime(options['start_date'], "%Y-%m-%d")
-        self.end_date = dt.strptime(options['start_date'], "%Y-%m-%d")
+        self.start_date = dt.strptime(options['start_date'], "%Y%m%d")
+        self.end_date = dt.strptime(options['end_date'], "%Y%m%d")
 
         self.fc_retrievals = [
             wl.data.parse_data_item("$OUTPUT_ROOT", entry['name'], entry)
@@ -443,7 +445,7 @@ class MainFamily(pf.AnchorFamily):
                 f_issue = IssueFamily(config, cycle)
                 if f_previous is not None:
                     f_issue.triggers = f_previous.complete
-                    f_previous = f_issue
+                f_previous = f_issue
 ```
 
 For readability we also define an `IssueFamily` class that holds the logic of a
@@ -462,16 +464,14 @@ tools:
       version: 2024.09.0.0
       depends: [python]
   packages:
-    earthkit:
-      type: git
-      source: git@github.com:ecmwf/earthkit-data.git
-      branch: develop
-      post_script: "pip install . --no-deps"
+    scripts:
+      type: rsync
+      source: "{ROOT}/scripts"
   environments:
       suite_env:
           type: system_venv
           depends: [python, ecmwf-toolbox]
-          packages: [earthkit]
+          packages: [scripts]
 ```
 
 We're now able to add the loading of the `ecmwf-toolbox` module to our script using the `config.tools.load('ecmwf-toolbox')`
@@ -489,14 +489,169 @@ n_ret = pf.Task(
 
 For more detail on using tools see the [tools documentation](./config/tools_config.md).
 
-We've now defined most of the components of the suite:
+We've now defined most of the components of the suite. The remaining piece
+is the actual plotting task that produces our EFAS-style report maps.
 
-# TODO's
+## Creating the plotting script
 
-- Update paths to real files so the tutorial can be run end to end.
-- Show jupyter notebook that run earthkit maps plotting for efas data.
-- Create script that runs with arguments appropriate
-- the main configuration of the suite
-- the host specifications
-- the data that will be retrieved by the suite
-- the details of the environment that will run in our tasks
+Our `plots` task needs a script that reads the retrieved GRIB data and produces
+a map for each forecast step. We'll create a Python script based on
+[earthkit-plots](https://earthkit-plots.readthedocs.io/en/stable/examples/gallery/gridded-data/efas.html)
+and wrap it in a bash launcher that the ecflow task will call.
+
+First, create the plotting script in your project's `efas_report/scripts/` directory:
+
+```python title="efas_report/scripts/plot_efas.py"
+"""Produce an EFAS-style discharge map for a single forecast step."""
+import sys
+from pathlib import Path
+
+import earthkit.data
+import earthkit.plots
+
+def plot_step(input_file, output_dir, step):
+    """Plot a single forecast step and save as PNG."""
+    ds = earthkit.data.from_source("file", input_file)
+    field = ds.sel(step=step)
+
+    chart = earthkit.plots.Map()
+    chart.plot(field)
+    chart.title(f"EFAS Report - T+{step}h")
+
+    output_path = Path(output_dir) / f"efas_step_{step:03d}.png"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    chart.save(str(output_path))
+    print(f"Saved: {output_path}")
+
+if __name__ == "__main__":
+    plot_step(
+        input_file=sys.argv[1],
+        output_dir=sys.argv[2],
+        step=int(sys.argv[3]),
+    )
+```
+
+Then create the bash wrapper that ecflow will execute. This iterates over
+forecast steps for the current date and cycle:
+
+```bash title="efas_report/scripts/run_plots.sh"
+#!/bin/bash
+# Run plotting for all forecast steps
+# Variables YMD, HH, STEPS are provided by ecflow
+
+INPUT_DIR="$OUTPUT_ROOT/data/$YMD/$HH"
+OUTPUT_DIR="$OUTPUT_ROOT/plots/$YMD/$HH"
+
+for STEP in $STEPS; do
+    INPUT_FILE="$INPUT_DIR/forecast_step_${STEP}.grib"
+    python $LIB_DIR/scripts/plot_efas.py "$INPUT_FILE" "$OUTPUT_DIR" "$STEP"
+done
+
+echo "All plots complete for $YMD cycle $HH"
+```
+
+## Wiring the script into the suite
+
+Now we update the `plots` task in our `IssueFamily` to execute the wrapper
+script, loading the required tools environment first:
+
+```python title="nodes.py"
+class IssueFamily(pf.Family):
+    def __init__(self, config, hh, **kwargs):
+        hh_label = f"{hh:02.0f}"
+        variables = kwargs.pop('variables', {})
+        variables.update(dict(HH=hh_label, STEPS="6 12 18 24 48 72"))
+        super().__init__(name=hh_label, variables=variables, **kwargs)
+        with self:
+            # retrieve data
+            n_ret = pf.Task(
+                name='retrieve',
+                script=[
+                    config.tools.load('ecmwf-toolbox'),
+                    [dd.script for dd in config.fc_retrievals],
+                ],
+            )
+            # run report
+            n_plt = pf.Task(
+                name='plots',
+                script=[
+                    config.tools.load('suite_env'),
+                    "bash $LIB_DIR/scripts/run_plots.sh",
+                ],
+            )
+        n_plt.triggers = n_ret.complete
+```
+
+The `scripts/` directory needs to be declared in `tools.yaml` as a package so
+it gets deployed alongside the suite (already done in our earlier configuration).
+
+## Deploying and running the suite
+
+With all components in place, deploy the suite using the build script:
+
+```shell
+$ ./build.sh user
+```
+
+This will:
+
+1. Parse the `user` profile (defined in `profiles.yaml`) to load all config files.
+2. Generate the ecflow suite definition including all tasks, triggers, and scripts.
+3. Deploy scripts and definitions to the configured output directories.
+
+To generate the suite without deploying (useful for local inspection):
+
+```shell
+$ ./build.sh user -n
+```
+
+/// admonition | Tip
+    type: tip
+Use `-y` to skip interactive confirmation prompts during deployment, e.g.
+`./build.sh user -y`.
+///
+
+## Testing locally
+
+The generated project includes a test suite that validates your configuration
+builds correctly:
+
+```shell
+$ ./build.sh tests
+```
+
+This runs pytest against your suite definitions, ensuring all profiles produce
+valid ecflow definitions without needing access to the actual server.
+
+## Summary
+
+In this tutorial we built a complete operational suite that:
+
+- **Retrieves** forecast data from MARS for multiple cycles per day
+- **Processes** each forecast step through a plotting pipeline
+- **Manages** dependencies so plotting waits for data retrieval
+- **Deploys** tools, environments, and static data automatically via wellies
+
+The key wellies features used were:
+
+| Feature | Purpose |
+|---------|---------|
+| `wellies-quickstart` | Scaffold the project structure |
+| `Config` + YAML profiles | Separate configuration from logic |
+| `ToolStore` + environments | Manage software dependencies |
+| `StaticDataStore` + MARS | Declare and deploy input data |
+| `DeployToolsFamily` / `DeployDataFamily` | Automated initialisation tasks |
+
+## Next steps
+
+Here are some challenges to extend the suite further:
+
+1. **Add a verification step** — create a new task that compares today's
+   forecast plots against yesterday's and flags anomalies.
+2. **Archive logs** — wrap `MainFamily` in an
+   [ArchivedRepeatFamily](log_archiving.md) to manage job output files
+   across repeat iterations.
+3. **Add email notifications** — use the [email exit hook](exit_hook.md)
+   to get notified when plotting tasks fail.
+4. **Multi-host execution** — configure a second host in `host.yaml` and
+   run retrievals on a data-access node while plots run on a compute node.

@@ -15,6 +15,8 @@ nav:
   - Tutorials:
     - Building a new suite: quickstart_guide.md
     - Git-tracked deployment: tracksuite_guide.md
+    - Exit Hooks: exit_hook.md
+    - Log Archiving: log_archiving.md
   #- How to guides:
   - API:
     - Suite Building: api/config.md

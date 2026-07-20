@@ -7,3 +7,5 @@
 ::: wellies.tools.DeployToolsFamily
 
 ::: wellies.tools.DeployPackagesFamily
+
+::: wellies.log_archiving.ArchivedRepeatFamily
