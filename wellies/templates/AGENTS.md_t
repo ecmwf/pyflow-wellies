@@ -18,14 +18,17 @@ build.sh             # convenience wrapper with different use cases and configur
 profiles.yaml        # named set of configuration options. Used by `build.sh` to select different deployments.
 {{ project }}/
   scripts/           Scripts/snippets used as templates or task script body sources within pyflow.
-    hello.sh
+    greet.sh
   nodes.py           # main `pyflow`-based suite definition, built by `deploy.py`
   config.py          # Configuration data model definition. Built by `deploy.py` from the YAML files in `configs/`
 tests/               # suite-level unit tests.
     test_configs.py  # Basic configration and deployment tests. Uses `pytest`.
-bin/                 # Executables that will be used in the suite. Treat them either as installables tools.
+bin/                 # Executables that will be used in the suite. Treat them either as installable tools.
   hello_world.py
 ```
+
+NOTE: This tree-view may be outdated in more mature projects. Check the repository for the latest structure and suggest
+updating but keeping descriptions short. We DO NOT need a full dump of the project working tree.
 
 ## Co-development
 
