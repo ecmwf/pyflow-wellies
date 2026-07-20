@@ -37,5 +37,5 @@ tools:
   environments:
       suite_env:
           type: system_venv
-          depends: [python, ecmwf-toolbox, USE_FINDLIBS]
-          packages: [earthkit_data, scripts]
+          depends: [python, ecmwf-toolbox, USE_FINDLIBS]  # loadable dependencies
+          packages: [earthkit_data, scripts]              # installables resources that environment make available

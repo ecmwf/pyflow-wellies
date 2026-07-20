@@ -31,6 +31,7 @@ class MainFamily(pf.AnchorFamily):
                 name='hello_world',
                 submit_arguments="sequential",
                 script=[
+                    config.tools.load("suite_env"),                 # load script for runtime environment
                     pf.FileScript(Path(SCRIPTS_DIR) / "greet.sh"),  # suite script snippet
                     "python3 -m hello_world",                       # locally defined executable module
                     "grib_ls -m $DATA_DIR/mars_sample/t.grb",       # `grib_ls` is provided by ecmwf-toolbox module. `t.grb` is acquired as static data.
