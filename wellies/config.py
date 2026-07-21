@@ -189,7 +189,7 @@ def concatenate_yaml_files(yaml_files):
             )
 
         options.update(local_options)
-        options.update(concat_options)
+    options.update(concat_options)
     return options
 
 
