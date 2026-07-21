@@ -262,14 +262,21 @@ class TestYamlParser:
 
     def test_ecflow_variables_are_not_substitution_sources(self):
         # ecflow_variables merge in last, so other config values cannot
-        # reference them via {} templating. Use ${VAR} at runtime instead.
-        config = """
-        label: "run-{EXPVER}"
+        # reference them via {} templating. Use ecFlow or shell runtime
+        # expansion instead, depending on where the value is consumed.
+        config_1 = """
         ecflow_variables:
             EXPVER: "001"
         """
-        config_path = self._write("config", config)
-        options = concatenate_yaml_files([config_path])
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        label: "run-{EXPVER}"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+
         with pytest.raises(KeyError):
             substitute_variables(options)
 
