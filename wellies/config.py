@@ -181,7 +181,7 @@ def concatenate_yaml_files(yaml_files):
         # check for duplicates
         duplicated_keys = []
         for key in local_options.keys():
-            if options.get(key) is not None:
+            if key in options:
                 duplicated_keys.append(key)
         if duplicated_keys:
             raise KeyError(

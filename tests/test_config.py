@@ -409,6 +409,20 @@ class TestYamlParser:
             "DATADIR": "/scratch/data",
         }
 
+    def test_duplicate_null_top_level_key_raises(self):
+        config_1 = """
+        name: null
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        name: foo
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        with pytest.raises(KeyError, match="Following keys found"):
+            concatenate_yaml_files([config_1_path, config_2_path])
+
     def test_overwrite_none(self):
         config = """
         user: dummy
