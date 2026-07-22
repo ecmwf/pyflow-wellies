@@ -43,7 +43,8 @@ filename_template: "/path/to/file/{{fc_date}}"  # (4)!
 2. There are some global template variables automatically derived from the
    system. Note the capitalized reference. For a full list, check [here](#global-template-variables)
 3. Variables (bash or ecFlow) defined only on the task run environment can be referenced and will
-   be ignored by the substitution algorithm
+   be ignored by the substitution algorithm. Both the bare form `${ENVVAR}` and the ecFlow
+   default-value form `${VAR:-default}` are preserved unchanged.
 4. To escape the curly-brackets to use defined python template values that can
    be rendered in runtime, just double the brackets
 
@@ -97,6 +98,19 @@ the top-level keys, substitution raises a `KeyError` — even if a nested mappin
 happens to define a key with the same name.
 ///
 
+/// admonition | Type preservation
+    type: info
+
+A **pure** `{key}` reference — where the entire value is exactly `{key}` and nothing
+else — forwards the original value unchanged, preserving its type. So
+`count: "{base_count}"` with `base_count: 10` yields the integer `10`, not the
+string `"10"`. Mixed interpolated strings such as `"{root}/{user}"` must produce
+a string and always do so.
+
+`{...}` references placed inside YAML list values are **not** expanded and will
+remain as literal strings.
+///
+
 ### Global template variables
 
 As a shortcut, access to some common system-wide variables is made available on  
@@ -119,8 +133,30 @@ print(f"```\n{pretty}\n```")
 
 With `pyflow-wellies` <= 1.1.0 if one of the global variables is not defined, the substitution happens with
 an empty string. This can lead to unexpected results, specially when building system paths. In newer versions,
-the substitution will raise an error if the variable is not defined and used in one of the configuration files.
+the substitution will raise a `ValueError` if the variable is not defined in the
+environment and is referenced in one of the configuration files. Ensure the required
+environment variables are set before running wellies.
 ///
+
+### Command-line configuration overrides
+
+Any configuration key can be overridden at deploy time with the `-s KEY=VALUE` flag,
+without editing the YAML files:
+
+```bash
+./build.sh myprofile -s ecflow_server.user=alice -s root=/perm/alice
+```
+
+**Dot notation** targets nested keys: `ecflow_server.user` sets the `user` field inside
+the `ecflow_server` mapping.
+
+**Type preservation**: the command-line value is always received as a string, but is
+then coerced to match the type of the existing value in the configuration file. For
+example, if `count: 10` is in a YAML file, `-s count=20` sets it to the *integer* `20`,
+not the string `"20"`. Booleans accept `true`, `false`, `1`, `0`, `yes`, `no`, `on`,
+`off` (case-insensitive). An unrecognised boolean string raises a `WelliesConfigurationError`.
+
+If the key does not yet exist in the configuration, the value is kept as a plain string.
 
 In the following pages the specifics for other wellies' components will be
 detailed.

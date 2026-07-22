@@ -313,12 +313,39 @@ def check_environment_variables_substitution(value: str) -> None:
                 raise ValueError(f"Environment variable {key} is not set")
 
 
+def _pure_reference_key(value: str) -> Optional[str]:
+    """Return the key name when *value* is exactly ``{key}``, else ``None``.
+
+    A pure reference forwards the original value unchanged, preserving its
+    type. Mixed strings such as ``"{a}/{b}"`` must go through string
+    formatting and always produce a string.
+    """
+    m = re.compile(r"^\{([^{}]+)\}$").match(value)
+    return m.group(1) if m else None
+
+
+def _protect_runtime_variables(value: str) -> tuple[str, dict[str, str]]:
+    """Temporarily replace runtime-only placeholders so formatter ignores them."""
+    protected: dict[str, str] = {}
+
+    def replace(match: re.Match) -> str:
+        token = f"__WELLIES_RUNTIME_VAR_{len(protected)}__"
+        protected[token] = match.group(0)
+        return token
+
+    safe = re.compile(r"\$\{[^}]+\}").sub(replace, value)
+    return safe, protected
+
+
 def substitute_variables(
     options: dict, globals: Optional[dict] = None
 ) -> dict:
     """Parse base configuration file using the keys on that same file to
     string format other values.
-    Replaced variables will always be of type string.
+
+    A pure ``{key}`` reference (the entire value is exactly ``{key}``) preserves
+    the original type of the referenced value. Mixed interpolated strings such
+    as ``"{a}/{b}"`` always produce a string.
 
     Parameters
     ----------
@@ -351,8 +378,17 @@ def substitute_variables(
             else:
                 if isinstance(value, str):
                     try:
-                        check_environment_variables_substitution(value)
-                        new = formatter.format(value, **newMapping)
+                        safe_value, protected_values = (
+                            _protect_runtime_variables(value)
+                        )
+                        check_environment_variables_substitution(safe_value)
+                        ref_key = _pure_reference_key(safe_value)
+                        if ref_key is not None and ref_key in newMapping:
+                            new = newMapping[ref_key]
+                        else:
+                            new = formatter.format(safe_value, **newMapping)
+                            for token, original in protected_values.items():
+                                new = new.replace(token, original)
                     except KeyError as err:
                         missing = err.args[0]
                         raise KeyError(
