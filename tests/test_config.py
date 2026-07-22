@@ -239,6 +239,47 @@ class TestYamlParser:
         with pytest.raises(KeyError):
             concatenate_yaml_files([config_1_path, config_2_path])
 
+    def test_ecflow_variables_merge_order_substitution(self):
+        # An ecflow_variable defined in a later file can reference a normal
+        # key from that file, even if an earlier file also set ecflow_variables.
+        config_1 = """
+        ecflow_variables:
+            FOO: bar
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        root: /scratch
+        ecflow_variables:
+            DATADIR: "{root}/data"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"]["DATADIR"] == "/scratch/data"
+
+    def test_ecflow_variables_are_not_substitution_sources(self):
+        # ecflow_variables merge in last, so other config values cannot
+        # reference them via {} templating. Use ecFlow or shell runtime
+        # expansion instead, depending on where the value is consumed.
+        config_1 = """
+        ecflow_variables:
+            EXPVER: "001"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        label: "run-{EXPVER}"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+
+        with pytest.raises(KeyError):
+            substitute_variables(options)
+
     def test_overwrite_none(self):
         config = """
         user: dummy

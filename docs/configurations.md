@@ -109,8 +109,13 @@ parsing configuration files may alter the final mapping of variables in the pres
 /// admonition | Note
     type: note
 
-The order of the configuration files may also alter the way template variables are dealt with. In this case,
-duplicates also overwrite previous values, and missing variables raise a `KeyError`.
+`ecflow_variables` are merged from all configuration files and substituted last,
+after every other configuration key. A variable's value can reference any other
+configuration key with `{...}` templating, regardless of which file defined it.
+The reverse is not supported: other configuration values cannot reference an
+`ecflow_variable` with `{...}` templating. To use an `ecflow_variable` in another
+value, use the ecFlow runtime form `${VAR:-default}`, which is expanded when the
+suite runs. Duplicate variable names across files resolve last-wins.
 ///
 
 Considering we have the following two configuration files:
