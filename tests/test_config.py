@@ -93,7 +93,7 @@ class TestYamlParser:
 
         self._run(config_in, expected)
 
-    def test_key_used_before_assingnment(self):
+    def test_key_used_before_assignment(self):
         config_in = """
         user: dummy
         root: /scratch
@@ -239,6 +239,152 @@ class TestYamlParser:
         with pytest.raises(KeyError):
             concatenate_yaml_files([config_1_path, config_2_path])
 
+    def test_nested_values_do_not_shadow_parent_scope(self):
+        options = {
+            "name": "dummy",
+            "nested": {"name": "foo"},
+            "path": "/scratch/{name}",
+        }
+
+        result = substitute_variables(options)
+
+        assert result["nested"]["name"] == "foo"
+        assert result["path"] == "/scratch/dummy"
+
+    def test_nested_sibling_scopes_are_isolated(self):
+        options = {
+            "name": "global",
+            "first": {"name": "local"},
+            "second": {"path": "/scratch/{name}"},
+        }
+
+        result = substitute_variables(options)
+
+        assert result["first"]["name"] == "local"
+        assert result["second"]["path"] == "/scratch/global"
+
+    def test_nested_values_are_not_parent_substitution_sources(self):
+        options = {
+            "nested": {"name": "foo"},
+            "path": "/scratch/{name}",
+        }
+
+        with pytest.raises(
+            KeyError,
+            match='Variable substitution failed: Key "name" used before assignment',
+        ):
+            substitute_variables(options)
+
+    def test_merged_ecflow_variables_ignore_nested_scope_values(self):
+        config_1 = """
+        name: dummy
+        ecflow_variables:
+            LABEL: "{name}"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        nested:
+            name: garbage
+        ecflow_variables:
+            DATADIR: "/scratch/{name}"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"] == {
+            "LABEL": "dummy",
+            "DATADIR": "/scratch/dummy",
+        }
+
+    def test_ecflow_variable_can_reference_key_from_later_file(self):
+        # Documents current behavior: ecflow_variables are substituted after all
+        # ordinary top-level keys, irrespective of which file defines those keys.
+        # Revisit this test if stricter cross-file dependency rules are introduced.
+        config_1 = """
+        ecflow_variables:
+            LABEL: "{name}"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        name: foo
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"]["LABEL"] == "foo"
+
+    def test_duplicate_ecflow_variables_use_last_value(self):
+        # Duplicate ecFlow variables currently use last-wins semantics, unlike
+        # ordinary top-level keys. Stricter validation may be preferable later.
+        config_1 = """
+        ecflow_variables:
+            LABEL: first
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            LABEL: second
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"]["LABEL"] == "second"
+
+    def test_ecflow_variable_can_reference_earlier_ecflow_variable(self):
+        # Merged ecFlow variables share a substitution scope and are resolved in
+        # insertion order. Stricter dependency validation may be preferable later.
+        config_1 = """
+        ecflow_variables:
+            ROOT: /scratch
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            DATADIR: "{ROOT}/data"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"] == {
+            "ROOT": "/scratch",
+            "DATADIR": "/scratch/data",
+        }
+
+    def test_ecflow_variable_cannot_reference_later_ecflow_variable(self):
+        # Forward references within the merged ecFlow mapping currently fail
+        # because its entries are substituted in insertion order.
+        config_1 = """
+        ecflow_variables:
+            DATADIR: "{ROOT}/data"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            ROOT: /scratch
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+
+        with pytest.raises(
+            KeyError,
+            match='Variable substitution failed: Key "ROOT" used before assignment',
+        ):
+            substitute_variables(options)
+
     def test_ecflow_variables_merge_order_substitution(self):
         # An ecflow_variable defined in a later file can reference a normal
         # key from that file, even if an earlier file also set ecflow_variables.
@@ -258,27 +404,10 @@ class TestYamlParser:
         options = concatenate_yaml_files([config_1_path, config_2_path])
         result = substitute_variables(options)
 
-        assert result["ecflow_variables"]["DATADIR"] == "/scratch/data"
-
-    def test_ecflow_variables_are_not_substitution_sources(self):
-        # ecflow_variables merge in last, so other config values cannot
-        # reference them via {} templating. Use ecFlow or shell runtime
-        # expansion instead, depending on where the value is consumed.
-        config_1 = """
-        ecflow_variables:
-            EXPVER: "001"
-        """
-        config_1_path = self._write("config_1", config_1)
-
-        config_2 = """
-        label: "run-{EXPVER}"
-        """
-        config_2_path = self._write("config_2", config_2)
-
-        options = concatenate_yaml_files([config_1_path, config_2_path])
-
-        with pytest.raises(KeyError):
-            substitute_variables(options)
+        assert result["ecflow_variables"] == {
+            "FOO": "bar",
+            "DATADIR": "/scratch/data",
+        }
 
     def test_overwrite_none(self):
         config = """

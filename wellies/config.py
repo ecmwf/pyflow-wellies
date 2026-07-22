@@ -347,7 +347,7 @@ def substitute_variables(
             newMapping = {}
         for key, value in tree.items():
             if isinstance(value, abc.Mapping):
-                update(tree.get(key, {}), newMapping)
+                update(tree.get(key, {}), newMapping.copy())
             else:
                 if isinstance(value, str):
                     try:
