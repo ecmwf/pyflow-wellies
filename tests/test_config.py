@@ -254,13 +254,14 @@ class TestYamlParser:
     def test_nested_sibling_scopes_are_isolated(self):
         options = {
             "name": "global",
-            "first": {"name": "local"},
+            "first": {"name": "local", "path": "/scratch/{name}"},
             "second": {"path": "/scratch/{name}"},
         }
 
         result = substitute_variables(options)
 
         assert result["first"]["name"] == "local"
+        assert result["first"]["path"] == "/scratch/local"
         assert result["second"]["path"] == "/scratch/global"
 
     def test_nested_values_are_not_parent_substitution_sources(self):
