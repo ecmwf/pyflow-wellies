@@ -1,10 +1,13 @@
+import datetime
 from io import StringIO
 from os.path import join as pjoin
 
 import pytest
 import yaml
 
+from wellies.config import TemplateFormatter
 from wellies.config import concatenate_yaml_files
+from wellies.config import get_user_globals
 from wellies.config import nested_set
 from wellies.config import overwrite_entries
 from wellies.config import substitute_variables
@@ -93,7 +96,7 @@ class TestYamlParser:
 
         self._run(config_in, expected)
 
-    def test_key_used_before_assingnment(self):
+    def test_key_used_before_assignment(self):
         config_in = """
         user: dummy
         root: /scratch
@@ -105,7 +108,7 @@ class TestYamlParser:
         with pytest.raises(KeyError):
             self._run(config_in, expected=None)
 
-    def test_force_to_str(self):
+    def test_pure_reference_preserves_scalar_type(self):
         config_in = """
         a_int: 1
         a_int_str: "1"
@@ -116,10 +119,21 @@ class TestYamlParser:
         expected = {
             "a_int": 1,
             "a_int_str": "1",
-            "b_int": "1",
-            "b_int_str": "1",
+            "b_int": 1,  # pure reference: int preserved
+            "b_int_str": "1",  # pure reference: str preserved
         }
         self._run(config_in, expected=expected)
+
+    def test_pure_reference_preserves_complex_type(self):
+        config_in = """
+        date: 2024-01-01
+        initial_date: "{date}"
+        """
+        expected = {
+            "date": datetime.date(2024, 1, 1),
+            "initial_date": datetime.date(2024, 1, 1),
+        }
+        self._run(config_in, expected)
 
     @pytest.mark.xfail(
         reason="Substution inside lists not supported", strict=True
@@ -165,7 +179,7 @@ class TestYamlParser:
 
         self._run(config_in, expected)
 
-    def test_replace_any_object_as_str(self):
+    def test_pure_reference_preserves_type_interpolated_remains_str(self):
         config_in = """
         user: dummy
         height: 1.89
@@ -186,12 +200,12 @@ class TestYamlParser:
             "height": 1.89,
             "weight": 82,
             "surnames": ["foo", "boo"],
-            "family_name": "['foo', 'boo']",
-            "bmi_formula": "82/1.89^2",
+            "family_name": ["foo", "boo"],  # pure reference: list preserved
+            "bmi_formula": "82/1.89^2",  # interpolated: always str
             "nested": {
                 "user": "dummy",
-                "surnames": "['foo', 'boo']",
-                "bmi_formula": "82/1.89^2",
+                "surnames": ["foo", "boo"],  # pure reference: list preserved
+                "bmi_formula": "82/1.89^2",  # interpolated: always str
             },
         }
 
@@ -221,8 +235,6 @@ class TestYamlParser:
         options = concatenate_yaml_files(
             [config_1_path, config_2_path, config_3_path]
         )
-        print(options)
-        print(ref_options)
         assert options == ref_options
 
     def test_duplicates(self):
@@ -238,6 +250,153 @@ class TestYamlParser:
 
         with pytest.raises(KeyError):
             concatenate_yaml_files([config_1_path, config_2_path])
+
+    def test_nested_values_do_not_shadow_parent_scope(self):
+        options = {
+            "name": "dummy",
+            "nested": {"name": "foo"},
+            "path": "/scratch/{name}",
+        }
+
+        result = substitute_variables(options)
+
+        assert result["nested"]["name"] == "foo"
+        assert result["path"] == "/scratch/dummy"
+
+    def test_nested_sibling_scopes_are_isolated(self):
+        options = {
+            "name": "global",
+            "first": {"name": "local", "path": "/scratch/{name}"},
+            "second": {"path": "/scratch/{name}"},
+        }
+
+        result = substitute_variables(options)
+
+        assert result["first"]["name"] == "local"
+        assert result["first"]["path"] == "/scratch/local"
+        assert result["second"]["path"] == "/scratch/global"
+
+    def test_nested_values_are_not_parent_substitution_sources(self):
+        options = {
+            "nested": {"name": "foo"},
+            "path": "/scratch/{name}",
+        }
+
+        with pytest.raises(
+            KeyError,
+            match='Variable substitution failed: Key "name" used before assignment',
+        ):
+            substitute_variables(options)
+
+    def test_merged_ecflow_variables_ignore_nested_scope_values(self):
+        config_1 = """
+        name: dummy
+        ecflow_variables:
+            LABEL: "{name}"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        nested:
+            name: garbage
+        ecflow_variables:
+            DATADIR: "/scratch/{name}"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"] == {
+            "LABEL": "dummy",
+            "DATADIR": "/scratch/dummy",
+        }
+
+    def test_ecflow_variable_can_reference_key_from_later_file(self):
+        # Documents current behavior: ecflow_variables are substituted after all
+        # ordinary top-level keys, irrespective of which file defines those keys.
+        # Revisit this test if stricter cross-file dependency rules are introduced.
+        config_1 = """
+        ecflow_variables:
+            LABEL: "{name}"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        name: foo
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"]["LABEL"] == "foo"
+
+    def test_duplicate_ecflow_variables_use_last_value(self):
+        # Duplicate ecFlow variables currently use last-wins semantics, unlike
+        # ordinary top-level keys. Stricter validation may be preferable later.
+        config_1 = """
+        ecflow_variables:
+            LABEL: first
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            LABEL: second
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"]["LABEL"] == "second"
+
+    def test_ecflow_variable_can_reference_earlier_ecflow_variable(self):
+        # Merged ecFlow variables share a substitution scope and are resolved in
+        # insertion order. Stricter dependency validation may be preferable later.
+        config_1 = """
+        ecflow_variables:
+            ROOT: /scratch
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            DATADIR: "{ROOT}/data"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["ecflow_variables"] == {
+            "ROOT": "/scratch",
+            "DATADIR": "/scratch/data",
+        }
+
+    def test_ecflow_variable_cannot_reference_later_ecflow_variable(self):
+        # Forward references within the merged ecFlow mapping currently fail
+        # because its entries are substituted in insertion order.
+        config_1 = """
+        ecflow_variables:
+            DATADIR: "{ROOT}/data"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            ROOT: /scratch
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+
+        with pytest.raises(
+            KeyError,
+            match='Variable substitution failed: Key "ROOT" used before assignment',
+        ):
+            substitute_variables(options)
 
     def test_ecflow_variables_merge_order_substitution(self):
         # An ecflow_variable defined in a later file can reference a normal
@@ -258,7 +417,102 @@ class TestYamlParser:
         options = concatenate_yaml_files([config_1_path, config_2_path])
         result = substitute_variables(options)
 
-        assert result["ecflow_variables"]["DATADIR"] == "/scratch/data"
+        assert result["ecflow_variables"] == {
+            "FOO": "bar",
+            "DATADIR": "/scratch/data",
+        }
+
+    def test_duplicate_null_top_level_key_raises(self):
+        config_1 = """
+        name: null
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        name: foo
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        with pytest.raises(KeyError, match="Following keys found"):
+            concatenate_yaml_files([config_1_path, config_2_path])
+
+    def test_nested_config_variable_using_duplicated_key(self):
+        config_in = """
+        user: dummy
+        ecflow_variables:
+            FOO: bar/{user}
+        """
+        config_1_path = self._write("config_1", config_in)
+
+        config_in2 = """
+        user: john
+        """
+        config_2_path = self._write("config_2", config_in2)
+
+        with pytest.raises(KeyError):
+            concatenate_yaml_files([config_1_path, config_2_path])
+
+    def test_ecflow_variables_duplicate_last_wins(self):
+        config_1 = """
+        ecflow_variables:
+            EXPVER: "001"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        ecflow_variables:
+            EXPVER: "002"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+
+        assert options["ecflow_variables"]["EXPVER"] == "002"
+
+    def test_runtime_placeholders_are_preserved(self):
+        config_in = """
+        root: /scratch
+        filename: "{root}/${ENVVAR}/{{fc_date}}"
+        """
+
+        expected = {
+            "root": "/scratch",
+            "filename": "/scratch/${ENVVAR}/{fc_date}",
+        }
+
+        self._run(config_in, expected)
+
+    def test_runtime_default_placeholders_are_preserved(self):
+        config_in = """
+        root: /scratch
+        filename: "{root}/${MODULES_VERSION:-default}/{{fc_date}}"
+        """
+
+        expected = {
+            "root": "/scratch",
+            "filename": "/scratch/${MODULES_VERSION:-default}/{fc_date}",
+        }
+
+        self._run(config_in, expected)
+
+    def test_ecflow_variables_can_feed_runtime_placeholders(self):
+        # ecFlow runtime placeholders are preserved through wellies substitution
+        # so that they are expanded by ecFlow at suite runtime.
+        config_1 = """
+        ecflow_variables:
+            EXPVER: "001"
+        """
+        config_1_path = self._write("config_1", config_1)
+
+        config_2 = """
+        label: "run-${EXPVER}"
+        """
+        config_2_path = self._write("config_2", config_2)
+
+        options = concatenate_yaml_files([config_1_path, config_2_path])
+        result = substitute_variables(options)
+
+        assert result["label"] == "run-${EXPVER}"
 
     def test_ecflow_variables_are_not_substitution_sources(self):
         # ecflow_variables merge in last, so other config values cannot
@@ -279,6 +533,49 @@ class TestYamlParser:
 
         with pytest.raises(KeyError):
             substitute_variables(options)
+
+    def test_get_user_globals_includes_expected_keys(self, monkeypatch):
+        monkeypatch.setenv("USER", "alice")
+        monkeypatch.setenv("HOME", "/home/alice")
+        monkeypatch.setenv("PERM", "/perm")
+        monkeypatch.setenv("HPCPERM", "/hpcperm")
+        monkeypatch.setenv("SCRATCH", "/scratch")
+        monkeypatch.setenv("PWD", "/work")
+        monkeypatch.setenv("_FORTESTING", "testing")
+
+        result = get_user_globals()
+
+        assert result["USER"] == "alice"
+        assert result["HOME"] == "/home/alice"
+        assert result["PERM"] == "/perm"
+        assert result["HPCPERM"] == "/hpcperm"
+        assert result["SCRATCH"] == "/scratch"
+        assert result["PWD"] == "/work"
+        assert result["_FORTESTING"] == "testing"
+        assert set(result) >= {"TODAY", "YESTERDAY"}
+        assert len(result["TODAY"]) == 8
+        assert len(result["YESTERDAY"]) == 8
+
+    def test_template_formatter_preserves_runtime_default_placeholder(self):
+        formatter = TemplateFormatter()
+
+        assert list(formatter.parse("${MODULES_VERSION:-default}")) == [
+            ("${MODULES_VERSION:-default}", None, None, None)
+        ]
+
+    def test_substitute_variables_custom_globals_override_defaults(self):
+        config_in = """
+        root: /scratch
+        label: "{ROOT_DIR}/{root}"
+        """
+        config_path = self._write("config", config_in)
+
+        with open(config_path, "r") as file:
+            options = yaml.load(file, Loader=yaml.SafeLoader)
+
+        result = substitute_variables(options, globals={"ROOT_DIR": "/custom"})
+
+        assert result["label"] == "/custom//scratch"
 
     def test_overwrite_none(self):
         config = """

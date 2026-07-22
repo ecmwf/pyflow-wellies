@@ -43,7 +43,8 @@ filename_template: "/path/to/file/{{fc_date}}"  # (4)!
 2. There are some global template variables automatically derived from the
    system. Note the capitalized reference. For a full list, check [here](#global-template-variables)
 3. Variables (bash or ecFlow) defined only on the task run environment can be referenced and will
-   be ignored by the substitution algorithm
+   be ignored by the substitution algorithm. Both the bare form `${ENVVAR}` and the ecFlow
+   default-value form `${VAR:-default}` are preserved unchanged.
 4. To escape the curly-brackets to use defined python template values that can
    be rendered in runtime, just double the brackets
 
@@ -64,6 +65,51 @@ dictionary like:
     "filename_template": "/path/to/file/{fc_date}",
 }
 ```
+
+### Scoping rules
+
+Keys are resolved in the order they appear (top-level first, then nested mappings).
+Each nested mapping is given a **snapshot** of the substitution context that was built
+up to that point — it can reference any top-level key defined before it, but its own
+keys do **not** propagate back to the parent scope or to sibling mappings.
+
+```yaml title="scoping_example.yaml"
+name: global                # (1)!
+nested_a:
+    name: local             # (2)!
+    path: /vol/{name}       # (3)!
+nested_b:
+    path: /scratch/{name}   # (4)!
+top_path: /data/{name}      # (5)!
+```
+
+1. Top-level key available to everything.
+2. This shadows `name` only **inside** `nested_a`; it does not affect other scopes, but can be used within `nested_a`.
+3. Resolves to `/vol/local` — uses value within scope: `nested_a.name`.
+4. Resolves to `/scratch/global`.
+5. Resolves to `/data/global`.
+
+/// admonition | Note
+    type: note
+
+A key defined inside a nested mapping (e.g. `nested_a.name`) is **not** visible
+outside that mapping. If a top-level `{...}` reference cannot be resolved from
+the top-level keys, substitution raises a `KeyError` — even if a nested mapping
+happens to define a key with the same name.
+///
+
+/// admonition | Type preservation
+    type: info
+
+A **pure** `{key}` reference — where the entire value is exactly `{key}` and nothing
+else — forwards the original value unchanged, preserving its type. So
+`count: "{base_count}"` with `base_count: 10` yields the integer `10`, not the
+string `"10"`. Mixed interpolated strings such as `"{root}/{user}"` must produce
+a string and always do so.
+
+`{...}` references placed inside YAML list values are **not** expanded and will
+remain as literal strings.
+///
 
 ### Global template variables
 
@@ -87,8 +133,30 @@ print(f"```\n{pretty}\n```")
 
 With `pyflow-wellies` <= 1.1.0 if one of the global variables is not defined, the substitution happens with
 an empty string. This can lead to unexpected results, specially when building system paths. In newer versions,
-the substitution will raise an error if the variable is not defined and used in one of the configuration files.
+the substitution will raise a `ValueError` if the variable is not defined in the
+environment and is referenced in one of the configuration files. Ensure the required
+environment variables are set before running wellies.
 ///
+
+### Command-line configuration overrides
+
+Any configuration key can be overridden at deploy time with the `-s KEY=VALUE` flag,
+without editing the YAML files:
+
+```bash
+./build.sh myprofile -s ecflow_server.user=alice -s root=/perm/alice
+```
+
+**Dot notation** targets nested keys: `ecflow_server.user` sets the `user` field inside
+the `ecflow_server` mapping.
+
+**Type preservation**: the command-line value is always received as a string, but is
+then coerced to match the type of the existing value in the configuration file. For
+example, if `count: 10` is in a YAML file, `-s count=20` sets it to the *integer* `20`,
+not the string `"20"`. Booleans accept `true`, `false`, `1`, `0`, `yes`, `no`, `on`,
+`off` (case-insensitive). An unrecognised boolean string raises a `WelliesConfigurationError`.
+
+If the key does not yet exist in the configuration, the value is kept as a plain string.
 
 In the following pages the specifics for other wellies' components will be
 detailed.
@@ -109,13 +177,31 @@ parsing configuration files may alter the final mapping of variables in the pres
 /// admonition | Note
     type: note
 
+For ordinary (non-`ecflow_variables`) keys, duplicate detection treats a `null`
+value the same as any other value: if a key is present in an earlier file — even
+with a `null` value — redefining it in a later file raises a `KeyError`.
+///
+
+/// admonition | Note
+    type: note
+
 `ecflow_variables` are merged from all configuration files and substituted last,
-after every other configuration key. A variable's value can reference any other
-configuration key with `{...}` templating, regardless of which file defined it.
+after every other configuration key. Because of this ordering, a variable's value
+can reference any top-level configuration key with `{...}` templating, regardless
+of which file defined it.
+
+Within the merged `ecflow_variables` mapping, entries are resolved in insertion
+order. An entry can reference an earlier entry in the same mapping, but forward
+references (referencing a key defined later) will raise a `KeyError`.
+
 The reverse is not supported: other configuration values cannot reference an
 `ecflow_variable` with `{...}` templating. To use an `ecflow_variable` in another
 value, use the ecFlow runtime form `${VAR:-default}`, which is expanded when the
-suite runs. Duplicate variable names across files resolve last-wins.
+suite runs.
+
+Nested keys defined elsewhere in the configuration are **not** visible inside
+`ecflow_variables` substitution (see [Scoping rules](#scoping-rules)).
+Duplicate variable names across files resolve last-wins.
 ///
 
 Considering we have the following two configuration files:
