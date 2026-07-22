@@ -65,6 +65,38 @@ dictionary like:
 }
 ```
 
+### Scoping rules
+
+Keys are resolved in the order they appear (top-level first, then nested mappings).
+Each nested mapping is given a **snapshot** of the substitution context that was built
+up to that point — it can reference any top-level key defined before it, but its own
+keys do **not** propagate back to the parent scope or to sibling mappings.
+
+```yaml title="scoping_example.yaml"
+name: global                # (1)!
+nested_a:
+    name: local             # (2)!
+    path: /vol/{name}       # (3)!
+nested_b:
+    path: /scratch/{name}   # (4)!
+top_path: /data/{name}      # (5)!
+```
+
+1. Top-level key available to everything.
+2. This shadows `name` only **inside** `nested_a`; it does not affect other scopes, but can be used within `nested_a`.
+3. Resolves to `/vol/local` — uses value within scope: `nested_a.name`.
+4. Resolves to `/scratch/global`.
+5. Resolves to `/data/global`.
+
+/// admonition | Note
+    type: note
+
+A key defined inside a nested mapping (e.g. `nested_a.name`) is **not** visible
+outside that mapping. If a top-level `{...}` reference cannot be resolved from
+the top-level keys, substitution raises a `KeyError` — even if a nested mapping
+happens to define a key with the same name.
+///
+
 ### Global template variables
 
 As a shortcut, access to some common system-wide variables is made available on  
@@ -109,13 +141,31 @@ parsing configuration files may alter the final mapping of variables in the pres
 /// admonition | Note
     type: note
 
+For ordinary (non-`ecflow_variables`) keys, duplicate detection treats a `null`
+value the same as any other value: if a key is present in an earlier file — even
+with a `null` value — redefining it in a later file raises a `KeyError`.
+///
+
+/// admonition | Note
+    type: note
+
 `ecflow_variables` are merged from all configuration files and substituted last,
-after every other configuration key. A variable's value can reference any other
-configuration key with `{...}` templating, regardless of which file defined it.
+after every other configuration key. Because of this ordering, a variable's value
+can reference any top-level configuration key with `{...}` templating, regardless
+of which file defined it.
+
+Within the merged `ecflow_variables` mapping, entries are resolved in insertion
+order. An entry can reference an earlier entry in the same mapping, but forward
+references (referencing a key defined later) will raise a `KeyError`.
+
 The reverse is not supported: other configuration values cannot reference an
 `ecflow_variable` with `{...}` templating. To use an `ecflow_variable` in another
 value, use the ecFlow runtime form `${VAR:-default}`, which is expanded when the
-suite runs. Duplicate variable names across files resolve last-wins.
+suite runs.
+
+Nested keys defined elsewhere in the configuration are **not** visible inside
+`ecflow_variables` substitution (see [Scoping rules](#scoping-rules)).
+Duplicate variable names across files resolve last-wins.
 ///
 
 Considering we have the following two configuration files:
