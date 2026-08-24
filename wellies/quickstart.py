@@ -53,12 +53,16 @@ class PyflowSuiteRenderer:
 def start_project(options: Dict, overwrite: bool = False) -> None:
     """Generate project basic structure based on options.
 
-    Args:
-        options (dict): project options
-        overwrite (bool, optional): overwrite existing files.
-        Defaults to False.
-    Returns:
-        None
+    Parameters
+    ----------
+    options : dict
+        project options
+    overwrite : bool, optional
+        overwrite existing files. Defaults to False.
+
+    Returns
+    -------
+    None
     """
 
     def write_file(fpath: str, content: str) -> None:

@@ -574,13 +574,16 @@ def parse_environment(
 
     Returns
     -------
-    Tool: A Tool object representing the environment.
+    Tool
+        A Tool object representing the environment.
 
     Raises
-    -------
-    Exception: If the environment type is not supported or if certain
+    ------
+    Exception
+        If the environment type is not supported or if certain
         options are used together.
-    NotImplementedError: If the environment type is not implemented.
+    NotImplementedError
+        If the environment type is not implemented.
     """
     type = options["type"]
     depends = options.get("depends", [])
@@ -676,7 +679,8 @@ def parse_package(
 
     Returns
     -------
-    PackageTool: A Tool object representing the package.
+    PackageTool
+        A Tool object representing the package.
     """
     package = PackageTool(name, lib_dir, options)
     return package
@@ -695,7 +699,8 @@ def parse_module(name: str, options: Dict[str, any]) -> Tool:
 
     Returns
     -------
-    Tool: Either a ModuleTool or a PrivateModuleTool object.
+    Tool
+        Either a ModuleTool or a PrivateModuleTool object.
     """
     module_name = options.get("name", name)
     version = options.get("version", "default")
@@ -723,7 +728,8 @@ def parse_env_var(name: str, options: Dict[str, any]) -> EnvVarTool:
 
     Returns
     -------
-    Tool: A Tool object representing the environment variable tool.
+    Tool
+        A Tool object representing the environment variable tool.
     """
     variable = options.get("variable", name)
     value = options.get("value", "")
