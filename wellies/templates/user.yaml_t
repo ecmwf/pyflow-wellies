@@ -10,12 +10,18 @@ labels:
 limits:
   work: 20
 
-# -------- Ecflow server ------------------------------------------------------
-ecflow_server:
+# -------- Deploy host --------------------------------------------------------
+deploy_host:
   hostname: "localhost"
   user: "{{ user }}"
   deploy_dir: "{{ deploy_dir }}"
 
+# -------- Ecflow server ------------------------------------------------------
+ecflow_server:
+  hostname: "ecfg-{USER}-1"
+  port: "3141"
+  user: "{{ user }}"
+  
 # -------- Global variables ------------------------------------
 # this group can be redefined in other config files. The resulting option will be the concatenation of all
 # the variables. Be careful with the order of the variables and the order of the configuration files,
@@ -24,6 +30,8 @@ ecflow_variables:
   OUTPUT_ROOT: "{{ output_root }}"
   LIB_DIR: "%OUTPUT_ROOT%/local"
   DATA_DIR: "%OUTPUT_ROOT%/data"
+  SRC_DIR: "%OUTPUT_ROOT%/src"
+  DEPLOY_DIR: "{deploy_dir}"
 
 # ---------- Specific optionals -----------------------------------------------
 # add your project's specific variables and options here

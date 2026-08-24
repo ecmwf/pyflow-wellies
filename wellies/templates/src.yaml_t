@@ -1,0 +1,10 @@
+src:
+  {{ project }}:
+    type: git
+    # source: git@github.com:ecmwf/pyflow-wellies.git
+    source: git@github.com:vandome/pyflow-wellies.git
+    branch: feature/automatic_replace
+    files:
+      - wellies/templates/dummy.py_t
+    post_script: |
+      mv dummy.py_t dummy.py

@@ -1,0 +1,55 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "build setup",
+			"command": "${workspaceFolder}/build.sh",
+			"args": [
+				"setup"
+			],
+			"group": "build",
+			"isBackground": false
+		},
+		{
+			"type": "shell",
+			"label": "build tests",
+			"command": "${workspaceFolder}/build.sh",
+			"args": [
+				"tests"
+			],
+			"group": "build",
+			"isBackground": false
+		},
+		{
+			"type": "shell",
+			"label": "build scripts",
+			"command": "${workspaceFolder}/build.sh",
+			"args": [
+				"scripts"
+			],
+			"group": "build",
+			"isBackground": false
+		},
+		{
+			"type": "shell",
+			"label": "build update",
+			"command": "${workspaceFolder}/build.sh",
+			"args": [
+				"update"
+			],
+			"group": "build",
+			"isBackground": false
+		},
+		{
+			"type": "shell",
+			"label": "build replace",
+			"command": "${workspaceFolder}/build.sh",
+			"args": [
+				"replace"
+			],
+			"group": "build",
+			"isBackground": false
+		}
+	]
+}

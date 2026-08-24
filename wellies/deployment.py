@@ -217,3 +217,5 @@ def deploy_suite(
             logger.info(f"Definition file: {target_repo}/{name}.def")
     else:
         logger.info("No deploy option activated. Deployment aborted")
+
+    return f"{target_repo}/{name}.def"
