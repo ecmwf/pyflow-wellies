@@ -107,6 +107,20 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         renderer.render("profiles.yaml_t", options),
     )
 
+    # write AGENTS file
+    write_file(
+        path.join(root_path, "AGENTS.md"),
+        renderer.render("AGENTS.md_t", options),
+    )
+
+    # write sample executable resource
+    scripts_dir = path.join(root_path, "bin")
+    os.makedirs(scripts_dir, exist_ok=True)
+    write_file(
+        path.join(scripts_dir, "hello_world.py"),
+        renderer.render("hello_world.py_t", options),
+    )
+
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)
     os.makedirs(suite_dir, exist_ok=True)
@@ -119,6 +133,13 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         renderer.render("nodes.py_t", options),
     )
     write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
+
+    # create suite scripts dir
+    scripts_dir = path.join(suite_dir, "scripts")
+    os.makedirs(scripts_dir, exist_ok=True)
+    with open(path.join(scripts_dir, "greet.sh"), "wt", encoding="utf-8") as f:
+        f.write("#!/bin/bash\n")
+        f.write("echo 'Hello from $TASK!'\n")
 
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
@@ -179,11 +200,7 @@ def ask_user(options: Dict) -> None:
 def get_parser() -> ArgumentParser:
     description = (
         "\n"
-        "Generate initial files on base structure for a pyflow suite project.\n"  # noqa: E501
-        "\n"
-        "wellies-quickstart is an interactive tool that asks some questions about your\n"  # noqa: E501
-        "project and then generates a complete suite directory and sample\n"
-        "definitions which can be deployed with pyflow.\n"
+        "Generates initial structure for a working pyflow-based ecflow suite project.\n"  # noqa: E501
     )
     parser = ArgumentParser(
         usage="%(prog)s [OPTIONS] <PROJECT>", description=description

@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import earthkit.data as ekd
+
+print("hello world!")
+print("earthkit-data version: ", ekd.__version__)
