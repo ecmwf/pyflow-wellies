@@ -16,8 +16,10 @@ def get_parser() -> ArgumentParser:
     """
     Create the default wellies argument parser.
 
-    Returns:
-    ArgumentParser: An ArgumentParser object including the wellies options.
+    Returns
+    -------
+    ArgumentParser
+        An ArgumentParser object including the wellies options.
     """
     description = (
         "\n" "Generate required files for a pyflow suite project." "\n"
@@ -349,23 +351,28 @@ def substitute_variables(
 
     Parameters
     ----------
-        options : dict
-            submit_arguments configuration dictionary (from yaml file)
-        globals: dict, default=None
-            A dictionary with globals key-value pairs to use on the string
-            format substitution to be performed on the file content.
-            New local assignments will take prevalence.
+    options : dict
+        submit_arguments configuration dictionary (from yaml file)
+    globals : dict, default=None
+        A dictionary with globals key-value pairs to use on the string
+        format substitution to be performed on the file content.
+        New local assignments will take prevalence.
+
     Returns
     -------
-        dict: A dictionary with all variables substituted.
+    dict
+        A dictionary with all variables substituted.
 
-    :Attention: Does not support Lists
-
-    TODO: support variable substitution inside Lists
-
-    Raise: KeyError
+    Raises
+    ------
+    KeyError
         If key used before set.
 
+    Notes
+    -----
+    Does not support Lists.
+
+    TODO: support variable substitution inside Lists
     """
 
     def update(tree, newMapping=None):
@@ -414,8 +421,6 @@ def parse_submit_arguments(options: dict) -> tuple:
     If a `defaults` mapping is defined it will be used as a default
     definition for all other mappings defined.
 
-    :Attention: "defaults" can't be used as a context key name.
-
     Parameters
     ----------
     options : dict
@@ -427,6 +432,10 @@ def parse_submit_arguments(options: dict) -> tuple:
         Return parsed options as two dictionaries. The base submit arguments
         and a second one with the defaults options in a compatible format
         to be passed to a pyflow.Node variables argument.
+
+    Notes
+    -----
+    "defaults" can't be used as a context key name.
     """
     PROTECTED = ["sthost"]
     replacements = {"tmpdir": "ssdtmp"}

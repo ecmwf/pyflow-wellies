@@ -38,11 +38,13 @@ def git_commit_message(message_args):
     message_args : str or None
         Additional message to append to the default commit message.
         If None, only the default message is used.
+
     Returns
     -------
     str
         The complete commit message including repository information and the
         additional message if provided.
+
     Notes
     -----
     The default message includes the version of the wellies suite and the
@@ -123,28 +125,28 @@ def deploy_suite(
 
     Parameters
     ----------
-    suite (dict):
+    suite : dict
         The suite to deploy.
-    user (str):
+    user : str
         The username to use for the deployment.
-    name (str):
+    name : str
         The name of the suite.
-    hostname (str):
+    hostname : str
         The hostname of the remote repository.
-    deploy_dir (str):
+    deploy_dir : str
         The target to deploy the suite to.
-    backup_deploy (str, optional):
+    backup_deploy : str, optional
         The backup repository to use. Defaults to None.
-    build_dir (str, optional):
+    build_dir : str, optional
         The build directory to use. If None, a temporary
         directory will be created. Defaults to None.
-    no_prompt (bool, optional):
+    no_prompt : bool, optional
         Skip all prompts and answer yes to all. Defaults to False.
-    no_deploy (bool, optional):
+    no_deploy : bool, optional
         Whether to skip the deployment. Defaults to False.
-    message (str, optional):
+    message : str, optional
         The commit message to use for the deployment. Defaults to None.
-    files (list, optional):
+    files : list, optional
         The files to deploy. If None, everything is deployed.
         Defaults to None.
     """

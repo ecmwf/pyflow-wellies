@@ -232,9 +232,9 @@ class StaticDataStore:
 
         Parameters
         ----------
-        data_dir (str):
+        data_dir : str
             The directory where the data is stored on the running host.
-        static_data_dict (dict):
+        static_data_dict : dict
             A dictionary containing the names of the static data items as
             keys and their deployment options as values.
         """

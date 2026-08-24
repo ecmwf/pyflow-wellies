@@ -14,14 +14,17 @@ class EcfResourcesTask(pf.Task):
     Also, inspects task tree for identical key:values pairs defined in higher
     levels to avoid creating duplicated variable at every level.
 
-    :Attention: Following names are protected and will not be touched:
-      - STHOST
-      - ECF_*
+    Notes
+    -----
+    The following names are protected and will not be touched:
 
-    !!! Attention
-        Following names will generate variables with other names than config
-        keys:
-        - TMPDIR -> SSDTMP
+    - STHOST
+    - ECF_*
+
+    The following names will generate variables with other names than
+    config keys:
+
+    - TMPDIR -> SSDTMP
     """
 
     protected_list = [
