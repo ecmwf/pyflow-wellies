@@ -43,7 +43,7 @@ plugins:
             inventories:
               - url: https://pyflow-workflow-generator.readthedocs.io/en/latest/objects.inv
             options:
-              show_source: false
+              show_source: true
               docstring_style: numpy
               heading_level: 3
               show_root_heading: true
