@@ -60,13 +60,15 @@ def git_commit_message(message_args):
     )
 
     try:
-        repo = git.Repo(".")
+        repo = git.Repo(".", search_parent_directories=True)
 
         # local commit info
         commit_hash = repo.head.commit.hexsha
         # get local remote info
         remotes = [rem.name for rem in repo.remotes]
-        base_remote = "origin" if "origin" in remotes else remotes[:1]
+        base_remote = (
+            "origin" if "origin" in remotes else next(iter(remotes), "")
+        )
         if base_remote:
             remote_url = next(repo.remote(base_remote).urls)
         else:
@@ -102,7 +104,7 @@ def git_commit_message(message_args):
     if message_args is None:
         message = default_message
     else:
-        message = default_message + "\n\n" + {message}
+        message = default_message + "\n\n" + message_args
 
     return message
 
