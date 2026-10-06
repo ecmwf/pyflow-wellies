@@ -5,9 +5,44 @@ host:
   workdir: "$TMPDIR"
   submit_arguments:
     defaults:
-      queue: nf
+      queue: "%EC_QUEUE_PREFIX:n%f"
       memory_per_cpu: 8Gb
-      job_name: "%FAMILY1:NOT_DEF%_%TASK%"
+      threads_per_core: 1
+      job_name: "%FAMILY1:NOT_DEF%_%TASK%.%ECF_TRYNO%"
       tmpdir_size: 20Gb
+      priority: 70
+      sthost: "%STHOST%"
     sequential:
       total_tasks: 1
+      memory_per_cpu: 64Gb
+      tmpdir_size: 2Gb
+    largetmp:
+      tmpdir_size: 100Gb
+    parallel:
+      reservation: "%RESERVE_NAME:%"
+      queue: "%EC_QUEUE_PREFIX:n%p"
+      threads_per_core: "%EC_THREADS_PER_CORE:1%"
+      total_nodes: "%EC_NODES:1%"
+      cpus_per_task: "%EC_THREADS_PER_TASK:1%"
+      total_tasks: "%EC_TOTAL_TASKS:1%"
+      tasks_per_node: "%EC_TASKS_PER_NODE:1%"
+      enable_hyperthreading: "no"
+    slurm_keywords_mapping:
+      queue: '--qos='
+      job_name: '--job-name='
+      total_tasks: '--ntasks='
+      total_nodes: '--nodes='
+      cpus_per_task: '--cpus-per-task='
+      tasks_per_node: '--ntasks-per-node='
+      threads_per_core: '--threads-per-core='
+      memory_per_cpu: '--mem-per-cpu='
+      billing_account: '--account='
+      working_dir: '--chdir='
+      time: '--time='
+      output: '--output='
+      error: '--error='
+      priority: '--priority='
+      tmpdir_size: '--gres=ssdtmp:'
+      sthost: '--export=STHOST='
+      hint:  '--hint='
+      distribution:  '--distribution='

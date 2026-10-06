@@ -1,0 +1,108 @@
+{% raw %}
+DESCRIPTION
+
+  ecFlow Suite:  {{ suite }}
+
+  The  {{ suite }} suite orchestrates hourly ingestion of satellite radiance files,
+  applies quality control, calibrates the data, and generates level-2
+  brightness-temperature products. Input files arrive in an S3 bucket and are
+  staged into /data/ {{ suite }}/YYYYMMDD_HH.
+
+  The workflow is fully restart-safe: each task checks for pre-existing
+  artefacts and regenerates only what is missing. You can kill and rerun the
+  suite at any point without risking data corruption.
+
+  WORKFLOW OVERVIEW
+    (stage_in  -->  qc  -->  calibration  -->  product_gen  -->  publish)
+
+  Each stage records provenance metadata and updates a "heartbeat" label that
+  downstream monitoring tools read for live status.
+
+DEPENDENCY
+
+  • *stage_in* must complete before *qc* starts; all downstream tasks wait on
+    *qc* success.  
+  • If you rerun *calibration* for a cycle, *product_gen* and *publish* for the
+    same cycle are automatically queued for rerun.  
+  • Never initiate a rerun while any *publish* task for the same cycle is still
+    active—duplicate uploads will result.  
+  • External trigger: *stage_in* waits until ≥ 3 satellite NetCDF files with
+    pattern *.nc are detected in the inbound S3 path.  
+  • The suite holds if the external service “sat-ingest-api” reports status
+    ≠ OK in the last 5 minutes.
+
+OPERATORS  (1st-line)
+
+  The primary documentation for operators is found in these ecFlow manual pages.
+  This documentation should include:
+    - Step-by-step instructions for common operational tasks.
+    - Troubleshooting guides for common issues.
+    - Contact information for 2nd-line support (link to on-call page).
+
+ANALYSTS  (2nd-line)
+
+  Analysts will find relevant documentation in both the ecFlow manual pages and
+  the repository README and code. This should include:
+    - Detailed descriptions of the suite''s functionality.
+    - Examples of typical analysis workflows.
+    - Troubleshooting guides for more-complex reruns and diagnosis of issues.
+    - Code snippets demonstrating how to interact with the suite programmatically.
+
+DEVELOPERS
+
+  Developers should refer to the repository README and code comments for
+  comprehensive documentation. This should cover:
+    - Code architecture and design principles.
+    - Guidelines for contributing to the codebase.
+    - Detailed comments within the code explaining complex logic and algorithms.
+
+SCIENTISTS
+
+  Scientists require a high-level description of the suite, which is documented
+  on a Confluence page. This should include:
+    - An overview of the suite''s purpose and capabilities.
+    - Descriptions of key scientific algorithms and models used.
+    - Links to relevant research papers and technical documentation.
+
+COMMON ERRORS
+  {% if task == 'dummy' %}
+  Missing satellite files
+    • Symptom: job log shows “No input files found for cycle …”.  
+    • Fix: verify upstream acquisition service, adjust WAIT_FOR_MIN_FILES, and
+      rerun *stage_in*.
+
+  Checksum mismatch in QC
+    • Symptom: stderr contains “MD5 mismatch for file …”.  
+    • Fix: mark the file as corrupt in the DB, rerun *stage_in* so the file is
+      re-downloaded, then rerun *qc*.
+
+  Calibration lookup table expired
+    • Symptom: *calibration* fails with “LUT date out of range”.  
+    • Fix: update the LUT path via SUITE_LUT_PATH variable, rerun *calibration*
+      and all downstream tasks.
+
+  Publish permission denied
+    • Symptom: *publish* stderr shows “403 Forbidden pushing to archive”.  
+    • Fix: refresh the OAuth token in vault, rerun *publish*.
+  {% else %}
+  🪦 --- unchartered territory --- 🪦 This is all in your expert analyst hands.
+  {% endif %}  
+
+ADDITIONAL RESOURCES
+
+  - Confluence overview page  
+      https://confluence.ecmwf.int/display/FORECAST/High-Level+Suite+Overview
+
+  - ecFlow operator manual  
+      https://confluence.ecmwf.int/display/ECFLOW/Operator+Handbook
+
+  - ECMWF user documentation portal  
+      https://confluence.ecmwf.int/display/UDOC/User+Documentation+Home
+
+  - Example JIRA tickets (integration issues)  
+      https://jira.ecmwf.int/browse/SYS-12345  
+      https://jira.ecmwf.int/browse/SYS-67890
+
+  - GitHub repository (dummy example)  
+      https://github.com/ecmwf/dummy-suite
+{% endraw %}
