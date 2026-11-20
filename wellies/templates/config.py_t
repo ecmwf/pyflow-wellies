@@ -1,15 +1,18 @@
-import os
+from pathlib import Path
 
 import wellies as wl
 
-ROOT_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-
+SUITE_DIR = Path(__file__).parent.as_posix()
+ROOT_DIR = Path(SUITE_DIR).parent.as_posix()
+SCRIPTS_DIR = Path(SUITE_DIR, "scripts").as_posix()
+NAME = Path(__file__).stem
 
 class Config:
     # Configuration templates global variables
     global_vars = {
         "ROOT": ROOT_DIR,
-        "NAME": os.path.splitext(os.path.basename(__file__))[0],
+        "NAME": NAME,
+        "SUITE_DIR": SUITE_DIR,
     }
 
     def __init__(self, args):
@@ -19,6 +22,7 @@ class Config:
             args.profiles,
             config_name=args.name,
             set_variables=args.set,
+            global_vars=self.global_vars,
         )
 
         # put everything from the yaml into class variables
