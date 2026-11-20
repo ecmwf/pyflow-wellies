@@ -2,19 +2,19 @@
 # For a complete list of options, see:
 # https://pyflow-wellies.readthedocs.io/latest/config/data_config/
 static_data:
-    git_sample:
-        type: git
-        source: git@github.com:ecmwf/earthkit.git
-        branch: develop
-    mars_sample:
-        type: mars
-        request:
-            "class": "od"
-            "type": "an"
-            "expver": "1"
-            "date": "20230930"
-            "time": "12"
-            "param": "t"
-            "levtype": "pressure level"
-            "levelist": [1000, 850, 700, 500]
-            "target": "t.grb"
+  git_sample:
+    type: git
+    source: git@github.com:ecmwf/earthkit.git
+    branch: develop
+  mars_sample:
+    type: mars
+    request:
+      "class": "od"
+      "type": "an"
+      "expver": "1"
+      "date": "20230930"
+      "time": "12"
+      "param": "t"
+      "levtype": "pressure level"
+      "levelist": [1000, 850, 700, 500]
+      "target": "t.grb"

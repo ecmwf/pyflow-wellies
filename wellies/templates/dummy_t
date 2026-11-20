@@ -1,0 +1,4 @@
+
+set -TEexuva -o pipefail +v
+
+python ${SRC_DIR}/${SUITE}/dummy.py

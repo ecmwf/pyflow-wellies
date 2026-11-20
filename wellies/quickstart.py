@@ -23,7 +23,7 @@ DEFAULTS = {
     "user": "{USER}",
     "author": pw_user.pw_gecos,
     "output_root": "{HOME}/output",
-    "deploy_root": "{HOME}/pyflow",
+    "deploy_root": "{HOME}/pyflow"
 }
 
 
@@ -106,6 +106,29 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         path.join(root_path, "profiles.yaml"),
         renderer.render("profiles.yaml_t", options),
     )
+    write_file(
+        path.join(root_path, "pyproject.toml"),
+        renderer.render("pyproject.toml_t", options),
+    )
+    write_file(
+        path.join(root_path, ".gitignore"),
+        renderer.render(".gitignore_t", options),
+    )
+    
+    #create launch.json for VSCode
+    vscode_dir = path.join(root_path, ".vscode")
+    os.makedirs(vscode_dir, exist_ok=True)
+    options['lib_dir'] = options.get('lib_dir', f"{out_root.replace('{name}', project).replace('{HOME}', os.environ['HOME']).replace('{PERM}', os.environ['PERM']).replace('{HPCPERM}', os.environ['HPCPERM'])}/local")
+    options['src_dir'] = options.get('src_dir', f"{out_root.replace('{name}', project).replace('{HOME}', '${env:HOME}').replace('{PERM}', '${env:PERM}').replace('{HPCPERM}', '${env:HPCPERM}')}/src")
+    options['suite_env'] = options.get('suite_env', 'suite_env')
+    write_file(
+        path.join(vscode_dir, "launch.json"),
+        renderer.render("launch.json_t", options),
+    )
+    write_file(
+        path.join(vscode_dir, "tasks.json"),
+        renderer.render("tasks.json_t", options),
+    )
 
     # create suite folder containing config.py and nodes.py
     suite_dir = path.join(root_path, project)
@@ -119,6 +142,38 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
         renderer.render("nodes.py_t", options),
     )
     write_file(path.join(suite_dir, "__init__.py"), "")  # empty __init__.py
+
+    # create snippets folder containing ecf stubs
+    snippets_dir = path.join(root_path, "snippets")
+    os.makedirs(snippets_dir, exist_ok=True)
+    write_file(
+        path.join(snippets_dir, "dummy"),
+        renderer.render("dummy_t", options),
+    )
+    write_file(
+        path.join(snippets_dir, "clean_init"),
+        renderer.render("clean_init_t", options),
+    )
+    write_file(
+        path.join(snippets_dir, "self_destruct"),
+        renderer.render("self_destruct_t", options),
+    )
+
+    # create src folder containing source files called in ecf scritps
+    src_dir = path.join(root_path, "src")
+    os.makedirs(src_dir, exist_ok=True)
+    write_file(
+        path.join(src_dir, "dummy.py"),
+        renderer.render("dummy.py_t", options),
+    )
+
+    # create manuals folder containing the suite manual
+    manuals_dir = path.join(root_path, "manuals")
+    os.makedirs(manuals_dir, exist_ok=True)
+    write_file(
+        path.join(manuals_dir, "generic.man_t"),
+        renderer.render("generic.man_t_t", options),
+    )
 
     # create config folder containing yaml files
     config_dir = path.join(root_path, "configs")
@@ -138,6 +193,10 @@ def start_project(options: Dict, overwrite: bool = False) -> None:
     write_file(
         path.join(config_dir, "data.yaml"),
         renderer.render("data.yaml_t", options),
+    )
+    write_file(
+        path.join(config_dir, "src.yaml"),
+        renderer.render("src.yaml_t", options),
     )
 
     # write test file
@@ -275,6 +334,7 @@ def main(argv: List[str] = sys.argv[1:]) -> int:
         r"\W", "_", options["project"]
     )  # can't have special characters in python module names
     options["profiles"] = '"profiles.yaml"'  # default profiles file
+    
     try:
         if "interactive" in options:
             ask_user(options)

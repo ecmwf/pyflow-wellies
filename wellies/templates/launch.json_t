@@ -1,0 +1,99 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "build setup",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "build setup"
+        },
+        {
+            "name": "build tests",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
+            "console": "integratedTerminal",
+            "postDebugTask": "build tests"
+        },
+        {
+            "name": "build scripts",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
+            "console": "integratedTerminal",
+            "postDebugTask": "build scripts"
+        },
+        {
+            "name": "build update",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
+            "console": "integratedTerminal",
+            "postDebugTask": "build update"
+        },
+        {
+            "name": "build replace",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/{{ project }}/__init__.py",
+            "console": "integratedTerminal",
+            "postDebugTask": "build replace"
+        },
+        {
+            "name": "debug deploy user",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "integratedTerminal",
+            "args": ["user"],
+            "justMyCode": false
+        },
+        {
+            "name": "debug deploy <profile>",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/deploy.py",
+            "console": "externalTerminal",
+            "args": ["${input:profileArg}"],
+            "justMyCode": false
+        },
+        {
+            "name": "dummy.py args",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/dummy.py",
+            "console": "integratedTerminal",
+            "args": ["${input:args}"],
+            "justMyCode": false
+        },
+        {
+            "name": "dummy.py args with suite_env",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "{{ lib_dir }}/{{ suite_env }}/bin/python",
+            "program": "{{ src_dir }}/{{ project }}/dummy.py",
+            "console": "integratedTerminal",
+            "args": ["${input:args}"],
+            "justMyCode": false
+        }
+    ],
+    "inputs": [
+        {
+            "id": "profileArg",
+            "type": "promptString",
+            "description": "Enter argument for source build.sh *",
+            "default": "user"
+        },
+        {
+            "id": "args",
+            "type": "promptString",
+            "description": "Enter argument for dummy.py",
+            "default": ""
+        }
+    ]
+}

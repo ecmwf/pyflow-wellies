@@ -1,0 +1,9 @@
+
+set -TEexuva -o pipefail +v
+
+# clean up wellies build dir as the last package to be installed and can be cleaned
+# (WARNING: check no pip install -e is used in any other installer)
+rm -rf $LIB_DIR/build $LIB_DIR/git $DATA_DIR/git $SRC_DIR/git
+
+cd $LIB_DIR/../..
+/usr/bin/tree -L 5

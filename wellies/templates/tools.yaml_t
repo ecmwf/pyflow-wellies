@@ -14,18 +14,31 @@ tools:
     ecmwf-toolbox:
       version: $MODULES_VERSION
       depends: [python]
+    ecflow:
+      version: $MODULES_VERSION
 
   # ---------- Extra installables -----------------------------------------------
   packages:
+    xarray:
+      type: custom
+      post_script: "python -m pip install xarray"
     earthkit:
       type: git
       source: git@github.com:ecmwf/earthkit-data.git
       branch: develop
-      post_script: "pip install . --no-deps"
+      post_script: "python -m pip install . --no-deps"
 
   # --------Virtual envs --------------------------------------------------
   environments:
       suite_env:
           type: system_venv
           depends: [python, ecmwf-toolbox]
-          packages: [earthkit]
+          packages: [earthkit, xarray]
+
+  # --------Environment variables -----------------------------------------
+  env_variables:
+    ps4:
+      variable: PS4
+      {% raw %}
+      value: '"[ \D{{%Y-%m-%dT%H:%M:%S}} | L$LINENO ] --> "'
+      {% endraw %}
